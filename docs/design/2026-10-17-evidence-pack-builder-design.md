@@ -1,7 +1,7 @@
 # ProbeMatrix Evidence Pack Builder: Design
 
 **Date:** 2026-10-17
-**Status:** Approved by the owner, 2026-10-17. §8.4 amended the same day after a re-check of the importer (see "Importer re-check" in §8.4).
+**Status:** Approved by the owner, 2026-10-17. §8.4 amended the same day after a re-check of the importer (see "Importer re-check" in §8.4), and amended again after project research (§20, which wins over earlier sections).
 **Next step:** development runs under GSD, driven by [`docs/GSD-KICKOFF.md`](../GSD-KICKOFF.md), in the build order in §17.
 **Repository:** `probematrix-evidence-pack-builder` (new, standalone, open source, MIT). It starts as a subfolder of the ProbeMatrix checkout (git-excluded there) and is initialised as its own git repository.
 
@@ -32,7 +32,7 @@ This plugin turns a folder of raw incident material into a high-fidelity, citati
 7. **Run incrementally:** a persistent workspace state and a human-readable `INDEX.md`, where each run processes only new or changed inputs and emits a delta pack (§6, §12).
 8. **Always de-identify** people, with no opt-out (§13).
 9. **Work the same way on Claude Code, Cowork and Codex**, with all deterministic work in one Python CLI so behaviour doesn't drift between hosts.
-10. **Run locally:** conversion uses local open-source tools only. Evidence never leaves the machine unless the user explicitly runs the optional web-snapshot step, which only *fetches* public pages.
+10. **Run locally:** conversion uses local open-source tools only. The agent reads excerpts, which are sent to the AI host's model provider under that host's terms; nothing else leaves the machine unless the user explicitly runs the optional web-snapshot step, which only *fetches* public pages. (Amended 2026-10-17, see §20 A1.)
 
 ### Non-goals
 - Performing the investigation: no HFACS classification, no root-cause analysis, no recommendations. That is ProbeMatrix's job.
@@ -628,3 +628,26 @@ GPS EXIF is stripped from anything rendered. Faces in images are never described
 - Starter tag vocabulary contents beyond the facets listed.
 - Wording of SKILL.md files, within the rules above.
 - Whether `docling` becomes default once its install footprint is acceptable.
+
+## 20. Amendments after project research (owner decisions, 2026-10-17)
+
+Project research (`.planning/research/SUMMARY.md`, "Owner Decisions Needed") raised points where the design was wrong, incomplete or out of date. The owner decided each one. **This section wins over any earlier section it contradicts.** The OD numbers refer to that summary.
+
+| # | Decision | Amends |
+|---|---|---|
+| A1 (OD-01) | **Locality wording.** Conversion is local. The agent's excerpts go to the AI host's model provider. `init` and `doctor` warn when the case folder is inside a known sync folder (OneDrive, Dropbox, iCloud Drive, Google Drive), because `.epb/private/` would be uploaded. README and the user manual say this in plain language. | §2 goal 10, §4 |
+| A2 (OD-02) | **`.epb/.gitignore` ignores all raw-text state:** `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/`, `private/`. Only de-identified or structural files stay trackable (`case.yaml`, `rosters/`, `items/`, `conflicts.yaml`, `coverage.json`, `state.json`). `deid-scan` also covers `runs/*/run.json`. | §6 rules, §13.5 |
+| A3 | **No published samples.** The repo ships the plugin only: no `samples/` folder and no `tools/make-sample.py`. The regression benchmark on the bundled reference report runs in a scratch, git-ignored folder; results are reported in phase verification and nothing is committed. The synthetic incident remains the worked example. | §5, §13.5 (last bullet), §16, §17 step 10, §18 |
+| A4 (OD-03) | **Plugin in a `plugin/` subfolder.** Everything users install (`.claude-plugin/plugin.json`, `skills/`, the CLI package, `AGENTS.md`, requirements files) lives under `plugin/`. The repo root keeps README, LICENSE, `docs/`, `tests/`, `evals/`, `tools/` and the marketplace file with `source: "./plugin"`. Install commands are unchanged. | §5 |
+| A5 (OD-04) | **Python 3.11+** (3.10 reached end of life on 2026-10-01). | §15.3, §18 |
+| A6 (OD-05) | **Two-week dependency rule with a security exception.** A release that fixes a published advisory in a parser of untrusted input may be adopted earlier after review, recorded in an exceptions list that CI checks. `pypdf>=6.19.0`. Every PDF is parsed in a separate process with time and memory limits; a failure marks only that input `unprocessed`. | §18; kickoff §7 |
+| A7 (OD-06) | **Core dependencies add** `jsonschema`, `lxml>=6.1.0`, `defusedxml` and `charset-normalizer`. Word tracked changes are read from the XML, not from `paragraph.text`. | §5 requirements.txt, §7.2 |
+| A8 (OD-07) | **Guided one-time setup.** The user installs Python once (manual, per OS). `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable interpreter (`py -3` on Windows, `python3`/`python` elsewhere; never assumes `python3`), creates a private environment in the plugin's per-user data folder, installs the core packages, and reports in plain language what is ready and what is optional. Skills launch the CLI from that environment by absolute path. | §15.2, §15.3 |
+| A9 (OD-08) | **CI runs Linux only for v0.1.0.** Code stays cross-platform (pathlib, no runtime symlinks, Windows-safe file replacement), but Windows and macOS CI and fresh-machine testing come **after** v0.1.0. The manual's Windows and macOS sections are marked "not yet tested on this system" until then. | §15.3, §16 CI |
+| A10 (OD-09) | **Smoke import in Phase 1.** Phase 1 produces a small synthetic edge-case workbook (a Description beginning with `=`, a `0` value, a long numeric ID, a `YYYY-MM` date, multi-entry Tags and Linked Equipment, every QA Status value) that the owner imports into a test incident. | §17 step 1 |
+| A11 (OD-10) | **Exit code 4** = internal or environment problem (crash, lock timeout, workspace newer than the plugin), with a stable error code in the JSON. Skills tell the agent to report it, never to edit evidence in response. | §15.2 |
+| A12 (OD-11) | **Added CLI verbs:** `sources set`, `sections tag`, `coverage omit`, `items update`, `items remove`, roster and name-map input from a file or stdin (never names on the command line), and `run` (executes the due deterministic stages and returns a `next` list). | §15.2 |
+| A13 (OD-12) | **Page citations:** per source, the plugin decides once which numbering applies. Reliably detected printed numbers are cited as `p.12` / `pp.16–17`; otherwise the physical page is cited as `PDF p.12`. Annexes that restart numbering use their label (`Annex B p.3`). Never mixed within one source. | §7.3, §8.4 Source |
+| A14 | **Non-technical user manual.** v0.1.0 ships a detailed manual for non-technical users covering installation and use on Windows, macOS and Linux: installing Python and the optional tools, installing the plugin in Claude Code, Cowork and Codex, first setup, a first case folder, importing into ProbeMatrix, and troubleshooting, with exact on-screen text. It is started in Phase 1 and extended in each phase that adds tools. | §5 docs, §17 |
+
+The remaining research items (OD-13 to OD-37) are decided in the discussion of the phase they affect.

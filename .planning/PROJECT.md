@@ -44,7 +44,8 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 - [ ] Scanned PDF OCR with confidence propagation, and multi-language support (§7.2, §13.3a)
 - [ ] Media: audio and video transcription, keyframes, CCTV overlay OCR, images with GPS stripped, sidecar notes (§7.2, §7.5)
 - [ ] Optional web snapshot into `inputs/web/` (§7.9)
-- [ ] Seven skills plus one CLI (`epb.py`), packaging for Claude Code, Cowork and Codex, evals, a public sample, docs, a CI matrix and the v0.1.0 release (§5, §15–§17)
+- [ ] Seven skills plus one CLI (`epb.py`), packaged in `plugin/` for Claude Code, Cowork and Codex, with guided one-time setup (`doctor --setup`), evals, docs, Linux CI and the v0.1.0 release (§5, §15–§17, §20 A4/A8/A9)
+- [ ] Detailed user manual for non-technical users: install and use on Windows, macOS and Linux, started in Phase 1 and extended per phase (§20 A14)
 
 ### Out of Scope
 
@@ -56,6 +57,9 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 - An opt-out for de-identification or for the conclusions rule. Both are always on (§4, §11.3).
 - Copying prototype code or real-incident prose. The build is clean-room (§4, §16).
 - Speaker diarisation by default. `pyannote` is optional because its model needs a licence acceptance (§7.2).
+- Published samples (`samples/`, `make-sample.py`). The repo ships the plugin only; benchmarks run in scratch folders (§20 A3).
+- Windows and macOS CI and fresh-machine testing for v0.1.0. Code stays cross-platform, and the testing follows after v0.1.0 (§20 A9).
+- Anything in the parent ProbeMatrix checkout or other repos. This repo is separate; the parent is read-only reference (importer format, prototype ideas) and is never modified or depended on.
 
 ## Context
 
@@ -71,9 +75,10 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 
 ## Constraints
 
-- **Tech stack:** Python 3.10+ for the whole package, `pathlib` everywhere, Windows, macOS and Linux. One CLI with `--json` output and exit codes 0, 1, 2 and 3 (§15.2). Why: identical behaviour across all three hosts.
+- **Tech stack:** Python 3.11+ for the whole package (§20 A5), `pathlib` everywhere, Windows, macOS and Linux. One CLI with `--json` output and exit codes 0, 1, 2 and 3 (§15.2). Why: identical behaviour across all three hosts.
 - **Dependencies:** core dependencies must be permissive. GPL `extract-msg` is an optional extra only. Pin minimum versions, use no dependency younger than two weeks, and keep optional extras in separate requirements files (§18, kickoff §7). Why: MIT licence.
-- **Locality:** conversion uses only local open-source tools, detected at runtime and reported by `doctor`. A missing tool marks inputs `unprocessed` and never fails a run (§4, §7.2). Why: evidence never leaves the machine.
+- **Locality:** conversion uses only local open-source tools, detected at runtime and reported by `doctor`. A missing tool marks inputs `unprocessed` and never fails a run (§4, §7.2). The agent's excerpts go to the AI host's model provider, and `init`/`doctor` warn about case folders inside sync folders (§20 A1). Why: no cloud conversion, and an honest privacy statement.
+- **Audience:** end users may be non-technical. Setup, error messages and the manual must work for someone who has never used a terminal (§20 A8, A14).
 - **Clean-room:** no prototype code and no real-incident prose. All worked examples, fixtures and tests are synthetic (§4, §16). Why: this stops the invented-quote defect, DEF-01, from coming back.
 - **Content gates:**
   - zero invented quotes
@@ -106,6 +111,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 | Clean-room relative to the prototype | Prevents copied invented prose (DEF-01) | — Pending |
 | Design approved 2026-10-17; §8.4 amended after an importer re-check | Requirements must trace to a correct spec | ✓ Good |
 | Branch per phase, `--no-ff` merge after verification | Main holds only verified work | — Pending |
+| Post-research amendments A1–A14 (design §20): locality wording, `.epb` ignores, no samples, `plugin/` subfolder, Python 3.11+, security exception to two-week rule, four added core deps, guided setup, Linux-only CI for v0.1.0, Phase 1 smoke import, exit code 4, added CLI verbs, page-citation scheme, non-technical manual | Research findings; owner decided each one | — Pending |
 
 ## Evolution
 
