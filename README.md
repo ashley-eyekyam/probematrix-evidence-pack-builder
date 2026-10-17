@@ -9,3 +9,8 @@ It keeps the pack current as new evidence arrives.
 
 - Design: [`docs/design/2026-10-17-evidence-pack-builder-design.md`](docs/design/2026-10-17-evidence-pack-builder-design.md)
 - Study material behind the design: [`docs/reference/hazira-2020/`](docs/reference/hazira-2020/README.md)
+
+## Licence
+
+MIT, see [`LICENSE`](LICENSE). The bundled official report in `docs/reference/` remains the publisher's document
+and is included unmodified for reference.
