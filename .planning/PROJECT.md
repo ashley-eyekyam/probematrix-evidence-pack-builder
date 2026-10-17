@@ -93,6 +93,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
   Why: these are product requirements (kickoff §6).
 - **Skills:** each SKILL.md is about 150 lines or fewer. Shared rules live in `plugin/skills/evidence-pack/references/` (§5, §20 A4).
 - **Tests:** pytest and ruff. Tests use no network. Tests for optional tools skip cleanly when the tool is absent. Fixtures are generated at test time where practical (kickoff §7).
+- **Developer instructions:** the repo-root `AGENTS.md` and `CLAUDE.md` are exact mirrors, regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least every phase transition), committed together, and checked by a CI test (§20 A15).
 - **Process:** one question at a time. Every UAT has numbered step-by-step procedures. Quality outranks token or API cost. Branch per phase (`phase-NN-<slug>`), merged to main with `--no-ff` only after the phase is verified.
 
 ## Key Decisions
@@ -111,7 +112,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 | Clean-room relative to the prototype | Prevents copied invented prose (DEF-01) | — Pending |
 | Design approved 2026-10-17; §8.4 amended after an importer re-check | Requirements must trace to a correct spec | ✓ Good |
 | Branch per phase, `--no-ff` merge after verification | Main holds only verified work | — Pending |
-| Post-research amendments A1–A14 (design §20): locality wording, `.epb` ignores, no samples, `plugin/` subfolder, Python 3.11+, security exception to two-week rule, four added core deps, guided setup, Linux-only CI for v0.1.0, Phase 1 smoke import, exit code 4, added CLI verbs, page-citation scheme, non-technical manual | Research findings; owner decided each one | — Pending |
+| Post-research amendments A1–A15 (design §20): mirrored AGENTS.md and CLAUDE.md, locality wording, `.epb` ignores, no samples, `plugin/` subfolder, Python 3.11+, security exception to two-week rule, four added core deps, guided setup, Linux-only CI for v0.1.0, Phase 1 smoke import, exit code 4, added CLI verbs, page-citation scheme, non-technical manual | Research findings; owner decided each one | — Pending |
 
 ## Evolution
 

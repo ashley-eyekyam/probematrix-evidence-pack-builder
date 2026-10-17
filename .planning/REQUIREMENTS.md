@@ -236,6 +236,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`. GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
 - [ ] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
 - [ ] **PKG-10**: The plugin installs through `/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder` plus `/plugin install` on Claude Code, through Cowork's plugin upload, and on Codex through its supported route. (§15.3, kickoff §11)
+- [ ] **PKG-11**: The repo-root `AGENTS.md` and `CLAUDE.md` are exact copies of each other, holding the developer instructions. They are regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least at every phase transition), and a CI test fails if they differ. (§20 A15)
 
 ### Documentation (DOC)
 
@@ -470,6 +471,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | PKG-08 | Phase 1 | Pending |
 | PKG-09 | Phase 1 | Pending |
 | PKG-10 | Phase 10 | Pending |
+| PKG-11 | Phase 1 | Pending |
 | DOC-01 | Phase 10 | Pending |
 | DOC-02 | Phase 6 | Pending |
 | DOC-03 | Phase 10 | Pending |
@@ -487,11 +489,11 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | TST-08 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 153 total
-- Mapped to phases: 153
+- v1 requirements: 154 total
+- Mapped to phases: 154
 - Unmapped: 0
-- Per phase: Phase 1: 26, Phase 2: 24, Phase 3: 11, Phase 4: 14, Phase 5: 39, Phase 6: 12, Phase 7: 5, Phase 8: 10, Phase 9: 5, Phase 10: 7
+- Per phase: Phase 1: 27, Phase 2: 24, Phase 3: 11, Phase 4: 14, Phase 5: 39, Phase 6: 12, Phase 7: 5, Phase 8: 10, Phase 9: 5, Phase 10: 7
 
 ---
 *Requirements defined: 2026-10-17*
-*Last updated: 2026-10-17 after roadmap creation (traceability filled)*
+*Last updated: 2026-10-17 after roadmap creation (traceability filled); PKG-11 added (design §20 A15)*

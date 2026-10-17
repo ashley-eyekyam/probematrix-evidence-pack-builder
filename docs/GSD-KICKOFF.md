@@ -11,7 +11,7 @@
 >
 > Everything below the line is the prompt. It's written to the agent running GSD.
 >
-> **Superseded in part (2026-10-17):** owner decisions after project research are recorded in design §20 (A1–A14) and override this brief where they differ. In particular: no public sample (§5 Phase 10 and §8 "public sample" are dropped), Python 3.11+, the plugin lives in `plugin/`, CI is Linux-only for v0.1.0, a Phase 1 smoke import is added, and a non-technical user manual for Windows, macOS and Linux is a release deliverable.
+> **Superseded in part (2026-10-17):** owner decisions after project research are recorded in design §20 (A1–A15) and override this brief where they differ. In particular: no public sample (§5 Phase 10 and §8 "public sample" are dropped), Python 3.11+, the plugin lives in `plugin/`, CI is Linux-only for v0.1.0, a Phase 1 smoke import is added, a non-technical user manual for Windows, macOS and Linux is a release deliverable, and the repo-root `AGENTS.md` and `CLAUDE.md` are exact mirrors kept current (A15), replacing the one-line `CLAUDE.md` of §10 step 4.
 
 ---
 

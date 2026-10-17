@@ -1,3 +1,9 @@
+# ProbeMatrix Evidence Pack Builder: developer instructions
+
+**Mirror rule.** `AGENTS.md` and `CLAUDE.md` at the repo root are exact copies of each other, so Claude Code and Codex developers get the same instructions. Keep them current: whenever `.planning/PROJECT.md`, the roadmap, the stack or a workflow rule changes (at minimum at every phase transition), regenerate `CLAUDE.md` with `gsd-tools query generate-claude-md --output CLAUDE.md`, then copy it byte-for-byte to `AGENTS.md`, and commit both together. Never edit one without the other. A test fails if they differ (requirement PKG-11). Edit only outside the `<!-- GSD:... -->` markers by hand; the marked sections are generated.
+
+These are instructions for developing this repo. The plugin's own rules for end users' agents live in `plugin/AGENTS.md`, which is not part of this pair. This repo is standalone: the parent ProbeMatrix checkout is read-only reference and is never modified.
+
 <!-- GSD:project-start source:PROJECT.md -->
 
 ## Project
@@ -36,6 +42,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
   Why: these are product requirements (kickoff §6).
 - **Skills:** each SKILL.md is about 150 lines or fewer. Shared rules live in `plugin/skills/evidence-pack/references/` (§5, §20 A4).
 - **Tests:** pytest and ruff. Tests use no network. Tests for optional tools skip cleanly when the tool is absent. Fixtures are generated at test time where practical (kickoff §7).
+- **Developer instructions:** the repo-root `AGENTS.md` and `CLAUDE.md` are exact mirrors, regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least every phase transition), committed together, and checked by a CI test (§20 A15).
 - **Process:** one question at a time. Every UAT has numbered step-by-step procedures. Quality outranks token or API cost. Branch per phase (`phase-NN-<slug>`), merged to main with `--no-ff` only after the phase is verified.
 
 <!-- GSD:project-end -->
