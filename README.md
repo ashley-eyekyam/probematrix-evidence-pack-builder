@@ -8,6 +8,7 @@ It keeps the pack current as new evidence arrives.
 **Status:** design stage. No code yet.
 
 - Design: [`docs/design/2026-10-17-evidence-pack-builder-design.md`](docs/design/2026-10-17-evidence-pack-builder-design.md)
+- GSD kickoff prompt for development: [`docs/GSD-KICKOFF.md`](docs/GSD-KICKOFF.md)
 - Study material behind the design: [`docs/reference/hazira-2020/`](docs/reference/hazira-2020/README.md)
 
 ## Licence
