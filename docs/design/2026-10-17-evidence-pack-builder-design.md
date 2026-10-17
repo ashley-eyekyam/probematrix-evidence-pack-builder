@@ -1,8 +1,8 @@
 # ProbeMatrix Evidence Pack Builder: Design
 
 **Date:** 2026-10-17
-**Status:** Design for review, not yet approved.
-**Next step after approval:** turn this document into the plugin using `/skill-creator:skill-creator`, one skill at a time, in the build order in §17.
+**Status:** Approved by the owner, 2026-10-17. §8.4 amended the same day after a re-check of the importer (see "Importer re-check" in §8.4).
+**Next step:** development runs under GSD, driven by [`docs/GSD-KICKOFF.md`](../GSD-KICKOFF.md), in the build order in §17.
 **Repository:** `probematrix-evidence-pack-builder` (new, standalone, open source, MIT). It starts as a subfolder of the ProbeMatrix checkout (git-excluded there) and is initialised as its own git repository.
 
 ---
@@ -339,7 +339,7 @@ The importer was read directly (ProbeMatrix `server/services/evidenceExportServi
 
 | Column | Filled from | Rule |
 |---|---|---|
-| Evidence ID | item.id | `EVD-<PFX>-<NNN>`, stable across versions; numbering continues in deltas |
+| Evidence ID | item.id | `EVD-<PFX>-<NNN>`, stable across versions inside the workspace; numbering continues in deltas. **Discarded by ProbeMatrix on import** (it assigns a fresh `EVD-NNNN`), so it is a workspace and human-navigation key only |
 | Type | item.type | §9 |
 | Description | item.description | §9.4. No IDs or row numbers in prose |
 | Priority | item.priority | rubric §9.3 |
@@ -370,6 +370,23 @@ The importer was read directly (ProbeMatrix `server/services/evidenceExportServi
 **Pack Metadata** sheet, exact 10-row layout: `Incident Number` = case number from `case.yaml` (user-supplied, or `INC-<PFX>-<year>`), `Incident Title` = case title, `Total Evidence Items` = items *in this file*, `Total Attachments` = 0. Rows 7–9 carry the importer's standard notes. **Additional informational rows are not added** (the importer reads by position). Version and source information goes in the file name and `INDEX.md`.
 
 **No meta-items:** the source documents themselves are never evidence items (D17).
+
+**Importer re-check (2026-10-17).** A second, line-by-line read of the importer (`server/services/evidenceExportService.ts`, the import route in `server/routes.ts`, `shared/schema.ts`, and the analyser prompt in `server/services/analysis.ts`) corrects and extends the paragraph above. Where they disagree, this block wins. The builder's validator is **stricter** than the importer wherever the importer is lax.
+1. **Evidence ID is required as a header but its value is never read.** The import route assigns a new random `EVD-NNNN` to every row (routes.ts l.67–70, 718–720), and the analyser shows that new ID. Only `Evidence Tag` survives.
+2. **Collision handling lives in the route, not the service.** Nothing is deduplicated by content. A tag colliding with the incident's existing tags or another row in the file gets `-IMP1`, `-IMP2`… with a warning (routes.ts l.656–712). Re-importing a file therefore duplicates every item, and the duplicates' `Related Evidence` still points at the *original* tags. This is another reason a workbook is never re-imported (§12).
+3. **Enums are not validated by the importer.** `QA Status` and `Retention Category` are stored as raw strings with no lowercasing (l.382–401). The builder must emit the exact lowercase enum values, and the validator rejects anything else.
+4. **Type, Priority and Analysis Status are normalised, not rejected.** Type is lowercased with spaces turned into `_`, and the other two are lowercased. Unknown values silently become `other`, `medium` or `pending` with a warning (l.325–345). The validator treats any non-exact value as a hard error.
+5. **Whole-file rejection** happens if the `Pack Metadata` sheet is missing or empty, the marker in row 1 column B is not `EVIDENCE_PACK_V2` (`V1` is accepted with a warning), the `Evidence Pack` sheet is missing, any required header is missing (l.259–307), or **any row has a blank Description** (l.330–333, 427; route l.648–653).
+6. **Rows with a blank Type are skipped silently** (l.320). The validator rejects them.
+7. **Headers are matched by name, not position** (l.309–312). Only metadata row 1 column B is read (l.267). The builder still writes the exact header order, widths and 10-row metadata layout, so a pack stays byte-comparable with ProbeMatrix's own exports.
+8. **Every cell is read through `String(...)`.** Dates, hashes, IDs and anything numeric-looking must be written as **text cells**, or a date imports as an Excel serial number.
+9. **Created At and Updated At are not read** (the database default is used). They are still written for human reference. **Retention Until maps to `disposal_date`** (l.383, 400).
+10. **Malformed Chain of Custody JSON only raises a warning**, and its shape is not checked (l.367–375). The validator checks it against `ChainOfCustodyEntry` (`timestamp`, `transferred_from`, `transferred_to` and `received_by` required).
+11. **The analyser line is `[ID] (type, Priority: p)`**, and a Description cut at 2,000 characters ends with `…` (analysis.ts l.65, 254–261). The 1,800-character hard limit stands.
+12. **Allowed values:** Type is `witness_statement, photograph, document, log_record, recording, physical_item, lab_report, other`. Priority is `critical, high, medium, low`. Analysis Status is `analyzed, pending, requires_followup`.
+13. **The `Attachments Manifest` sheet** is written by the exporter and ignored by the importer. The builder writes it with headers only, matching `Total Attachments = 0`.
+
+Line numbers are as of the 2026-10-17 check. `references/evidence-pack-v2.md` records the check date and is re-verified against the importer whenever the format module changes.
 
 ### 8.5 Format module
 `scripts/epb/formats/probematrix_v2.py` owns headers, column widths (copied from the exporter), enums, list separators and the 10-row metadata layout. The validator mirrors the importer's checks exactly. `references/evidence-pack-v2.md` documents it with the date it was last checked against the importer. A `formats/` seam allows a future V3 without touching the pipeline.
