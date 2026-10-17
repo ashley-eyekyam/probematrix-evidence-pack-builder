@@ -970,22 +970,22 @@ Subprocess tests don't inherit the monkeypatch. Only spawn `epb` (which makes no
 | A12 | GitHub task-list ticks render as checkboxes in common editors | Pattern 7 | Cosmetic; parser tolerant anyway |
 | A13 | pip resolves nested `-r plugin/requirements.txt` relative to the including file | Pattern 12 | Trivially testable in Wave 0 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Q1. Does the two-week rule apply to end-user installs (`doctor --setup`)?**
+1. **Q1. Does the two-week rule apply to end-user installs (`doctor --setup`)?** **RESOLVED:** Owner decision D-18 (setup uses the same cutoff plus a reviewed exceptions file); plans 01-05, 01-10. 
    - What we know: A6 and PKG-09 describe a CI check. D-11 says "minimum pins, resolved at install". pip ≥26.1 supports the cutoff (verified).
    - What's unclear: whether users should get "newest" or "≥14 days old". With the cutoff, security exceptions (e.g. pypdf 6.21.1, uploaded 2026-10-17) need a second install step.
    - Recommendation: apply `--uploaded-prior-to P14D` in `doctor --setup` for parity with CI, then install reviewed exception pins from a small shipped file. Ask the owner (one question).
-2. **Q2. What status does a scanned but not-yet-converted source show?** The §6.1 vocabulary has no "pending". Recommend adding `pending` to the source status enum in the Phase 1 schema, rendered in INDEX as "waiting for conversion (coming in a later version)".
-3. **Q3. How does the validator treat a cell of exactly 32,767 characters?** Recommend an error (`CELL_PROBABLY_TRUNCATED`) on disk, because nothing the builder emits comes close (Descriptions are ≤1,800).
-4. **Q4. A known path whose content changes to equal another source's content.** Recommend "content wins" (the path joins the other source; the old source is marked removed if it has no paths left) and an explicit line in the scan report. This needs a sentence in the workspace contract.
-5. **Q5. How `plugin/AGENTS.md` reaches agents.** Recommend that the router SKILL.md points at `../../AGENTS.md`, and that `tools/install-codex.py` copies AGENTS.md into the copied skill folder. No committed mirror.
-6. **Q6. XDG.** D-03 fixes `~/.local/share/probematrix-epb/`. Should `$XDG_DATA_HOME` be honoured when set? Recommend no, to keep D-03 literal and the manual exact. Mention it in the manual.
-7. **Q7. Design correction.** Metadata notes are in rows 8–10, not 7–9. Add it to the D-10 amendments (A16+).
-8. **Q8. Exit code for a hand-edited, invalid `state.json`.** Prior architecture research said 1. Recommend 4 (`STATE_INVALID`), because exit 1 tells the agent to "fix content", and A11 frames workspace integrity as an environment problem.
-9. **Q9. Permissive extras in `requirements-dev.txt` now?** docling would bring torch into every CI run. Recommend: none until their phases. D-12's "only the permissive extras" is a restriction, not a mandate.
-10. **Q10. `tzdata` on Windows.** `zoneinfo` needs the `tzdata` package (Apache-2.0, 2026.5, uploaded 2026-10-03) on Windows, which has no system database. Recommend adding `tzdata; sys_platform == "win32"` to core (it is not in the PKG-08 list, so it needs owner confirmation), or skipping timezone validation on Windows.
-11. **Q11. Run numbering granularity.** Recommend that only pipeline-level commands (`init`, `scan`, later `run`/`build`) allocate a `runs/<NNN>/`, so INDEX run history stays readable.
+2. **Q2. What status does a scanned but not-yet-converted source show?** **RESOLVED:** Adopted: `pending` status rendered as waiting for conversion; plans 01-11, 01-13.  The §6.1 vocabulary has no "pending". Recommend adding `pending` to the source status enum in the Phase 1 schema, rendered in INDEX as "waiting for conversion (coming in a later version)".
+3. **Q3. How does the validator treat a cell of exactly 32,767 characters?** **RESOLVED:** Adopted: exactly 32,767 characters is rejected (`CELL_PROBABLY_TRUNCATED`); plan 01-04.  Recommend an error (`CELL_PROBABLY_TRUNCATED`) on disk, because nothing the builder emits comes close (Descriptions are ≤1,800).
+4. **Q4. A known path whose content changes to equal another source's content.** **RESOLVED:** Adopted: content wins, with a scan-report line; plan 01-14.  Recommend "content wins" (the path joins the other source; the old source is marked removed if it has no paths left) and an explicit line in the scan report. This needs a sentence in the workspace contract.
+5. **Q5. How `plugin/AGENTS.md` reaches agents.** **RESOLVED:** Adopted: router skill points to `../../AGENTS.md`, Codex installer copies it; plans 01-06, 01-15.  Recommend that the router SKILL.md points at `../../AGENTS.md`, and that `tools/install-codex.py` copies AGENTS.md into the copied skill folder. No committed mirror.
+6. **Q6. XDG.** **RESOLVED:** Adopted: no XDG lookup; plans 01-01, 01-03, 01-10.  D-03 fixes `~/.local/share/probematrix-epb/`. Should `$XDG_DATA_HOME` be honoured when set? Recommend no, to keep D-03 literal and the manual exact. Mention it in the manual.
+7. **Q7. Design correction.** **RESOLVED:** Adopted: amendment A29; plan 01-02.  Metadata notes are in rows 8–10, not 7–9. Add it to the D-10 amendments (A16+).
+8. **Q8. Exit code for a hand-edited, invalid `state.json`.** **RESOLVED:** Owner decision D-19 (exit 4, `STATE_INVALID`); plans 01-03, 01-07.  Prior architecture research said 1. Recommend 4 (`STATE_INVALID`), because exit 1 tells the agent to "fix content", and A11 frames workspace integrity as an environment problem.
+9. **Q9. Permissive extras in `requirements-dev.txt` now?** **RESOLVED:** Adopted: no extras in `requirements-dev.txt`; plan 01-01.  docling would bring torch into every CI run. Recommend: none until their phases. D-12's "only the permissive extras" is a restriction, not a mandate.
+10. **Q10. `tzdata` on Windows.** **RESOLVED:** Owner decision D-20 (add `tzdata; sys_platform == "win32"`); plans 01-01, 01-02.  `zoneinfo` needs the `tzdata` package (Apache-2.0, 2026.5, uploaded 2026-10-03) on Windows, which has no system database. Recommend adding `tzdata; sys_platform == "win32"` to core (it is not in the PKG-08 list, so it needs owner confirmation), or skipping timezone validation on Windows.
+11. **Q11. Run numbering granularity.** **RESOLVED:** Adopted: only `init` and `scan` create runs in Phase 1; plan 01-11.  Recommend that only pipeline-level commands (`init`, `scan`, later `run`/`build`) allocate a `runs/<NNN>/`, so INDEX run history stays readable.
 
 ## Environment Availability
 
