@@ -93,7 +93,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
   Why: these are product requirements (kickoff §6).
 - **Skills:** each SKILL.md is about 150 lines or fewer. Shared rules live in `plugin/skills/evidence-pack/references/` (§5, §20 A4).
 - **Tests:** pytest and ruff. Tests use no network. Tests for optional tools skip cleanly when the tool is absent. Fixtures are generated at test time where practical (kickoff §7).
-- **Developer instructions:** the repo-root `AGENTS.md` and `CLAUDE.md` are exact mirrors, regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least every phase transition), committed together, and checked by a CI test (§20 A15).
+- **Developer instructions:** the repo-root `AGENTS.md` and `CLAUDE.md` are exact mirrors, regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least every phase transition), committed together, and checked by a CI test. They are hand-maintained and concise: aim for 60 lines or fewer, never more than 150 (§20 A15).
 - **Process:** one question at a time. Every UAT has numbered step-by-step procedures. Quality outranks token or API cost. Branch per phase (`phase-NN-<slug>`), merged to main with `--no-ff` only after the phase is verified.
 
 ## Key Decisions
