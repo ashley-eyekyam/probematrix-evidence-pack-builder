@@ -38,35 +38,40 @@ created: "2026-10-17"
 
 ## Per-Task Verification Map
 
-The planner fills in task IDs. Each requirement's automated command is listed here.
+Task IDs filled in by the planner (2026-10-17). Commands run from the repo root with `.venv/bin/python -m pytest`. Paths that differ from the research draft: the stdlib-only bootstrap check lives in `tests/launcher/test_launcher.py`, the metadata-layout checks in `tests/formats/test_contract.py`, the git unit tests in `tests/doctor/test_gitcheck.py`, and init defaults in `tests/workspace/test_init_defaults.py`.
 
-| Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
-|-------------|----------|-----------|-------------------|-------------|--------|
-| WS-01 | init tree, case.yaml, state.json (registry/counters/chunks), .gitignore | integration | `pytest tests/workspace/test_init.py -x` | ❌ W0 | ⬜ pending |
-| WS-02 | fingerprint (sha256/size/MIME/mtime), `S001…`, junk ignored, symlinks ignored | integration | `pytest tests/sources/test_scan_fingerprint.py -x` | ❌ W0 | ⬜ pending |
-| WS-03 | new version `S004v2`, rename, duplicate, removed, content swap, case-only rename, NFD | integration | `pytest tests/sources/test_scan_classify.py -x` | ❌ W0 | ⬜ pending |
-| WS-04 | sidecar pairing and hashing; orphan sidecar reported | integration | `pytest tests/sources/test_sidecars.py -x` | ❌ W0 | ⬜ pending |
-| WS-06 / TST-07 | crash at every checkpoint then resume; no tmp left; no ID reuse | subprocess | `pytest tests/store/test_crash_resume.py -x` | ❌ W0 | ⬜ pending |
-| WS-07 | second mutating run waits; `LOCK_TIMEOUT` exit 4; read-only runs while locked | subprocess | `pytest tests/store/test_lock.py -x` | ❌ W0 | ⬜ pending |
-| WS-08 | invalid record refused; strict YAML keeps `12:30`/`0123`/`no` as text | unit | `pytest tests/core/test_yamlio.py tests/store/test_validate.py -x` | ❌ W0 | ⬜ pending |
-| WS-09 | INDEX six sections in order, "none yet" | unit + integration | `pytest tests/index/test_index.py -x` | ❌ W0 | ⬜ pending |
-| WS-11 | `.epb/.gitignore` exact list; git-tracking warning | integration | `pytest tests/workspace/test_git_warning.py -x` | ❌ W0 | ⬜ pending |
-| WS-12 | sync-folder warning (fake home/env) | unit | `pytest tests/doctor/test_syncfolders.py -x` | ❌ W0 | ⬜ pending |
-| WS-13 | state.json schema requires workbooks, counters, chunks | unit | `pytest tests/schemas/test_state_schema.py -x` | ❌ W0 | ⬜ pending |
-| BLD-01 | format constants equal the transcribed contract | unit | `pytest tests/formats/test_contract.py -x` | ❌ W0 | ⬜ pending |
-| BLD-02 | string-only cells, no `<f>`, inlineStr only, control chars removed | unit | `pytest tests/formats/test_writer.py -x` | ❌ W0 | ⬜ pending |
-| BLD-03 | validator rejection classes; minimal pack passes; prototype pack gives `LIST_FRAGMENT_UNBALANCED` | unit | `pytest tests/formats/test_validator.py -x` | ❌ W0 | ⬜ pending |
-| BLD-08 | metadata 10 rows exact; totals; attachments headers | unit | `pytest tests/formats/test_metadata.py -x` | ❌ W0 | ⬜ pending |
-| PKG-01 | manifests, marketplace `source: "./plugin"`, name/version parity | unit + optional CLI | `pytest tests/packaging/test_manifests.py -x` | ❌ W0 | ⬜ pending |
-| PKG-03 | `plugin/AGENTS.md` present with required rules | unit | `pytest tests/packaging/test_plugin_agents_md.py -x` | ❌ W0 | ⬜ pending |
-| PKG-05 | exit codes 0–4, `--json` error envelope | unit + subprocess | `pytest tests/cli/test_exit_codes.py -x` | ❌ W0 | ⬜ pending |
-| PKG-06 | stdlib-only launcher; `ENV_NOT_SET_UP`; re-exec into the env | unit + subprocess | `pytest tests/launcher -x` | ❌ W0 | ⬜ pending |
-| PKG-07 | doctor tool registry, versions, per-OS commands | unit | `pytest tests/doctor/test_probes.py -x` | ❌ W0 | ⬜ pending |
-| PKG-08 | requirements floors; extras licence headers; no GPL in core or dev | unit | `pytest tests/packaging/test_requirements.py -x` | ❌ W0 | ⬜ pending |
-| PKG-09 | dependency-age and licence-check logic | unit + CI step | `pytest tests/tools/test_dependency_checks.py -x` | ❌ W0 | ⬜ pending |
-| PKG-11 | root AGENTS.md == CLAUDE.md, ≤150 lines | unit | `pytest tests/repo/test_instructions_mirror.py -x` | ❌ W0 | ⬜ pending |
-| TST-01 | no-network guard; optional-tool skips | meta | `pytest tests/repo/test_no_network.py -x` | ❌ W0 | ⬜ pending |
-| DOC-04 / DOC-05 | manual chapters, privacy statement, "not yet tested on this system" | unit | `pytest tests/docs/test_manual.py -x` | ❌ W0 | ⬜ pending |
+| Requirement | Plan-Task | Behavior | Test Type | Automated Command | File Exists | Status |
+|-------------|-----------|----------|-----------|-------------------|-------------|--------|
+| WS-01 | 01-07 T1, 01-09 T1–T2, 01-11 T1 | init tree, case.yaml, state.json (registry/counters/chunks), .gitignore | integration | `pytest tests/workspace/test_init.py tests/workspace/test_init_defaults.py tests/workspace/test_layout.py -x` | ❌ W0 | ⬜ pending |
+| WS-02 | 01-13 T1–T2 | fingerprint (sha256/size/MIME/mtime), `S001…`, junk ignored, links ignored | integration | `pytest tests/sources/test_scan_fingerprint.py -x` | ❌ W0 | ⬜ pending |
+| WS-03 | 01-13 T1, 01-14 T1–T2 | new version `S004v2`, rename, duplicate, removed, content swap, case-only rename, NFD | integration | `pytest tests/sources/test_scan_classify.py -x` | ❌ W0 | ⬜ pending |
+| WS-04 | 01-14 T3 | sidecar pairing and hashing; orphan sidecar reported | integration | `pytest tests/sources/test_sidecars.py -x` | ❌ W0 | ⬜ pending |
+| WS-06 / TST-07 | 01-07 T1/T3, 01-12 T1, 01-14 T3 | crash at every checkpoint then resume; no tmp left; no ID reuse | subprocess | `pytest tests/store/test_validate.py tests/store/test_crash_resume.py -x` | ❌ W0 | ⬜ pending |
+| WS-07 | 01-12 T2 | second mutating run waits; `LOCK_TIMEOUT` exit 4; read-only runs while locked | subprocess | `pytest tests/store/test_lock.py -x` | ❌ W0 | ⬜ pending |
+| WS-08 | 01-07 T3, 01-09 T2 | invalid record refused; strict YAML keeps `12:30`/`0123`/`no` as text | unit | `pytest tests/core/test_yamlio.py tests/store/test_validate.py -x` | ❌ W0 | ⬜ pending |
+| WS-09 | 01-11 T1–T2 | INDEX six sections in order, "none yet" | unit + integration | `pytest tests/index/test_index.py -x` | ❌ W0 | ⬜ pending |
+| WS-11 | 01-08 T2, 01-11 T1/T3 | `.epb/.gitignore` exact list; git-tracking warning | integration | `pytest tests/doctor/test_gitcheck.py tests/workspace/test_git_warning.py -x` | ❌ W0 | ⬜ pending |
+| WS-12 | 01-08 T2, 01-11 T3 | sync-folder warning (fake home/env) | unit | `pytest tests/doctor/test_syncfolders.py tests/workspace/test_git_warning.py -x` | ❌ W0 | ⬜ pending |
+| WS-13 | 01-07 T2 | state.json schema requires workbooks, counters, chunks | unit | `pytest tests/schemas/test_state_schema.py -x` | ❌ W0 | ⬜ pending |
+| D-09 | 01-12 T3 | newer workspace exits 4; older upgrades with backup on mutating commands only | integration | `pytest tests/store/test_upgrade.py -x` | ❌ W0 | ⬜ pending |
+| D-13 | 01-13 T3 | magic bytes beat extension; mismatch recorded | unit | `pytest tests/core/test_mime.py -x` | ❌ W0 | ⬜ pending |
+| BLD-01 | 01-04 T1–T2, 01-15 T2 | format constants equal the transcribed contract; reference doc in step | unit | `pytest tests/formats/test_contract.py tests/packaging/test_references.py -x` | ❌ W0 | ⬜ pending |
+| BLD-02 | 01-04 T1 | string-only cells, no `<f>`, text cell types only, control chars removed | unit | `pytest tests/formats/test_writer.py -x` | ❌ W0 | ⬜ pending |
+| BLD-03 | 01-04 T2 | validator rejection classes; minimal pack passes; prototype pack gives `LIST_FRAGMENT_UNBALANCED` | unit | `pytest tests/formats/test_validator.py -x` | ❌ W0 | ⬜ pending |
+| BLD-08 | 01-04 T1–T2 | metadata 10 rows exact; totals; attachments headers | unit | `pytest tests/formats/test_contract.py tests/formats/test_writer.py -x` | ❌ W0 | ⬜ pending |
+| D-16 | 01-04 T3 | smoke pack builds, validates, checklist covers every A10 value | unit | `pytest tests/tools/test_smoke_pack.py -x` | ❌ W0 | ⬜ pending |
+| PKG-01 | 01-06 T1, 01-15 T1 | manifests, marketplace `source: "./plugin"`, name/version parity, isolated install | unit + opt-in CLI | `pytest tests/packaging/test_manifests.py -x` and `EPB_HOST_TESTS=1 pytest tests/packaging/test_host_install.py` | ❌ W0 | ⬜ pending |
+| PKG-01 (skill) | 01-15 T1 | SKILL.md lint | unit | `pytest tests/packaging/test_skill_lint.py -x` | ❌ W0 | ⬜ pending |
+| PKG-03 | 01-06 T2 | `plugin/AGENTS.md` present with required rules | unit | `pytest tests/packaging/test_plugin_agents_md.py -x` | ❌ W0 | ⬜ pending |
+| D-01 | 01-06 T3 | Codex fallback installer layout and safety | subprocess | `pytest tests/packaging/test_install_codex.py -x` | ❌ W0 | ⬜ pending |
+| PKG-05 | 01-03 T1, T3 | exit codes 0–4, `--json` error envelope | unit + subprocess | `pytest tests/cli/test_exit_codes.py -x` | ❌ W0 | ⬜ pending |
+| PKG-06 | 01-03 T2–T3, 01-10 T1–T2 | stdlib-only launcher; `ENV_NOT_SET_UP`; re-exec; setup | unit + subprocess | `pytest tests/launcher -x` and `EPB_NETWORK_TESTS=1 pytest tests/launcher/test_setup_real.py` | ❌ W0 | ⬜ pending |
+| PKG-07 | 01-08 T1 | doctor tool registry, versions, per-OS commands | unit | `pytest tests/doctor/test_probes.py -x` | ❌ W0 | ⬜ pending |
+| PKG-08 | 01-01 T1, T3 | requirements floors; extras licence headers; no GPL in core or dev | unit | `pytest tests/packaging/test_requirements.py -x` | ❌ W0 | ⬜ pending |
+| PKG-09 | 01-05 T1–T2 | dependency-age and licence-check logic | unit + CI step | `pytest tests/tools/test_dependency_checks.py -x` | ❌ W0 | ⬜ pending |
+| PKG-11 | 01-05 T3, 01-16 T3 | root AGENTS.md == CLAUDE.md, ≤150 lines | unit | `pytest tests/repo/test_instructions_mirror.py -x` | ❌ W0 | ⬜ pending |
+| TST-01 | 01-01 T3, 01-05 T3 | no-network guard; optional-tool skips | meta | `pytest tests/repo/test_no_network.py -x` | ❌ W0 | ⬜ pending |
+| DOC-04 / DOC-05 | 01-16 T1–T2 | manual chapters, privacy statement, "not yet tested on this system", golden doctor output | unit | `pytest tests/docs/test_manual.py -x` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
