@@ -30,6 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Foundations
+
 **Goal**: A user can set the plugin up once, create a case folder and inventory its inputs safely. The workbook format is proven against the real ProbeMatrix importer before any evidence logic exists.
 **Depends on**: Nothing (first phase)
 **Requirements**: WS-01, WS-02, WS-03, WS-04, WS-06, WS-07, WS-08, WS-09, WS-11, WS-12, WS-13, BLD-01, BLD-02, BLD-03, BLD-08, PKG-01, PKG-03, PKG-05, PKG-06, PKG-07, PKG-08, PKG-09, PKG-11, TST-01, TST-07, DOC-04, DOC-05
@@ -39,25 +40,42 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The validator passes a generated minimal pack. It fails the prototype reference pack on its comma-bearing list fragments (a structural check for DEF-14). It also rejects formulas, non-string cells, a blank Description or Type, non-exact enum values, cells over 32,767 characters and invalid Chain of Custody JSON.
   4. Owner smoke import: the owner imports the synthetic edge-case workbook into a ProbeMatrix test incident. The workbook contains a Description beginning with `=`, a `0` value, a long numeric ID, a `YYYY-MM` date, multi-entry Tags and Linked Equipment, and every QA Status value. The owner reports that every value shows exactly as written, that nothing became a formula, a number or a blank, and that list entries split into the expected separate entries.
   5. On Linux, the plugin installs into Claude Code from this repo's marketplace (`source: "./plugin"`). `epb doctor --setup`, launched through the standard-library-only `epb.py`, finds Python 3.11+, builds the private environment, installs the core packages and reports in plain language what is ready and what is optional. `epb doctor` lists every tool with its version, the input types it enables and per-OS install commands. `AGENTS.md` is in `plugin/`. Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green. The first edition of the user manual covers installing Python, adding the plugin to Claude Code, first-time setup and the plain-language privacy statement, with the Windows and macOS sections marked "not yet tested on this system". The repo-root `AGENTS.md` and `CLAUDE.md` are identical and concise (150 lines at most), and a CI test fails otherwise (PKG-11).
+
 **Plans**: 16 plans in 8 waves
 
 Plans:
+**Wave 1**
 - [ ] 01-01-PLAN.md — Dev toolchain, dependency manifests and the package-legitimacy checkpoint (wave 1)
 - [ ] 01-02-PLAN.md — Design amendments A16–A30 for the Phase 1 decisions (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-03-PLAN.md — CLI shell: stdlib launcher, envelope, exit codes 0–4 (wave 2)
 - [ ] 01-04-PLAN.md — Importer-exact workbook format, validator and smoke pack (wave 2)
 - [ ] 01-05-PLAN.md — Supply-chain checks and Linux CI (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-06-PLAN.md — Plugin manifests, plugin AGENTS.md and the Codex installer (wave 3)
 - [ ] 01-07-PLAN.md — `epb init` through the journalled, schema-validated store (wave 3)
 - [ ] 01-08-PLAN.md — `epb doctor`: tools, packages, sync-folder and git warnings (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 01-09-PLAN.md — Case settings: case.yaml, strict YAML, init defaults (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 01-10-PLAN.md — `epb doctor --setup`: the private environment (wave 5)
 - [ ] 01-11-PLAN.md — Complete case folder: layout, INDEX.md, runs, status, warnings (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 01-12-PLAN.md — Crash injection, lock and workspace upgrades (wave 6)
 - [ ] 01-13-PLAN.md — `epb scan`: fingerprints, classification core, MIME detection (wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 01-14-PLAN.md — Change detection corpus, sidecars and scan crash coverage (wave 7)
+
+**Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 01-15-PLAN.md — Router skill, references and host install checks (wave 8)
 - [ ] 01-16-PLAN.md — User manual first edition, mirrored instructions refresh, CI check (wave 8)
+
 **UAT**: `/gsd-verify-work 1` with numbered step-by-step procedures (kickoff §8): prerequisites, exact commands, fixture paths, and the exact pass/fail strings to look for. It includes the owner's smoke-import procedure: the exact workbook path, a new ProbeMatrix test incident, and a checklist comparing each edge-case value as written with how it is shown after import. The agent never claims the import worked; the owner reports it.
 **Defects addressed**: DEF-14 (structural list-fragment check only; the authoritative comma gate lands in Phases 4–5)
 **Phase-order fixes**: PF-01, PF-04, PF-05, PF-06, PF-07, PF-11 (expander seam), PF-13 (Linux-only per §20 A9), PF-16, PF-18, PF-20
@@ -65,6 +83,7 @@ Plans:
 **Research**: Recommended. Dependency delivery and the launcher contract (`doctor --setup`), and the Codex and Cowork packaging routes.
 
 ### Phase 2: Text intake + quote verifier
+
 **Goal**: Every supported text document in a case folder becomes frozen, page-anchored segments with a section map. Any quote can be checked verbatim against those segments, so an invented or altered quote is rejected before it can enter anything.
 **Depends on**: Phase 1
 **Requirements**: WS-05, INT-01, INT-02, INT-03, INT-04, INT-05, INT-06, INT-07, INT-08, INT-09, INT-10, INT-11, INT-12, INT-13, INT-14, INT-15, INT-16, QV-01, QV-02, QV-03, QV-04, QV-05, QV-06, TST-02
@@ -74,6 +93,7 @@ Plans:
   3. Synthetic incident generator v1 produces a fully fictional case folder with the planted DEF traps and one input of every text type. Every input converts into ordered segments that carry a page label, physical index, heading path and confidence field. A two-column PDF reads in column order. A printed-versus-physical page offset is cited by its printed label, and a source with no reliable labels is cited as `PDF p.<n>`. DOCX tracked changes and comments are flagged, PPTX speaker notes are kept, spreadsheets become row-range segments, HTML keeps its main content and chat exports keep their timestamps. Repeated headers and footers are excluded from extraction.
   4. An `.eml` with RFC 2047 headers and an attachment, and a `.zip` containing a zip-slip member, register the attachment and the safe archive members as child sources with a parent link, and the unsafe path is refused. An unknown file type is listed as `unprocessed: unsupported type`. A corrupt or hostile PDF marks only that input `unprocessed: <reason>`. Document author metadata and email display names are captured as person entities and appear raw in no shareable file.
   5. Segments are frozen: re-running conversion changes nothing, and only `epb rebuild --from convert` re-converts and reports a diff. The `evidence-intake` skill drives scan, convert and segment. The manual gains a "what you can put in `inputs/`" section covering the supported text types and the optional `.msg` extra.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 2` with numbered step-by-step procedures (kickoff §8): prerequisites, the exact commands to generate the synthetic case folder and convert it, the fixture paths, the reference-report check run in a scratch folder, and the exact accept/reject strings expected from the verifier.
 **Defects addressed**: DEF-01, DEF-02, DEF-03 (page labelling), DEF-13 (section screening, layer 1), DEF-15 (verifier side)
@@ -83,6 +103,7 @@ Plans:
 **Note**: The prototype's quotes and the reference report are used only as regression targets, never as worked examples (clean-room rule).
 
 ### Phase 3: Extraction + claim ledger
+
 **Goal**: The agent extracts every fact in the case folder into a verified claim ledger, chunk by chunk and resumably. Conclusions, lessons and recommendations are routed to a private held-back ledger and can never enter as evidence.
 **Depends on**: Phase 2
 **Requirements**: EXT-01, EXT-02, EXT-03, EXT-04, EXT-05, EXT-06, EXT-07, EXT-08, EVB-01, EVB-02, EVB-03
@@ -92,6 +113,7 @@ Plans:
   3. `claims add` rejects a claim that has an unverifiable anchor quote, a schema error, or an agent-set CLI-owned field (claim ID, offsets or page label), and lists every error with its path. A claim using each declared anchor type (page, cross-page, time range, sheet row range, visual and web snapshot) validates against the schema.
   4. An extraction interrupted mid-run resumes at the first unfinished chunk shown by `epb extract-status`. Chunk-suffixed submissions from parallel workers merge under the lock with no lost or duplicated claims. Every ledger write is recorded in the CLI write journal.
   5. The `evidence-extraction` skill, invoked by name in Claude Code on the synthetic incident, runs plan-extract, claims add and extract-status to completion while applying the evidence-bank entry rule. The manual gains a section on what happens during extraction and how to resume an interrupted run.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 3` with numbered step-by-step procedures (kickoff §8): prerequisites, exact commands, the synthetic case folder path, the planted verdict to submit and the exact rejection text expected, the steps to interrupt and resume a run, and the counts to compare in `claims.jsonl` and `conclusions.jsonl`.
 **Defects addressed**: DEF-08 (date precision captured), DEF-10 (`asserted_by` required), DEF-13 (entry gate, layer 2)
@@ -100,6 +122,7 @@ Plans:
 **Note**: The shared `conclusions-policy.md` reference is drafted here for the extraction skill and completed under DOC-06 in Phase 5.
 
 ### Phase 4: Reconcile
+
 **Goal**: Every person in the case material is reduced to a stable, comma-free role label that still lets quotes verify, and nothing shareable contains a name. Contradictions between sources are surfaced without the plugin picking a winner.
 **Depends on**: Phase 3
 **Requirements**: WS-10, DEID-01, DEID-02, DEID-03, DEID-04, DEID-05, DEID-06, DEID-07, DEID-10, REC-01, REC-02, REC-03, REC-04, REC-05
@@ -109,6 +132,7 @@ Plans:
   3. A quote containing a planted name and honorific verifies after both are replaced by the bracketed role label, through the real name-map resolver (DEF-15).
   4. `epb conflicts detect` proposes the planted time conflict (beyond the 60 s tolerance, precision-aware), value conflict and actor conflict, and runs the sequence and framing checks. `conflicts resolve` records a confirm or dismiss with a reason and cannot pick a winner. Equipment-ID variants within one source become aliases with a source-inconsistency note and are never normalised inside a quote (DEF-18). Roster input containing commas, or names given on the command line, is refused.
   5. The `evidence-reconcile` skill runs rosters, de-identification and conflicts on the synthetic incident. The manual gains a section on what de-identification does, where the private name map lives and why it must never be shared, and what to do when `deid-scan` reports a hit.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 4` with numbered step-by-step procedures (kickoff §8): prerequisites, exact commands, the synthetic case folder path, the list of planted names and conflicts to check off, and the exact `deid-scan` output expected (zero hits on clean artefacts, one named hit on the planted unmapped name).
 **Defects addressed**: DEF-04 (detection and confirmation), DEF-14 (comma-free labels at `roster add`), DEF-15, DEF-18
@@ -116,6 +140,7 @@ Plans:
 **Research**: Optional. Indic-script name-variant generation may need a short spike.
 
 ### Phase 5: Authoring + verify + build
+
 **Goal**: MVP milestone. Starting from the router skill, the agent turns the synthetic text-only incident into a master workbook that passes every hard gate, and the owner imports it cleanly into ProbeMatrix. This is the first end-to-end, usable product.
 **Depends on**: Phase 4
 **Requirements**: AUT-01, AUT-02, AUT-03, AUT-04, AUT-05, AUT-06, AUT-07, AUT-08, AUT-09, AUT-10, VER-01, VER-02, VER-03, VER-04, VER-05, VER-06, VER-07, VER-08, VER-09, VER-10, VER-11, VER-12, VER-13, VER-14, VER-15, COV-01, COV-02, COV-03, BLD-04, BLD-05, BLD-06, BLD-07, EVB-04, EVB-05, DEID-09, REC-06, DOC-06, TST-03, TST-05
@@ -125,6 +150,7 @@ Plans:
   3. Each hard gate demonstrably blocks the build on its planted defect: an invented or uncited quote, a wrong page, a format fault, a comma in a list element, an ID in prose, an HFACS term, a paraphrased held-back conclusion, a leaked name, an unaccounted observation claim, a Description over 1,800 characters, a padded date, and an item with no claim. `items add` refuses an item that references a held-back claim.
   4. The minimal eval scorer reports against the gold key: verbatim quotes 100%, page accuracy 100%, names leaked 0, conclusions leaked 0, plus coverage. The run report lists every soft warning and a seeded, reproducible 5-item spot-check with de-identified context. A synthetic low-confidence segment yields `status: low_confidence_source`. A non-English quote keeps its original script, followed by a `[translation]` rendering.
   5. The regression benchmark on the bundled reference report runs in a scratch, git-ignored folder. Its numbers (quotes verifiable, page accuracy, coverage of the DEF-12 findings, conclusion leakage) are reported in verification, and nothing from it is committed. All shared skill references are complete. The manual gains "build your first pack", "read INDEX.md" and "import the master into ProbeMatrix" sections.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 5` with numbered step-by-step procedures (kickoff §8): prerequisites, the exact prompt to give the agent, the exact commands, the synthetic case folder path, the gate-by-gate planted-defect checks, and the owner's ProbeMatrix import procedure. That procedure names the workbook file, says to create a new incident, and gives a checklist covering item count, separate Linked Equipment entries, no comma-split fragments, intact Tags, QA/lifecycle status and Related Evidence strings. The agent never claims the import worked; the owner reports it.
 **Defects addressed**: DEF-01, DEF-02, DEF-03, DEF-04 (disputed items), DEF-05, DEF-06, DEF-07, DEF-08, DEF-09, DEF-10, DEF-12, DEF-13 (layers 3–4), DEF-14 (gate 4), DEF-15, DEF-16, DEF-17
@@ -134,6 +160,7 @@ Plans:
 **Note**: This is the largest phase, with 39 requirements. Expect it to be split into many plans.
 
 ### Phase 6: Incremental
+
 **Goal**: The owner can keep a pack current as new evidence arrives. Imported workbooks are locked. New items go out as delta workbooks that import into the same incident without duplicates. Fixes to shipped items go out as correction items.
 **Depends on**: Phase 5
 **Requirements**: INC-01, INC-02, INC-03, INC-04, INC-05, INC-06, INC-07, INC-08, INC-09, INC-10, INC-11, DOC-02
@@ -143,6 +170,7 @@ Plans:
   3. An imported workbook is never written again. If a draft was rewritten after a possible upload, `mark-imported` asks the user to confirm the item count and Tag range. `INDEX.md` ticks are one-way. The plugin never locks a workbook on its own. A draft master left un-imported for longer than `draft_warning_days` triggers a warning.
   4. A new version of an input is diffed, and claims whose anchors no longer verify are flagged. A fix to a locked item ships as a correction item in the next delta: its Description begins "CORRECTION to evidence tagged TAG-…", it links to the original tag, and `INDEX.md` gives the manual clean-up steps. `epb rebuild --from <stage>` leaves every shipped ID unchanged. `epb build --consolidated` writes a consolidated workbook only when asked.
   5. The manual covers everyday use end to end: creating a case folder, adding inputs, asking the agent to build, reading `INDEX.md`, importing the master and then each delta in order, and marking a workbook imported.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 6` with numbered step-by-step procedures (kickoff §8): prerequisites, the exact commands, the two input files to add, the steps to tick the `INDEX.md` box, and the owner's delta-import procedure. That procedure names the delta file and the same incident as the master, and gives a checklist covering new-item count, no duplicates, continuing Tags and the correction item's text.
 **Defects addressed**: None new. This phase protects the shipped gates across increments.
@@ -150,6 +178,7 @@ Plans:
 **Research**: Optional. The patterns are specified in design §12 and the architecture research.
 
 ### Phase 7: Scans + OCR
+
 **Goal**: Scanned and image-only documents become usable, honestly labelled evidence. OCR runs page by page, its confidence travels all the way to the items, and low-confidence material is flagged for review.
 **Depends on**: Phase 6
 **Requirements**: OCR-01, OCR-02, OCR-03, OCR-04, OCR-05
@@ -159,6 +188,7 @@ Plans:
   3. `epb doctor` reports Tesseract and each language pack listed under `languages` in `case.yaml`, and a non-English scanned page is OCRed with its pack. Without Tesseract, scanned pages are marked unprocessed, the run still succeeds, and the OCR tests skip cleanly.
   4. With docling installed, a complex-layout PDF converts through the docling path. Without docling, the default path is used and nothing fails.
   5. The manual gains step-by-step instructions for installing Tesseract and its language packs on Linux, Windows and macOS (the last two marked "not yet tested on this system"), together with the matching `doctor` messages.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 7` with numbered step-by-step procedures (kickoff §8): prerequisites (including the Tesseract install commands for the dev machine), the exact commands, the generated scan fixture paths, and the exact `INDEX.md` and item text expected for a low-confidence page.
 **Defects addressed**: None new. This phase extends DEF-01/DEF-03 protection to OCR text.
@@ -167,6 +197,7 @@ Plans:
 **Research**: Recommended. The OCR confidence path, legacy-font and `(cid:` routing, and a docling spike.
 
 ### Phase 8: Media + images
+
 **Goal**: Audio, video and photographs become time-anchored or visual evidence. Recordings are transcribed locally, video yields keyframes and real-world CCTV times, and images are described only by what is visible. Nothing shareable carries GPS data or identifies a face.
 **Depends on**: Phase 7
 **Requirements**: MED-01, MED-02, MED-03, MED-04, MED-05, MED-06, MED-07, MED-08, DEID-08, AUT-11
@@ -176,6 +207,7 @@ Plans:
   3. For a photo with GPS EXIF data, the capture time and device are recorded, and no GPS data survives in any rendered or shareable copy. Image and keyframe claims record only what is visible, are flagged `anchor: visual`, never identify a person, and are listed for review.
   4. Sidecar notes supply who recorded what, speaker roles, the camera and the custody, and they are cited when used. Speaker diarisation stays off unless its optional extra is installed and enabled.
   5. The manual gains install steps for ffmpeg and the media extra (including its GPL codec licence note), instructions for writing a sidecar note, and the matching `doctor` messages.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 8` with numbered step-by-step procedures (kickoff §8): prerequisites (ffmpeg, the media extra and the model fetch), the exact commands, the generated wav, mp4 and photo fixture paths, and the exact citation strings and GPS-absence check expected.
 **Defects addressed**: None new. This phase extends DEF-01/DEF-03 protection to transcripts and keyframes.
@@ -184,6 +216,7 @@ Plans:
 **Research**: Recommended. Run the spike first: faster-whisper hallucination settings and VAD, and the CCTV keyframe thresholds.
 
 ### Phase 9: Web snapshot
+
 **Goal**: On request, the user can bring public web pages into the case as dated, user-confirmed snapshots that flow through the pipeline like any other input. The seven-skill and full CLI surface is complete.
 **Depends on**: Phase 8
 **Requirements**: WEB-01, WEB-02, WEB-03, PKG-02, PKG-04
@@ -193,6 +226,7 @@ Plans:
   3. A failed or paywalled fetch is recorded as failed, and nothing is paraphrased from memory. A web claim with no saved snapshot is refused (DEF-11).
   4. All seven skills pass the SKILL.md lint: Agent Skills format, about 150 lines or fewer, and shared rules linked from `evidence-pack/references/`. A CLI surface test confirms that every §15.2 and §20 A12 command exists and accepts `--json`.
   5. The manual gains a "save a web page into your case" section that includes its privacy note.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 9` with numbered step-by-step procedures (kickoff §8): prerequisites, the exact prompt and commands, a URL to snapshot plus a URL that is expected to fail, the expected snapshot folder layout and `meta.yaml` fields, and the exact citation string in the rebuilt workbook.
 **Defects addressed**: DEF-11
@@ -201,6 +235,7 @@ Plans:
 **Note**: Tests use no network. Snapshot tests run against a local fixture server, never the live web.
 
 ### Phase 10: Release
+
 **Goal**: v0.1.0 is released. The agent evals meet their thresholds, a non-technical user can install and use the plugin from the finished manual, and the version tag is pushed.
 **Depends on**: Phase 9
 **Requirements**: TST-04, TST-06, TST-08, PKG-10, DOC-01, DOC-03, DOC-07
@@ -210,6 +245,7 @@ Plans:
   3. A fresh case folder holds a text PDF, a scanned PDF, a DOCX, an email with an attachment, a CSV export, an audio file and a short video. Asking the agent to "build an evidence pack from this folder" produces a master workbook, which the owner imports into ProbeMatrix. A second run with one added file produces a delta containing only the new items.
   4. Linux CI runs the core tests and lint on Python 3.11 and 3.14, plus the media job (ffmpeg, Tesseract and faster-whisper `tiny`), all green. The manual is final. It covers installing Python, the optional tools and the plugin on all three hosts, everyday use, and troubleshooting that maps every `doctor` message and exit-4 error code to a plain-language fix. Its Windows and macOS sections are still marked "not yet tested on this system". README, CHANGELOG, CONTRIBUTING and SECURITY are written.
   5. Once all ten phases are verified, the `v0.1.0` tag is pushed.
+
 **Plans**: TBD
 **UAT**: `/gsd-verify-work 10` with numbered step-by-step procedures (kickoff §8): the fresh-machine install walkthrough exactly as the manual states it, the definition-of-done case folder and the exact prompt, the owner's ProbeMatrix import procedure for the master (new incident) and then the delta (same incident), and the eval report thresholds to check.
 **Defects addressed**: All DEF-01…DEF-18 (re-measured by the agent evals and the reference-report benchmark)
