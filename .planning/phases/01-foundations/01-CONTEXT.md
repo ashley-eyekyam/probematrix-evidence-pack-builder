@@ -60,6 +60,11 @@ Already decided, not reopened here: design §20 A1–A15, which cover the `plugi
 
   Versions and the install commands for all three OSes appear under `--verbose`. `--json` gives the full machine report, which satisfies PKG-07. The manual quotes this output exactly.
 
+### Added at plan-phase (owner answers to research questions, 2026-10-17)
+- **D-18 (RESEARCH Q1):** `epb doctor --setup` applies the same two-week package-age rule as CI. It upgrades pip to 26.1 or later in the private environment, installs the core requirements with `--uploaded-prior-to P14D`, and then installs a small shipped file of reviewed security-exception pins (newer than the cutoff) as a second step. CI's dependency-age check honours the same exceptions file.
+- **D-19 (RESEARCH Q8):** A hand-edited or otherwise invalid `.epb/state.json` (schema-invalid or unparseable) exits **4** with the stable error code `STATE_INVALID` and a plain-language message saying the workspace state is damaged and how to restore it. It never exits 1, and the agent is told not to hand-repair the file.
+- **D-20 (RESEARCH Q10):** Add `tzdata; sys_platform == "win32"` (Apache-2.0) to `plugin/requirements.txt`, which amends the PKG-08 core list. Timezone validation then behaves the same on every OS. Record it with the D-10 design amendments.
+
 ### Claude's Discretion
 - How a new version of a source (`S004v2`) is stored: versions inside `S004.json` or separate records. The `S004v2` ID form is fixed by WS-03.
 - Source ID padding beyond 999 inputs (for example letting it grow to `S1000` with 3-digit minimum padding).
