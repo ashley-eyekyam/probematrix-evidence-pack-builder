@@ -44,7 +44,7 @@ This plugin turns a folder of raw incident material into a high-fidelity, citati
 ### Anti-goals (would make it a failure even if it "works")
 - **Any quote in a pack that is not verbatim in a saved input.** One invented quote destroys trust in the whole pack and in ProbeMatrix's citations downstream.
 - **Any personal name in `outputs/` or in any shareable workspace file.**
-- **The official answer leaking into the evidence.** The source's root causes, "probable cause" verdicts and recommendations must not appear in evidence items (§11.3).
+- **The official answer leaking into the evidence.** No conclusion, lesson or recommendation from any source report is ever evidence: not in the claim ledger used by items, not in any item, not in any workbook. It is screened out before it enters the evidence bank (§11.3).
 - **HFACS pre-classification** in Descriptions or Tags (no level labels, no HFACS category vocabulary such as "precondition", "supervisory violation", "organisational influence").
 - **Duplicates in ProbeMatrix** caused by re-importing items that were already imported.
 - **Silent loss:** an input that couldn't be read, a finding that was dropped, or a contradiction that was smoothed over, with no record.
@@ -86,7 +86,7 @@ What the prototype got right, and this design keeps: the three-part Description 
 | Personal names | **Always de-identified. No opt-out.** |
 | Web sources | **Inputs only.** An optional, explicitly invoked step fetches public pages and saves dated snapshots into `inputs/web/`. They are then processed like any input. |
 | Hosts | **Claude Code + Cowork + Codex** at launch. |
-| Source conclusions | **Facts only.** Root causes, verdicts and recommendations are held back in a private ledger, never in items. |
+| Source conclusions, lessons, recommendations | **Never evidence.** No conclusion, lesson or recommendation from any source document is considered a piece of evidence. Screened out before entering the evidence bank (four-layer enforcement, §11.3), held in a private ledger for later comparison only. No opt-out. |
 | Repository | Standalone open-source repo `probematrix-evidence-pack-builder`, unrelated to any other plugin. |
 | Freeze point | A workbook is a **draft** that later runs may overwrite until the owner marks it imported (tick in `INDEX.md` or `epb mark-imported <file>`). From then on its items are locked, and fixes go out as correction items. |
 | Internal prototype | ProbeMatrix's `tools/evidence-pack-builder/` and its CLAUDE.md rule **stay as they are, indefinitely**. The plugin is built clean-room: it may reuse ideas and the file-format spec, but no prototype code and no real-incident prose. |
@@ -258,9 +258,9 @@ Every converted source becomes an ordered list of **segments**, the unit everyth
 
 This is where large documents stop being a problem. `epb plan-extract` builds a **chunk plan**: groups of consecutive segments under one section, bounded at about 6–8k tokens, with one segment of overlap. Each chunk becomes an extraction task. The agent (or parallel subagents where the host supports them; sequentially on Codex) processes one chunk at a time and appends claims with `epb claims add --chunk <id> claims.json`.
 
-A **claim** is one atomic, source-stated fact (or one held-back conclusion) with:
+A **claim** is one atomic, source-stated fact (or, in the separate held-back ledger, one conclusion, lesson or recommendation, which is never evidence) with:
 - `claim_id`, `chunk_id`, `src_id`, `seg_ids`
-- `kind`: `observation` | `statement` (what a person said they saw or did) | `record` (what a log, document or system shows) | `measurement` | `event` (timestamped) | `condition` | `document_fact` (a procedure exists, says X) | `conclusion` | `recommendation` | `context` (background, asset description)
+- `kind`: `observation` | `statement` (what a person said they saw or did) | `record` (what a log, document or system shows) | `measurement` | `event` (timestamped) | `condition` | `document_fact` (a procedure exists, says X) | `context` (background, asset description). Held-back kinds, never evidence and written only to `conclusions.jsonl` (§11.3): `conclusion` | `lesson` | `recommendation`.
 - `asserted_by`: the perspective (§10.1)
 - `anchor_quotes`: one or more verbatim spans (verified at `claims add`; rejected if not found)
 - `values`: structured numbers, times, dates (with precision), identifiers, counts
@@ -445,10 +445,24 @@ For segments the agent tagged as **observation/finding sections** (e.g. "Observa
 
 There is **no fixed item-count target.** The old "40–80 items" rule pushed towards cataloguing or skimming depending on report size. Instead: items = distinct artefacts and observations after merging, with a soft warning if a source yields fewer than one item per 1.5 pages of observation sections, or more than 3 per page.
 
-### 11.3 Conclusions policy (held back)
-Claims of kind `conclusion` (root causes, "probable cause", "it is concluded that", causal verdicts) and `recommendation` (remedial measures, "shall be provided", "needs to be", "to be introduced") go to `ledger/conclusions.jsonl`. They're never used in items. The lint blocks Description text that matches a held-back claim (fuzzy match) or recommendation patterns.
-Two things are *not* conclusions and stay usable: the investigating body's **direct observations of fact** ("No hydro test was done after replacement of the gasket", "Three bolts … were missing") and its factual reconstructions of time (timelines are `event` claims with `asserted_by: investigating_body`). Borderline sentences that mix fact and verdict are split at extraction: the fact becomes a claim, the verdict goes to the held-back ledger.
-`conclusions.jsonl` is a working file for a later fair comparison with ProbeMatrix's analysis. It never enters `outputs/`. INDEX reports only its count.
+### 11.3 Conclusions, lessons and recommendations are never evidence (hard rule)
+
+**None of the conclusions, lessons or recommendations in any source document (official investigation or enquiry reports, internal reports, audit reports, regulator analyses, press) is ever treated as a piece of evidence.** They never become claims usable by items, never appear in any evidence item, and never reach any workbook. This is checked **before anything enters the evidence bank** (the claim ledger), not just at build.
+
+What is excluded (claim kinds `conclusion`, `lesson`, `recommendation`):
+- **Conclusions:** root causes, immediate, underlying or contributing causes stated as findings, "probable cause", "it is concluded that", "attributable to", "resulted in" as a verdict, causal analyses and reconstructions that assign cause, root-cause lists, the investigating body's opinions on adequacy or blame.
+- **Lessons:** "lessons learned", "learning points", "key takeaways", "what should have happened", generalised messages for other sites or industries.
+- **Recommendations:** remedial measures, corrective and preventive actions proposed by the source, "shall be provided", "needs to be", "is to be", "to be introduced", "should", action plans, improvement lists.
+
+What is still evidence (the boundary): the source's **direct observations of fact**, i.e. what was seen, measured, found in records or stated by witnesses ("No hydro test was done after replacement of the gasket", "three bolts … were missing", "Notification no. 3800419840 was raised on 17/09/2020"), and factual timelines of what happened when, without causal judgement. A sentence that mixes fact and verdict is split: the fact becomes an evidence claim, and the verdict goes to the held-back ledger. When in doubt, the sentence is held back. The run report lists borderline splits for review.
+
+**Four layers of enforcement:**
+1. **Section screening at segmentation:** headings matching conclusion, lesson or recommendation sections ("Root Cause(s)", "Conclusions", "Analysis of the incident", "Lessons learned", "Recommendations", "Improvements / Remedial measures", "Way forward", "Action plan") are tagged `held_back_section`. The chunk planner sends them only to held-back extraction. No evidence claims can be created from them.
+2. **Entry gate at `claims add` (before the evidence bank):** every claim is classified. `conclusion`, `lesson` and `recommendation` claims are written **only** to `ledger/conclusions.jsonl`. A claim of an evidence kind whose anchor text matches conclusion, lesson or recommendation patterns, or that comes from a `held_back_section`, is **rejected** with a message to reclassify or split it.
+3. **Item gate at `items add`:** an item may reference only evidence-kind claims from `claims.jsonl`. Any reference to a held-back claim is rejected.
+4. **Build gate (§14 hard gate 7):** Description text is fuzzy-matched against every held-back claim and screened for recommendation and verdict patterns. Any hit blocks the build.
+
+`conclusions.jsonl` exists only so that ProbeMatrix's own analysis can later be compared fairly with the official findings. It is private working state: it never enters `outputs/`, items or `INDEX.md`, which reports only its count. There is **no setting to switch this rule off.**
 
 ## 12. Incremental runs
 
@@ -510,7 +524,7 @@ GPS EXIF is stripped from anything rendered. Faces in images are never described
 4. Comma-free list elements in Linked Individuals, Linked Equipment, Tags and Regulatory Requirements.
 5. No Evidence IDs, row numbers or "row N" in Descriptions.
 6. HFACS blocked-term lint on Descriptions and Tags.
-7. Held-back conclusion and recommendation lint (§11.3).
+7. No conclusion, lesson or recommendation in any item: no item references a held-back claim, and no Description fuzzy-matches a held-back claim or verdict/recommendation patterns (§11.3). Gates 2–3 of §11.3 also run earlier, at `claims add` and `items add`.
 8. De-identification scan: zero hits.
 9. Coverage gate (§11.2).
 10. Description length ≤ 1,800 characters.
