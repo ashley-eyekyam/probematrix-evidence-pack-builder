@@ -21,7 +21,10 @@
 
 ---
 
-## Conflicts with design (need owner decision)
+## Conflicts with design (RESOLVED or assigned, see status below; design §20 wins)
+
+**Status (2026-10-17):** C1, C2, C9 and C12 are decided in design §20 (A5, A6, A4, A7). C3–C8, C10 and C11 are open items OD-13/14/17/18/22/23, decided in the discussion of the phase the roadmap assigns them to. See `.planning/research/SUMMARY.md` "Owner Decisions Needed".
+
 
 These items contradict, or materially change, design §5, §7.2, §13.4, §15 or §18, or the "no dependency younger than two weeks" rule. None has been resolved here. Each one needs an owner decision.
 

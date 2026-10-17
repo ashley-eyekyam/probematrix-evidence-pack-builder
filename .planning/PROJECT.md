@@ -4,7 +4,7 @@
 
 An open-source agent plugin (Agent Skills format) for Claude Code, Cowork and OpenAI Codex. It turns a **case folder** of raw incident material (text and scanned reports, witness statements, emails, spreadsheets and system exports, photos, audio, video and saved web pages) into a citation-exact, de-identified `EVIDENCE_PACK_V2` Excel workbook that imports into ProbeMatrix. It keeps that pack current as new evidence arrives, through a master workbook plus delta workbooks. It is for HSE investigators and ProbeMatrix users who need defensible evidence items without hand-authoring them.
 
-The approved specification is `docs/design/2026-10-17-evidence-pack-builder-design.md` (§1–§19). **Where this file and the design disagree, the design wins.** The development brief is `docs/GSD-KICKOFF.md`.
+The approved specification is `docs/design/2026-10-17-evidence-pack-builder-design.md` (§1–§20; §20 amendments win). **Where this file and the design disagree, the design wins.** The development brief is `docs/GSD-KICKOFF.md`.
 
 ## Core Value
 
@@ -75,7 +75,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
 
 ## Constraints
 
-- **Tech stack:** Python 3.11+ for the whole package (§20 A5), `pathlib` everywhere, Windows, macOS and Linux. One CLI with `--json` output and exit codes 0, 1, 2 and 3 (§15.2). Why: identical behaviour across all three hosts.
+- **Tech stack:** Python 3.11+ for the whole package (§20 A5), `pathlib` everywhere, Windows, macOS and Linux. One CLI with `--json` output and exit codes 0–4 (§15.2, §20 A11). Why: identical behaviour across all three hosts.
 - **Dependencies:** core dependencies must be permissive. GPL `extract-msg` is an optional extra only. Pin minimum versions, use no dependency younger than two weeks, and keep optional extras in separate requirements files (§18, kickoff §7). Why: MIT licence.
 - **Locality:** conversion uses only local open-source tools, detected at runtime and reported by `doctor`. A missing tool marks inputs `unprocessed` and never fails a run (§4, §7.2). The agent's excerpts go to the AI host's model provider, and `init`/`doctor` warn about case folders inside sync folders (§20 A1). Why: no cloud conversion, and an honest privacy statement.
 - **Audience:** end users may be non-technical. Setup, error messages and the manual must work for someone who has never used a terminal (§20 A8, A14).
@@ -91,7 +91,7 @@ One invented quote, one leaked name or one leaked verdict makes the product a fa
   - Descriptions of at most 1,800 characters
 
   Why: these are product requirements (kickoff §6).
-- **Skills:** each SKILL.md is about 150 lines or fewer. Shared rules live in `skills/evidence-pack/references/` (§5).
+- **Skills:** each SKILL.md is about 150 lines or fewer. Shared rules live in `plugin/skills/evidence-pack/references/` (§5, §20 A4).
 - **Tests:** pytest and ruff. Tests use no network. Tests for optional tools skip cleanly when the tool is absent. Fixtures are generated at test time where practical (kickoff §7).
 - **Process:** one question at a time. Every UAT has numbered step-by-step procedures. Quality outranks token or API cost. Branch per phase (`phase-NN-<slug>`), merged to main with `--no-ff` only after the phase is verified.
 

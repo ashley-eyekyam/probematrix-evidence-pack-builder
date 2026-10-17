@@ -328,16 +328,170 @@ The test names are planned names, finalised in each phase's plan.
 
 ## Traceability
 
-Filled in by roadmap creation.
+Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly one phase. Manual extensions after Phase 1 are success criteria in later phases, not extra requirement IDs (DOC-05).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| WS-01 | Phase 1 | Pending |
+| WS-02 | Phase 1 | Pending |
+| WS-03 | Phase 1 | Pending |
+| WS-04 | Phase 1 | Pending |
+| WS-05 | Phase 2 | Pending |
+| WS-06 | Phase 1 | Pending |
+| WS-07 | Phase 1 | Pending |
+| WS-08 | Phase 1 | Pending |
+| WS-09 | Phase 1 | Pending |
+| WS-10 | Phase 4 | Pending |
+| WS-11 | Phase 1 | Pending |
+| WS-12 | Phase 1 | Pending |
+| WS-13 | Phase 1 | Pending |
+| INT-01 | Phase 2 | Pending |
+| INT-02 | Phase 2 | Pending |
+| INT-03 | Phase 2 | Pending |
+| INT-04 | Phase 2 | Pending |
+| INT-05 | Phase 2 | Pending |
+| INT-06 | Phase 2 | Pending |
+| INT-07 | Phase 2 | Pending |
+| INT-08 | Phase 2 | Pending |
+| INT-09 | Phase 2 | Pending |
+| INT-10 | Phase 2 | Pending |
+| INT-11 | Phase 2 | Pending |
+| INT-12 | Phase 2 | Pending |
+| INT-13 | Phase 2 | Pending |
+| INT-14 | Phase 2 | Pending |
+| INT-15 | Phase 2 | Pending |
+| INT-16 | Phase 2 | Pending |
+| QV-01 | Phase 2 | Pending |
+| QV-02 | Phase 2 | Pending |
+| QV-03 | Phase 2 | Pending |
+| QV-04 | Phase 2 | Pending |
+| QV-05 | Phase 2 | Pending |
+| QV-06 | Phase 2 | Pending |
+| EXT-01 | Phase 3 | Pending |
+| EXT-02 | Phase 3 | Pending |
+| EXT-03 | Phase 3 | Pending |
+| EXT-04 | Phase 3 | Pending |
+| EXT-05 | Phase 3 | Pending |
+| EXT-06 | Phase 3 | Pending |
+| EXT-07 | Phase 3 | Pending |
+| EXT-08 | Phase 3 | Pending |
+| EVB-01 | Phase 3 | Pending |
+| EVB-02 | Phase 3 | Pending |
+| EVB-03 | Phase 3 | Pending |
+| EVB-04 | Phase 5 | Pending |
+| EVB-05 | Phase 5 | Pending |
+| DEID-01 | Phase 4 | Pending |
+| DEID-02 | Phase 4 | Pending |
+| DEID-03 | Phase 4 | Pending |
+| DEID-04 | Phase 4 | Pending |
+| DEID-05 | Phase 4 | Pending |
+| DEID-06 | Phase 4 | Pending |
+| DEID-07 | Phase 4 | Pending |
+| DEID-08 | Phase 8 | Pending |
+| DEID-09 | Phase 5 | Pending |
+| DEID-10 | Phase 4 | Pending |
+| REC-01 | Phase 4 | Pending |
+| REC-02 | Phase 4 | Pending |
+| REC-03 | Phase 4 | Pending |
+| REC-04 | Phase 4 | Pending |
+| REC-05 | Phase 4 | Pending |
+| REC-06 | Phase 5 | Pending |
+| AUT-01 | Phase 5 | Pending |
+| AUT-02 | Phase 5 | Pending |
+| AUT-03 | Phase 5 | Pending |
+| AUT-04 | Phase 5 | Pending |
+| AUT-05 | Phase 5 | Pending |
+| AUT-06 | Phase 5 | Pending |
+| AUT-07 | Phase 5 | Pending |
+| AUT-08 | Phase 5 | Pending |
+| AUT-09 | Phase 5 | Pending |
+| AUT-10 | Phase 5 | Pending |
+| AUT-11 | Phase 8 | Pending |
+| VER-01 | Phase 5 | Pending |
+| VER-02 | Phase 5 | Pending |
+| VER-03 | Phase 5 | Pending |
+| VER-04 | Phase 5 | Pending |
+| VER-05 | Phase 5 | Pending |
+| VER-06 | Phase 5 | Pending |
+| VER-07 | Phase 5 | Pending |
+| VER-08 | Phase 5 | Pending |
+| VER-09 | Phase 5 | Pending |
+| VER-10 | Phase 5 | Pending |
+| VER-11 | Phase 5 | Pending |
+| VER-12 | Phase 5 | Pending |
+| VER-13 | Phase 5 | Pending |
+| VER-14 | Phase 5 | Pending |
+| VER-15 | Phase 5 | Pending |
+| COV-01 | Phase 5 | Pending |
+| COV-02 | Phase 5 | Pending |
+| COV-03 | Phase 5 | Pending |
+| BLD-01 | Phase 1 | Pending |
+| BLD-02 | Phase 1 | Pending |
+| BLD-03 | Phase 1 | Pending |
+| BLD-04 | Phase 5 | Pending |
+| BLD-05 | Phase 5 | Pending |
+| BLD-06 | Phase 5 | Pending |
+| BLD-07 | Phase 5 | Pending |
+| BLD-08 | Phase 1 | Pending |
+| INC-01 | Phase 6 | Pending |
+| INC-02 | Phase 6 | Pending |
+| INC-03 | Phase 6 | Pending |
+| INC-04 | Phase 6 | Pending |
+| INC-05 | Phase 6 | Pending |
+| INC-06 | Phase 6 | Pending |
+| INC-07 | Phase 6 | Pending |
+| INC-08 | Phase 6 | Pending |
+| INC-09 | Phase 6 | Pending |
+| INC-10 | Phase 6 | Pending |
+| INC-11 | Phase 6 | Pending |
+| OCR-01 | Phase 7 | Pending |
+| OCR-02 | Phase 7 | Pending |
+| OCR-03 | Phase 7 | Pending |
+| OCR-04 | Phase 7 | Pending |
+| OCR-05 | Phase 7 | Pending |
+| MED-01 | Phase 8 | Pending |
+| MED-02 | Phase 8 | Pending |
+| MED-03 | Phase 8 | Pending |
+| MED-04 | Phase 8 | Pending |
+| MED-05 | Phase 8 | Pending |
+| MED-06 | Phase 8 | Pending |
+| MED-07 | Phase 8 | Pending |
+| MED-08 | Phase 8 | Pending |
+| WEB-01 | Phase 9 | Pending |
+| WEB-02 | Phase 9 | Pending |
+| WEB-03 | Phase 9 | Pending |
+| PKG-01 | Phase 1 | Pending |
+| PKG-02 | Phase 9 | Pending |
+| PKG-03 | Phase 1 | Pending |
+| PKG-04 | Phase 9 | Pending |
+| PKG-05 | Phase 1 | Pending |
+| PKG-06 | Phase 1 | Pending |
+| PKG-07 | Phase 1 | Pending |
+| PKG-08 | Phase 1 | Pending |
+| PKG-09 | Phase 1 | Pending |
+| PKG-10 | Phase 10 | Pending |
+| DOC-01 | Phase 10 | Pending |
+| DOC-02 | Phase 6 | Pending |
+| DOC-03 | Phase 10 | Pending |
+| DOC-04 | Phase 1 | Pending |
+| DOC-05 | Phase 1 | Pending |
+| DOC-06 | Phase 5 | Pending |
+| DOC-07 | Phase 10 | Pending |
+| TST-01 | Phase 1 | Pending |
+| TST-02 | Phase 2 | Pending |
+| TST-03 | Phase 5 | Pending |
+| TST-04 | Phase 10 | Pending |
+| TST-05 | Phase 5 | Pending |
+| TST-06 | Phase 10 | Pending |
+| TST-07 | Phase 1 | Pending |
+| TST-08 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 153 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 153 ⚠️
+- Mapped to phases: 153
+- Unmapped: 0
+- Per phase: Phase 1: 26, Phase 2: 24, Phase 3: 11, Phase 4: 14, Phase 5: 39, Phase 6: 12, Phase 7: 5, Phase 8: 10, Phase 9: 5, Phase 10: 7
 
 ---
 *Requirements defined: 2026-10-17*
-*Last updated: 2026-10-17 after initial definition*
+*Last updated: 2026-10-17 after roadmap creation (traceability filled)*
