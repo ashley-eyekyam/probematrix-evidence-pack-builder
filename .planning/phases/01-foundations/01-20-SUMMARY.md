@@ -182,3 +182,8 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- FOUND: d489e1f, 35cf728 (ancestors of HEAD)
+- FOUND: plugin/skills/evidence-pack/scripts/epb/mime.py, tests/core/test_mime.py, .planning/phases/01-foundations/01-20-SUMMARY.md
