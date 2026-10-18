@@ -15,7 +15,8 @@ Error codes
     USAGE                 (2) Unknown command, unknown option or a missing argument.
     BAD_ARGUMENT          (2) An argument has a value the command cannot use.
     NOT_A_WORKSPACE       (2) The folder has no .epb workspace; run init first.
-    WORKSPACE_EXISTS      (2) init was run on a folder that already has a workspace.
+    WORKSPACE_EXISTS      (2) init was run again on a case folder with settings (title, slug,
+                              prefix or timezone) that differ from the stored ones.
     TIMEZONE_REQUIRED     (2) No valid IANA timezone could be determined for the case.
     ENV_NOT_SET_UP        (3) First-time setup has not been run, or the private environment
                               is out of date for this plugin version; run doctor --setup.
@@ -26,14 +27,16 @@ Error codes
                               (on Debian or Ubuntu, the python3-venv package is missing).
     LOCK_TIMEOUT          (4) Another epb command held the workspace lock for too long.
     WORKSPACE_TOO_NEW     (4) The workspace was written by a newer plugin version.
-    STATE_INVALID         (4) .epb/state.json is damaged or was edited by hand; restore it
-                              from a backup instead of repairing it by hand (D-19).
+    STATE_INVALID         (4) .epb/state.json or .epb/case.yaml is damaged or was edited by
+                              hand; restore it from a backup instead of repairing it by
+                              hand (D-19).
     RECORD_INVALID        (4) A stored workspace record is damaged or fails its schema.
     SETUP_FAILED          (4) doctor --setup could not finish building the environment.
     INTERNAL_ERROR        (4) An unexpected error or an interruption; details go to stderr.
 
 Warning codes (never change the exit code)
-    ALREADY_SET_UP           The private environment was already current; nothing to do.
+    ALREADY_SET_UP           Nothing to do: the private environment was already current, or
+                             init found the case folder already set up.
     RECOVERY_PENDING         An interrupted change was found and will be finished.
     RECOVERED                An interrupted change was finished before this command ran.
     UPGRADE_PENDING          The workspace will be upgraded by the next changing command.
