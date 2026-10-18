@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-07-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:10:35.147Z"
+stopped_at: Completed 01-08-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:13:31.819Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 9a310bd79073e7ec83cbaa06566f573ce2105490
+state_head: 9c9f71ce3ce6b9ca44424a3778676849159375d6
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 8 of 16
+Plan: 9 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P05 | 7 min | 3 tasks | 9 files |
 | Phase 01 P06 | 5 min | 3 tasks | 8 files |
 | Phase 01 P07 | 7min | 0 tasks | 11 files |
+| Phase 01 P08 | 11min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,14 @@ Recent decisions affecting current work:
 - [Phase 01]: load_state treats schema_version below 1 (or a bool) as damaged STATE_INVALID; only 1 <= version < SCHEMA_VERSION is returned raw for upgrade
 - [Phase 01]: Workbook records require at least one entry in writes (a record exists only after a first write)
 - [Phase 01]: init on an already set-up folder returns data.created = [] with the ALREADY_SET_UP warning and exit 0
+- [Phase 01]: The report carries two keys beyond the planned list
+- [Phase 01]: Folders are shown with ~ but commands keep absolute paths, so every command in the checklist can be copied as is; parts containing spaces are double-quoted
+- [Phase 01]: The short checklist tells the user to ask the agent to install an extra; the exact pip command (env python -m pip install --uploaded-prior-to P14D -r <file>) is shown under --verbose and is always in the JSON
+- [Phase 01]: A core package is ok only when installed and, for a plain >=X.Y pin, at least that version; anything the stdlib cannot compare is accepted
+- [Phase 01]: A generic CloudStorage provider ('a cloud sync service') catches macOS File Provider folders of services not in the table, and is reported only when no named provider matched
+- [Phase 01]: Google Drive on Linux is detected from the GVFS mount component name (google-drive
+- [Phase 01]: On the human error path the checklist is the error message and the hint is omitted, because What to do next already carries the setup command; under --json the hint is kept
+- [Phase 01]: Git is called with GIT_OPTIONAL_LOCKS=0; a git that cannot be run falls back to the .git walk-up and warns GIT_UNAVAILABLE with 'git could not be run'
 
 ### Pending Todos
 
@@ -121,6 +130,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:10:16.219Z
-Stopped at: Completed 01-07-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:13:31.789Z
+Stopped at: Completed 01-08-PLAN.md (merged from worktree)
 Resume file: None
