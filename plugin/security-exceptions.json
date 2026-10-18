@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "Reviewed security-exception pins newer than the two-week rule. Each entry: package, version, advisory, reason, reviewed_by (a role, never a person's name), reviewed_on (YYYY-MM-DD). Used by CI and by doctor --setup (D-18).",
+  "exceptions": []
+}

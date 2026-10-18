@@ -363,7 +363,7 @@ def test_violations_and_stale_entries_are_sorted_by_normalised_name():
         ("delta", "1"): old,
         ("gamma", "1"): old,
     }
-    exceptions = [exception_entry("gamma", "1"), exception_entry("delta", "1")]
+    exceptions = [exception_entry("Gamma", "1"), exception_entry("delta", "1")]
     report = age.evaluate(installed, times, exceptions, NOW)
     assert [f.name for f in report.violations] == ["alpha_pkg", "Beta", "Zeta"]
     assert [f.name for f in report.stale] == ["delta", "Gamma"]

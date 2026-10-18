@@ -27,6 +27,15 @@ jobs:
       - name: Install the dev set under the two-week rule (PKG-09)
         run: python -m pip install --uploaded-prior-to P14D -r requirements-dev.txt
 
+      - name: Install reviewed security-exception pins (D-18)
+        run: |
+          python tools/check_dependency_age.py --pins > "$RUNNER_TEMP/pins.txt"
+          if [ -s "$RUNNER_TEMP/pins.txt" ]; then
+            python -m pip install -r "$RUNNER_TEMP/pins.txt"
+          else
+            echo "No reviewed security-exception pins to install."
+          fi
+
       - name: Lint
         run: ruff check .
 
@@ -35,6 +44,9 @@ jobs:
 
       - name: Tests
         run: python -m pytest -q
+
+      - name: Dependency age, two-week rule (PKG-09)
+        run: python tools/check_dependency_age.py
 
       - name: Licence allow-list (D-12)
         run: python tools/check_licences.py
