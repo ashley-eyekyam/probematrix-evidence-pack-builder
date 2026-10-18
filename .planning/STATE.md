@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-10-18T09:20:09.414Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-10-18T09:30:19.578Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 86abf8871b67a7e9fcb85989a45accc23ce081d7
+state_head: cd5fa2bf4388a8166027d19033884880f6822d19
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 3 of 16
+Plan: 4 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 01 P01 | 10 min | 3 tasks | 10 files |
 | Phase 01 P02 | 3 min | 2 tasks | 2 files |
+| Phase 01 P03 | 8 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01]: ruff excludes .planning/ because ruff 0.16.10 formats Python code blocks inside Markdown and the GSD research docs hold illustrative snippets
 - [Phase 01]: Design §20 records Phase 1 decisions as A16-A30; each row's first cell cites its D-NN (01-CONTEXT.md) or research reference (01-RESEARCH.md)
 - [Phase 01]: Design §5 manual is docs/USER-MANUAL.md (A14), replacing INSTALL.md and USER-GUIDE.md; CHANGELOG/CONTRIBUTING/SECURITY stay at the root
+- [Phase 01]: Command modules: epb/commands/<name>.py with NAME, HELP, MUTATING, add_arguments, run; underscore-prefixed modules are helpers and are skipped by discover()
+- [Phase 01]: Private env at the fixed D-03 path keyed by plugin version; the epb-env.json marker must match plugin_version and requirements_sha256, else ENV_NOT_SET_UP (exit 3)
+- [Phase 01]: Envelope schema enforces ok == (exit_code == 0) and at least one error when ok is false; tracebacks go to stderr only
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T09:20:09.390Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-10-18T09:30:19.551Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
