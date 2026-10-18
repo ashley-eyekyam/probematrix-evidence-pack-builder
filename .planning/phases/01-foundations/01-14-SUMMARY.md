@@ -271,3 +271,11 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- All 3 created key files and the 6 modified key files exist on disk.
+- Commits `90778f6`, `3ac9d95`, `ad290a5`, `16727a4`, `202c61f` and `c7ffb0a` are ancestors of HEAD on `gsd-wt-01-14`. `git rev-list --count 53f8db5..c7ffb0a` is 6, before the SUMMARY commits.
+- Plan verification: `ruff check` and `ruff format --check` are clean, and `pytest -q` gives 1015 passed and 1 skipped.
+- Key link: `scan.py` calls `pair_sidecars(` once, after `classify` and before staging. The scan crash test uses `list_checkpoints(`.
+- STATE.md, ROADMAP.md and REQUIREMENTS.md are untouched, and nothing was written in the main checkout.
