@@ -201,3 +201,13 @@ None. No external service configuration required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- All 6 created key files exist on disk.
+- Commits `d1984be`, `bc50455`, `bfcca8b` and `89c3bdb` are ancestors of HEAD on `gsd-wt-01-15`. `git rev-list --count 5bdf3d1..89c3bdb` is 4, before the SUMMARY commits.
+- Plan verification:
+  - `EPB_HOST_TESTS=1 .venv/bin/python -m pytest -q tests/packaging`: 270 passed, with both host installs run.
+  - `ruff check` and `ruff format --check`: clean.
+  - Full suite: 1228 passed, 3 skipped (the opt-in network and host tests).
+- STATE.md, ROADMAP.md, REQUIREMENTS.md, the root AGENTS.md and CLAUDE.md, README.md and `docs/` are untouched, and nothing was written in the main checkout.
