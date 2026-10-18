@@ -220,6 +220,8 @@ def _probe(prefix):
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             universal_newlines=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=PROBE_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError, ValueError):
