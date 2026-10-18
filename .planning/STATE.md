@@ -2,19 +2,19 @@
 gsd_state_version: "1.0"
 milestone: v0.1.0
 milestone_name: First public release
-current_phase: 1
+current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-10-17T13:46:44.050Z"
-last_activity: 2026-10-17
-last_activity_desc: Roadmap created (10 phases, 154/154 v1 requirements mapped)
-state_head: be5e88609d47dc3eaf60b1853defc0d4b4235c2d
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-10-18T09:15:19.160Z"
+last_activity: 2026-10-18
+last_activity_desc: Phase 01 execution started
+state_head: 7c436f99f057cd1429a0aa09241420668fbb69d7
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 0
+  completed_plans: 1
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-17)
 
 **Core value:** Every item in a pack is traceable and trustworthy: each quote is verbatim on the cited page or time, people appear only as role labels, no source conclusion, lesson or recommendation is treated as evidence, and the workbook imports into ProbeMatrix cleanly without duplicates.
-**Current focus:** Phase 1: Foundations
+**Current focus:** Phase 01 — Foundations
 
 ## Current Position
 
-Phase: 1 (Foundations) — READY TO EXECUTE
-Plan: Not started (phase not yet planned)
+Phase: 01 (Foundations) — EXECUTING
+Plan: 2 of 16
 Status: Ready to execute
-Last activity: 2026-10-17 — Roadmap created (10 phases, 154/154 v1 requirements mapped)
+Last activity: 2026-10-18 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -53,6 +53,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 10 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -65,6 +70,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Design §20 amendments A1–A14 win over earlier sections: no samples, `plugin/` subfolder, Python 3.11+, Linux-only CI, Phase 1 smoke import, and a non-technical manual grown per phase.
 - [Roadmap]: Design defects are referred to only as DEF-01…DEF-18, never by their original short design-section labels, to avoid clashing with GSD decision tokens.
 - [Roadmap]: Owner ProbeMatrix imports happen at Phase 1 (smoke workbook), Phase 5 (master), Phase 6 (delta) and Phase 10 (definition of done).
+- [Phase 01]: Owner approved all 16 packages, the PKG-08 floors and ruff==0.16.10 at the blocking-human legitimacy checkpoint before the first install
+- [Phase 01]: ruff excludes .planning/ because ruff 0.16.10 formats Python code blocks inside Markdown and the GSD research docs hold illustrative snippets
 
 ### Pending Todos
 
@@ -88,6 +95,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-17T11:56:38.408Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundations/01-CONTEXT.md
+Last session: 2026-10-18T09:15:19.136Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
