@@ -238,7 +238,7 @@ Task 2 (`tdd="true"`) has a `test(01-10)` commit (`d3fb413`) but **no RED failur
   - A monkeypatched stub recursed into itself.
   - A sudo scan matched the module docstring.
   They were fixed in the test file before the commit.
-- **Semantic check in place of RED:** seven deliberate mutations of `setup.py` were each caught by the new tests. Each mutation was applied, run and reverted, leaving no diff:
+- **Semantic check in place of RED:** six deliberate mutations of `setup.py` were each caught by the new tests. Each mutation was applied, run and reverted, leaving no diff:
 
   | Mutation | Tests failing |
   | --- | --- |
@@ -249,7 +249,7 @@ Task 2 (`tdd="true"`) has a `test(01-10)` commit (`d3fb413`) but **no RED failur
   | Never short-circuit when ready | 2 |
   | Ignore package minimums in verify | 1 |
 
-  The original listed a seventh mutation that was meant to apply to the joined line. That one is the "ignore package minimums" row above, re-applied after ruff had joined the line.
+  The `d3fb413` commit message says "seven mutations"; the correct count is six (one first attempt did not apply because ruff had joined the target line, and it was re-applied as the last row).
 - **Verdict:** a verifier should treat this as a known, explained gate deviation, not a missed implementation.
 
 ## Issues Encountered
