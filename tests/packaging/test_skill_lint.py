@@ -112,6 +112,8 @@ def test_router_frontmatter():
         "STATE_INVALID",
         "waiting for conversion",
         "none yet",
+        "BAD_NAME_IGNORED",
+        "bad-name",
     ],
 )
 def test_router_covers_phase_1_scope(phrase):
