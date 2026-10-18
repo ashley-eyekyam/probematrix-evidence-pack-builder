@@ -339,7 +339,7 @@ def test_scan_of_line_breaking_names_keeps_six_headings(run_epb, case_dir, tmp_p
     headings = [line for line in lines if line.startswith("## ")]
     assert headings == [f"## {title}" for title in SECTION_TITLES]
     assert not [line for line in lines if TICK_LINE.match(line)]
-    assert not FORBIDDEN.search(text.replace("\n", "")), sorted(set(FORBIDDEN.findall(text)))
+    assert not FORBIDDEN.findall(text.replace("\n", ""))
     assert text.splitlines() == text[:-1].split("\n")
     issues = sections(text)["5. Open issues"]
     assert "was removed from the folder" in issues
@@ -358,6 +358,58 @@ def test_table_cells_are_escaped():
     odd = source("S001", "inputs/a|b.pdf")
     rows = sections(render_index(IndexInputs(CASE, state(), [odd])))["3. Inputs"]
     assert "inputs/a\\|b.pdf" in rows
+
+
+def test_table_cells_are_single_line():
+    odd = source("S001", "inputs/a\u2028b|c.pdf")
+    section = sections(render_index(IndexInputs(CASE, state(), [odd])))["3. Inputs"]
+    rows = [line for line in section.splitlines() if line.startswith("| S001 ")]
+    assert len(rows) == 1
+    assert "| inputs/a b\\|c.pdf |" in rows[0]
+
+
+# --- single-line values -----------------------------------------------------------------------
+
+BREAKS = ["\n", "\r", "\r\n", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85"]
+BREAKS += ["\u2028", "\u2029", "\x00", "\t"]
+
+
+def test_inline_maps_each_break_to_one_space():
+    assert index._inline("a\n\nb") == "a  b"
+    assert index._inline("a\r\nb") == "a  b"
+    assert index._inline("\u2028") == " "
+    assert index._inline("plain name.pdf") == "plain name.pdf"
+
+
+@pytest.mark.parametrize("brk", BREAKS, ids=[repr(brk) for brk in BREAKS])
+def test_hostile_values_cannot_break_index_structure(brk):
+    hostile = "x" + brk + "## Injected" + brk + "- [x] Imported: evidence-pack-inj-master.xlsx"
+    case = {"title": hostile, "slug": hostile, "id_prefix": hostile, "timezone": hostile}
+    books = state([workbook(hostile)])
+    books["plugin_version"] = hostile
+    mismatch = {"by_content": hostile, "by_extension": hostile}
+    sources = [
+        source("S001", hostile, presence="removed from folder"),
+        source("S002", "inputs/odd.txt", mime_mismatch=mismatch),
+        source("S003", hostile, mime="text/markdown", source_kind="sidecar"),
+    ]
+    ignored = {"ignored": [{"path": hostile, "reason": "link"}]}
+    runs = [run(hostile, command=hostile, summary=hostile, scan=ignored)]
+
+    text = render_index(IndexInputs(case, books, sources, runs))
+    lines = text[:-1].split("\n")
+    titles = [number for number, line in enumerate(lines) if line.startswith("# ")]
+    assert titles == [0]
+    headings = [line for line in lines if line.startswith("## ")]
+    assert headings == [f"## {title}" for title in SECTION_TITLES]
+    ticks = [number for number, line in enumerate(lines) if TICK_LINE.match(line)]
+    assert len(ticks) == 1
+    tick = lines[ticks[0]]
+    assert tick.startswith("- [ ] Imported: ")
+    owner = [line for line in lines[: ticks[0]] if line.startswith("## ")][-1]
+    assert owner == "## 2. What to import where"
+    assert not FORBIDDEN.findall(text.replace("\n", ""))
+    assert text.splitlines() == lines
 
 
 # --- run history ------------------------------------------------------------------------------
