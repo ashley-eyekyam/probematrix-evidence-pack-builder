@@ -79,6 +79,7 @@ MIME_LABELS = {
 _SINGLE_LINE = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029]")
 _RUN_TIME = re.compile(r"^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})")
 _IGNORED_REASONS = {
+    "bad-name": "named with characters that are not valid text; rename it, then scan again",
     "link": "a link, which the plugin does not follow",
     "special": "not a regular file (for example a pipe or a device)",
 }

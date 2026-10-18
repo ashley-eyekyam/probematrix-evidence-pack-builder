@@ -10,6 +10,7 @@ transaction.
 import fnmatch
 import hashlib
 import os
+import re
 import stat
 import unicodedata
 from dataclasses import dataclass, field
@@ -28,6 +29,10 @@ MEDIA_DIR = ".epb/media"
 JUNK_PATTERNS = (".DS_Store", "Thumbs.db", "desktop.ini", "~$*", "._*", ".~lock.*#", "*.tmp")
 _JUNK_NAMES = frozenset(p.lower() for p in JUNK_PATTERNS if not any(c in p for c in "*?["))
 _JUNK_GLOBS = tuple(p for p in JUNK_PATTERNS if any(c in p for c in "*?["))
+
+# The ignored reason for a file or folder whose name is not valid text (not valid UTF-8).
+BAD_NAME = "bad-name"
+_SURROGATES = re.compile("[\ud800-\udfff]")
 
 NO_FILES = "No files found in inputs/. Put evidence files there, then scan again."
 NO_CHANGES = "No changes since the last scan."
@@ -55,7 +60,8 @@ class FileFact:
 
 @dataclass(frozen=True)
 class Ignored:
-    """Something in ``inputs/`` that scan skipped: ``junk``, ``link`` or ``special``."""
+    """Something in ``inputs/`` that scan skipped: ``junk``, ``link``, ``special`` or
+    ``bad-name`` (a name that is not valid text; ``rel`` is then its ``display_path``)."""
 
     rel: str
     reason: str
@@ -71,6 +77,27 @@ def rel_key(case_root, path) -> str:
     """The path of ``path`` relative to the case folder, POSIX style and NFC-normalised."""
     rel = Path(path).relative_to(case_root).as_posix()
     return unicodedata.normalize("NFC", rel)
+
+
+def name_is_text(name: str) -> bool:
+    """Whether ``name`` is valid text. On Linux a name whose bytes are not valid UTF-8 reaches
+    Python holding lone surrogates (surrogateescape), which can never be written as UTF-8."""
+    try:
+        name.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def display_path(rel: str) -> str:
+    """``rel`` with every part that is not valid text shown as U+FFFD. Never raises.
+
+    Bytes smuggled in by surrogateescape are decoded back and replaced; any other lone
+    surrogate (a Windows NTFS name can hold one) is replaced directly."""
+    try:
+        return rel.encode("utf-8", "surrogateescape").decode("utf-8", "replace")
+    except UnicodeEncodeError:
+        return _SURROGATES.sub("�", rel)
 
 
 def is_junk(name: str) -> bool:
@@ -128,7 +155,9 @@ def _fingerprint(path):
 def walk_inputs(case_root) -> WalkResult:
     """Fingerprint every regular file under ``inputs/``, sorted by path. Links (and junctions)
     are listed as ``link`` and never followed; pipes, sockets and devices as ``special`` and
-    never opened; OS junk as ``junk``. Nothing under ``inputs/`` is ever written.
+    never opened; OS junk as ``junk``. A name that is not valid text is listed as ``bad-name``
+    under its ``display_path`` and never registered, whatever kind of entry it names. Nothing
+    under ``inputs/`` is ever written.
 
     Path keys are NFC, so a name stored in NFD form (as macOS writes it) is the same key as its
     NFC spelling. Two files whose names differ only in that way (possible on Linux) would share
@@ -159,6 +188,9 @@ def walk_inputs(case_root) -> WalkResult:
         for name in sorted(filenames):
             path = Path(folder) / name
             rel = rel_key(case_root, path)
+            if not name_is_text(name):
+                result.ignored.append(Ignored(display_path(rel), BAD_NAME))
+                continue
             try:
                 info = os.lstat(path)
             except FileNotFoundError:

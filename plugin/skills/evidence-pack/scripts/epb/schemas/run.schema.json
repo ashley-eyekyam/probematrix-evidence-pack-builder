@@ -219,6 +219,7 @@
               },
               "reason": {
                 "enum": [
+                  "bad-name",
                   "junk",
                   "link",
                   "special"
