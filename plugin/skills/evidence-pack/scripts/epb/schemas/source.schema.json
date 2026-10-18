@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epb:source",
+  "title": "epb source record (.epb/sources/<src_id>.json)",
+  "description": "One record per logical input (design §8.1, amended by D-08). A source keeps its ID for ever: a new version is appended to versions, and a removed input keeps its record with presence 'removed from folder'. Later phases add optional fields (converter, OCR, transcript, citation) without an upgrade step.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "src_id",
+    "current_version",
+    "paths",
+    "presence",
+    "status",
+    "parents",
+    "source_kind",
+    "sidecar_of",
+    "sidecars",
+    "first_seen_run",
+    "last_processed_run",
+    "mime_mismatch",
+    "versions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "src_id": {
+      "$ref": "#/$defs/src_id"
+    },
+    "current_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "paths": {
+      "description": "Where the current content is in inputs/ now, sorted; empty when removed from the folder.",
+      "$ref": "#/$defs/input_paths"
+    },
+    "presence": {
+      "enum": [
+        "present",
+        "removed from folder"
+      ]
+    },
+    "status": {
+      "description": "Design §6.1 vocabulary plus 'pending' (research Q2): scanned, waiting for conversion.",
+      "anyOf": [
+        {
+          "enum": [
+            "pending",
+            "processed",
+            "partial"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^unprocessed: .+$"
+        },
+        {
+          "type": "string",
+          "pattern": "^superseded by .+$"
+        }
+      ]
+    },
+    "parents": {
+      "description": "The carriers this source was taken from (an email or an archive), one entry per carrier; empty for a top-level input (D-08).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "src_id"
+        ],
+        "properties": {
+          "src_id": {
+            "$ref": "#/$defs/src_id"
+          },
+          "member": {
+            "description": "The member name or attachment name inside the carrier.",
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "source_kind": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "official_report",
+            "witness_statement",
+            "interview_recording",
+            "cctv",
+            "photo",
+            "system_export",
+            "procedure",
+            "permit",
+            "email",
+            "press",
+            "regulator_notice",
+            "operator_statement",
+            "sidecar",
+            "other"
+          ]
+        }
+      ]
+    },
+    "sidecar_of": {
+      "description": "For a note file, the source it describes.",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/src_id"
+        }
+      ]
+    },
+    "sidecars": {
+      "description": "The note files that describe this source.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/src_id"
+      }
+    },
+    "first_seen_run": {
+      "$ref": "#/$defs/run_id"
+    },
+    "last_processed_run": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/run_id"
+        }
+      ]
+    },
+    "mime_mismatch": {
+      "description": "Set when the file name and the content disagree about the type; the content wins (D-13).",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "by_extension",
+            "by_content"
+          ],
+          "properties": {
+            "by_extension": {
+              "$ref": "#/$defs/mime"
+            },
+            "by_content": {
+              "$ref": "#/$defs/mime"
+            }
+          }
+        }
+      ]
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "sha256",
+          "size",
+          "mime",
+          "mtime_ns",
+          "seen_run",
+          "paths"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mime": {
+            "$ref": "#/$defs/mime"
+          },
+          "mtime_ns": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seen_run": {
+            "description": "The run that first saw this version.",
+            "$ref": "#/$defs/run_id"
+          },
+          "paths": {
+            "description": "The last known paths of this version.",
+            "$ref": "#/$defs/input_paths"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "src_id": {
+      "type": "string",
+      "pattern": "^S\\d{3,}$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^\\d{3,}$"
+    },
+    "mime": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._+-]*/[a-z0-9][a-z0-9._+-]*$"
+    },
+    "input_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^inputs/.+"
+      }
+    }
+  }
+}
