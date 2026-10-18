@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-10-18T09:43:53.505Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-10-18T09:53:18.759Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: d1ee281cd22f520b77bd67dedfd41ce18c18f4fb
+state_head: ce1358ef5bf9c0125ca0b885076381bba73564de
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 5 of 16
+Plan: 6 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P02 | 3 min | 2 tasks | 2 files |
 | Phase 01 P03 | 8 min | 3 tasks | 10 files |
 | Phase 01 P04 | 10 min | 3 tasks | 10 files |
+| Phase 01 P05 | 7 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Writer saves through openpyxl ExcelWriter so the injected created/modified time survives; Workbook.save stamps the wall clock
 - [Phase 01]: validate_workbook opens the file as a binary handle because openpyxl rejects the .tmp name write_pack validates
 - [Phase 01]: Validator: a formula cell reports only CELL_FORMULA; one finding per cell and code; blank Evidence ID is REQUIRED_BLANK
+- [Phase 01]: Licence check: a License field counts only as a known alias or a parseable SPDX expression without placeholder ids; free text falls through to classifiers
+- [Phase 01]: Dependency age: any PyPI lookup still failing after one retry exits 2 (age unknown); a 404 (not on PyPI) is a violation
+- [Phase 01]: TDD RED for a not-yet-existing tool commits an inert interface skeleton so RED fails on assertions, not on import
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T09:43:53.478Z
-Stopped at: Completed 01-04-PLAN.md
+Last session: 2026-10-18T09:53:18.733Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None

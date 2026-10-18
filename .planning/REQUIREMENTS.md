@@ -234,7 +234,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
 - [ ] **PKG-07**: `epb doctor` reports each tool: found or not, its version, the input types it enables, and install commands for each OS. A missing optional tool never fails a run. (§7.2)
 - [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
-- [ ] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
+- [x] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
 - [ ] **PKG-10**: The plugin installs through `/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder` plus `/plugin install` on Claude Code, through Cowork's plugin upload, and on Codex through its supported route. (§15.3, kickoff §11)
 - [ ] **PKG-11**: The repo-root `AGENTS.md` and `CLAUDE.md` are exact copies of each other, holding the developer instructions. They are regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least at every phase transition), and a CI test fails if they differ or exceed 150 lines. They are hand-maintained and concise (aim for 60 lines or fewer, pointers rather than copies); GSD's `generate-claude-md` is never run on them. (§20 A15)
 
@@ -254,7 +254,7 @@ Each hard gate blocks the build. (§14)
 
 ### Testing and release (TST)
 
-- [ ] **TST-01**: pytest and ruff run, with no network in tests. Tests for optional tools skip cleanly when the tool is absent. (kickoff §7)
+- [x] **TST-01**: pytest and ruff run, with no network in tests. Tests for optional tools skip cleanly when the tool is absent. (kickoff §7)
 - [ ] **TST-02**: A synthetic incident fixture generator produces a fully fictional incident with planted traps for every DEF class:
   - a contradiction
   - a typo needing `[sic]`
@@ -469,7 +469,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | PKG-06 | Phase 1 | Pending |
 | PKG-07 | Phase 1 | Pending |
 | PKG-08 | Phase 1 | Pending |
-| PKG-09 | Phase 1 | Pending |
+| PKG-09 | Phase 1 | Complete |
 | PKG-10 | Phase 10 | Pending |
 | PKG-11 | Phase 1 | Pending |
 | DOC-01 | Phase 10 | Pending |
@@ -479,7 +479,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | DOC-05 | Phase 1 | Pending |
 | DOC-06 | Phase 5 | Pending |
 | DOC-07 | Phase 10 | Pending |
-| TST-01 | Phase 1 | Pending |
+| TST-01 | Phase 1 | Complete |
 | TST-02 | Phase 2 | Pending |
 | TST-03 | Phase 5 | Pending |
 | TST-04 | Phase 10 | Pending |

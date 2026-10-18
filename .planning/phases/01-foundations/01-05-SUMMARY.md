@@ -47,7 +47,7 @@ key-decisions:
   - "Licence check: unmapped License classifiers are ignored when another classifier maps, and reported as 'licence unknown' when none maps"
   - "Dependency age: any PyPI lookup that still fails after one retry exits 2 (age unknown), not only a total outage; a 404 means 'not on PyPI' and is a violation"
   - "Dependency age: exceptions that are not installed are still looked up so STALE entries are reported"
-  - "The DEFAULT allow-list adds PSFL, BSD License and similar free-text aliases; no extra override beyond pypdfium2 was needed for the dev set"
+  - "The allow-list maps free-text aliases such as PSFL and MIT License; pypdfium2 is the only reviewed override the dev set needs"
 
 patterns-established:
   - "check_* tools exit 0 clean, 1 on findings, 2 when their own config file or data source is unusable"
