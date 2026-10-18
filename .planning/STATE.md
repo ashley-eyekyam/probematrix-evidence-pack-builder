@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-10-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:30:32.215Z"
+stopped_at: Completed 01-11-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:34:20.591Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: f74200b4dcfcbc1dc2f514149163e68ddacb3517
+state_head: 2a52af4f8d4b965ffd6d0cec983f56c3ded237a4
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 11 of 16
+Plan: 12 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P08 | 11min | 2 tasks | 11 files |
 | Phase 01 P09 | 7min | 2 tasks | 9 files |
 | Phase 01 P10 | 7min | 2 tasks | 7 files |
+| Phase 01 P11 | 10min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,14 @@ Recent decisions affecting current work:
 - [Phase 01]: Verify runs the env interpreter with -I (isolated) so PYTHONPATH or user site-packages cannot make a broken env look complete
 - [Phase 01]: Exception pins are checked against package/version regexes; a malformed file is SETUP_FAILED before any download
 - [Phase 01]: render_human was split into shared helpers so render_setup_human shows identical Optional lines; golden doctor tests unchanged
+- [Phase 01]: The INDEX.md Inputs table has an ID column first (display_id, e.g. S004v2) ahead of the planned Path...Items columns, so a new version is visible in INDEX as plan 01-14 requires
+- [Phase 01]: init's data.created lists the layout folders that did not exist before (with a trailing /) followed by every staged file in apply order, state.json last
+- [Phase 01]: The foreign-INDEX.md refusal runs before anything is created when no journal is pending, and again after recovery, so a refusal leaves the folder untouched
+- [Phase 01]: run.json finished_at is stamped when the run is allocated, just before the commit; INDEX shows run times in UTC (YYYY-MM-DD HH
+- [Phase 01]: run.schema.json scan.sidecars[].target is a source id (^S\d{3,}$), matching sidecar_of on source records; scan.new_versions[].version is at least 2; upgrade.backup_dir must be .epb/runs/<NNN>/pre-upgrade/
+- [Phase 01]: load_sources
+- [Phase 01]: open_read_only is a plain function returning a Session; open_for_init and open_for_mutation are context managers, so 01-12 can add the lock around their yield
+- [Phase 01]: status message is five plain lines ending with a pointer to INDEX.md; data has exactly case, inputs, runs, last_run, workbooks
 
 ### Pending Todos
 
@@ -144,6 +153,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:30:32.184Z
-Stopped at: Completed 01-10-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:34:20.558Z
+Stopped at: Completed 01-11-PLAN.md (merged from worktree)
 Resume file: None
