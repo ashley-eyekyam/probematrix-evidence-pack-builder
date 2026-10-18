@@ -152,3 +152,20 @@ def test_openpyxl_ignore_comes_after_the_error_entry():
     error_index = entries.index(ENCODING_ERROR)
     for entry in openpyxl_entries:
         assert entries.index(entry) > error_index, entry
+
+
+# --- local / CI parity (PKG-11) ---------------------------------------------------------------
+
+AGENTS = REPO_ROOT / "AGENTS.md"
+DOCUMENTED_PYTEST = "PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q"
+
+
+def test_documented_full_check_matches_ci(core):
+    lines = [
+        line for line in AGENTS.read_text(encoding="utf-8").splitlines() if "Full check" in line
+    ]
+    assert len(lines) == 1, f"expected one 'Full check' line in AGENTS.md, found {len(lines)}"
+    assert DOCUMENTED_PYTEST in lines[0], (
+        "AGENTS.md's full check must run pytest the way CI does: " + DOCUMENTED_PYTEST
+    )
+    assert core["env"]["PYTHONWARNDEFAULTENCODING"] == "1"
