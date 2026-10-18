@@ -8,7 +8,9 @@ the table does not know, through a private ``mimetypes.MimeTypes()`` instance. A
 still unknown is ``application/octet-stream``.
 
 ``sniff`` reads at most the first 4,096 bytes (plus, for a ZIP, its list of member names; no
-member is ever extracted) and checks ``MAGIC_RULES``. ``detect`` lets the content win: when
+member is ever extracted) and checks ``MAGIC_RULES``. A text byte-order mark means text, so
+``sniff`` gives no verdict for it and the name decides, exactly as for text without a mark.
+``detect`` lets the content win: when
 the name suggests a different known type, the disagreement is returned as a mismatch, unless
 the content only names a family (``AMBIGUOUS_FAMILIES``: an OLE2 ``.msg`` or ``.doc``, a
 Matroska ``.webm``) or a container the name refines.
@@ -137,6 +139,17 @@ def _mpeg_frame(head: bytes) -> str | None:
     return "audio/mpeg"
 
 
+# Text byte-order marks, longest first so a UTF-32LE mark is not read as UTF-16LE. They are
+# checked before every rule in MAGIC_RULES: the UTF-16LE mark FF FE also looks like the start of
+# an MPEG audio frame header.
+_TEXT_BOMS = (
+    b"\xff\xfe\x00\x00",  # UTF-32LE
+    b"\x00\x00\xfe\xff",  # UTF-32BE
+    b"\xef\xbb\xbf",  # UTF-8
+    b"\xff\xfe",  # UTF-16LE
+    b"\xfe\xff",  # UTF-16BE
+)
+
 # Checked in this order; the first match wins. A rule is a byte prefix or a function of the
 # first HEAD_BYTES bytes. ZIP is told apart from OOXML and ODF by ``_zip_kind``.
 MAGIC_RULES = (
@@ -207,9 +220,12 @@ def _zip_kind(head: bytes, path) -> str:
 
 def sniff(path) -> str | None:
     """The type the first bytes of the file at ``path`` show, or ``None`` when they show none
-    of the types in ``MAGIC_RULES`` (plain text, for example)."""
+    of the types in ``MAGIC_RULES`` (plain text, for example). A text byte-order mark means
+    text, so it also gives ``None`` and the name decides, exactly as for text without a mark."""
     with open(path, "rb") as handle:
         head = handle.read(HEAD_BYTES)
+    if head.startswith(_TEXT_BOMS):
+        return None
     for rule, kind in MAGIC_RULES:
         if callable(rule):
             found = rule(head)

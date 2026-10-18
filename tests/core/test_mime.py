@@ -156,6 +156,28 @@ def test_sniff_returns_none_without_magic(tmp_path, data):
     assert mime.sniff(_write(tmp_path, "sample.bin", data)) is None
 
 
+# Text byte-order marks and the codec that writes the text after each one.
+TEXT_BOMS = {
+    "utf-32-le": b"\xff\xfe\x00\x00",
+    "utf-32-be": b"\x00\x00\xfe\xff",
+    "utf-8": b"\xef\xbb\xbf",
+    "utf-16-le": b"\xff\xfe",
+    "utf-16-be": b"\xfe\xff",
+}
+
+
+def _bom_text(codec, text):
+    """``text`` in ``codec``, preceded by that codec's byte-order mark."""
+    return TEXT_BOMS[codec] + text.encode(codec)
+
+
+@pytest.mark.parametrize("codec", list(TEXT_BOMS))
+def test_sniff_gives_no_verdict_after_a_text_bom(tmp_path, codec):
+    path = _write(tmp_path, "log.txt", _bom_text(codec, "A"))
+    assert mime.sniff(path) is None
+    assert mime.detect(path) == ("text/plain", None)
+
+
 def test_docx_named_file_with_pdf_bytes_is_a_pdf_with_mismatch(tmp_path):
     path = _write(tmp_path, "report.docx", SAMPLES["pdf"][0])
     assert mime.detect(path) == (
@@ -374,3 +396,58 @@ def test_scan_records_and_reports_a_mismatch(run_epb, case_dir):
     issues = index_text.split("## 5. Open issues", 1)[1].split("## 6.", 1)[0]
     assert "S001 (inputs/report.docx)" in issues
     assert "application/pdf" in issues
+
+
+def _source_records(case_dir):
+    """Every source record, keyed by its first path."""
+    records = {}
+    for path in sorted((case_dir / ".epb/sources").glob("S*.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        records[record["paths"][0]] = record
+    return records
+
+
+def _index_type_cell(index_text, input_path):
+    """The Type cell of ``input_path``'s row in INDEX.md's Inputs section."""
+    inputs = index_text.split("## 3. Inputs", 1)[1].split("## 4.", 1)[0]
+    for line in inputs.splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) > 2 and cells[1] == input_path:
+            return cells[2]
+    raise AssertionError(f"{input_path} has no row in the Inputs section")
+
+
+def test_scan_records_utf16_text_by_its_name(run_epb, case_dir):
+    """Windows writes UTF-16LE text with the mark ``FF FE`` (Notepad "Unicode", Excel
+    "Unicode Text", PowerShell 5.1 Out-File). Those bytes once read as an MPEG frame header,
+    so text evidence was recorded as MP3 audio (review B-CR-01)."""
+    proc = run_epb([*INIT, "--json"], cwd=case_dir)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    inputs = case_dir / "inputs"
+    (inputs / "log.txt").write_bytes(
+        _bom_text("utf-16-le", "Alarm log\r\n08:15 Pump P-101 tripped\r\n")
+    )
+    (inputs / "export.csv").write_bytes(
+        _bom_text("utf-16-le", "Time,Tag,Value\r\n08:15,P-101,trip\r\n")
+    )
+    (inputs / "readings.csv").write_bytes(_bom_text("utf-8", "Reading,Value\r\nR1,4.2\r\n"))
+
+    proc = run_epb(["scan", "--json"], cwd=case_dir)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    envelope = json.loads(proc.stdout)
+
+    expected = {
+        "inputs/log.txt": ("text/plain", "Text"),
+        "inputs/export.csv": ("text/csv", "CSV"),
+        "inputs/readings.csv": ("text/csv", "CSV"),
+    }
+    records = _source_records(case_dir)
+    assert sorted(records) == sorted(expected)
+    index_text = (case_dir / "INDEX.md").read_text(encoding="utf-8")
+    for input_path, (mime_type, label) in expected.items():
+        record = records[input_path]
+        assert schema.validate(record, "source") == []
+        assert record["versions"][0]["mime"] == mime_type, input_path
+        assert record["mime_mismatch"] is None, input_path
+        assert _index_type_cell(index_text, input_path) == label
+    assert [item for item in envelope["warnings"] if item["code"] == "MIME_MISMATCH"] == []
