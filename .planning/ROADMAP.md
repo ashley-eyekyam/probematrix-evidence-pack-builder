@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Owner smoke import: the owner imports the synthetic edge-case workbook into a ProbeMatrix test incident. The workbook contains a Description beginning with `=`, a `0` value, a long numeric ID, a `YYYY-MM` date, multi-entry Tags and Linked Equipment, and every QA Status value. The owner reports that every value shows exactly as written, that nothing became a formula, a number or a blank, and that list entries split into the expected separate entries.
   5. On Linux, the plugin installs into Claude Code from this repo's marketplace (`source: "./plugin"`). `epb doctor --setup`, launched through the standard-library-only `epb.py`, finds Python 3.11+, builds the private environment, installs the core packages and reports in plain language what is ready and what is optional. `epb doctor` lists every tool with its version, the input types it enables and per-OS install commands. `AGENTS.md` is in `plugin/`. Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green. The first edition of the user manual covers installing Python, adding the plugin to Claude Code, first-time setup and the plain-language privacy statement, with the Windows and macOS sections marked "not yet tested on this system". The repo-root `AGENTS.md` and `CLAUDE.md` are identical and concise (150 lines at most), and a CI test fails otherwise (PKG-11).
 
-**Plans**: 24/26 plans executed: 16 executed in 8 waves, 6 gap-closure plans (01-17 to 01-22) in 3 waves after verification found gaps, and 4 more gap-closure plans (01-23 to 01-26) in 3 waves after re-verification found 2 gaps
+**Plans**: 25/26 plans executed: 16 executed in 8 waves, 6 gap-closure plans (01-17 to 01-22) in 3 waves after verification found gaps, and 4 more gap-closure plans (01-23 to 01-26) in 3 waves after re-verification found 2 gaps
 
 Plans:
 **Wave 1**
@@ -93,7 +93,7 @@ Plans:
 - [x] 01-24-PLAN.md — `scan` skips file and folder names that are not valid text as `bad-name` instead of crashing (gap 2, review CR-01)
 
 **Gap closure round 2, wave 2** *(blocked on 01-24)*
-- [ ] 01-25-PLAN.md — Manual, skill and workspace contract explain the `bad-name` skip (gap 2)
+- [x] 01-25-PLAN.md — Manual, skill and workspace contract explain the `bad-name` skip (gap 2)
 
 **Gap closure round 2, wave 3** *(blocked on 01-23 to 01-25)*
 - [ ] 01-26-PLAN.md — Owner-approved push and a green GitHub CI run on both legs (gap 1)
@@ -317,7 +317,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations | 24/26 | In Progress (gap closure planned) | - |
+| 1. Foundations | 25/26 | In Progress (gap closure planned) | - |
 | 2. Text intake + quote verifier | 0/TBD | Not started | - |
 | 3. Extraction + claim ledger | 0/TBD | Not started | - |
 | 4. Reconcile | 0/TBD | Not started | - |
