@@ -1,220 +1,203 @@
 ---
 phase: 01-foundations
-verified: 2026-10-18T12:08:58Z
+verified: 2026-10-18T16:11:48Z
 status: gaps_found
-score: 15/23 must-haves verified
-covered_files: [".claude-plugin/marketplace.json",".github/workflows/ci.yml",".gitignore",".planning/phases/01-foundations/01-01-PLAN.md",".planning/phases/01-foundations/01-01-SUMMARY.md",".planning/phases/01-foundations/01-02-PLAN.md",".planning/phases/01-foundations/01-02-SUMMARY.md",".planning/phases/01-foundations/01-03-PLAN.md",".planning/phases/01-foundations/01-03-SUMMARY.md",".planning/phases/01-foundations/01-04-PLAN.md",".planning/phases/01-foundations/01-04-SUMMARY.md",".planning/phases/01-foundations/01-05-PLAN.md",".planning/phases/01-foundations/01-05-SUMMARY.md",".planning/phases/01-foundations/01-06-PLAN.md",".planning/phases/01-foundations/01-06-SUMMARY.md",".planning/phases/01-foundations/01-07-PLAN.md",".planning/phases/01-foundations/01-07-SUMMARY.md",".planning/phases/01-foundations/01-08-PLAN.md",".planning/phases/01-foundations/01-08-SUMMARY.md",".planning/phases/01-foundations/01-09-PLAN.md",".planning/phases/01-foundations/01-09-SUMMARY.md",".planning/phases/01-foundations/01-10-PLAN.md",".planning/phases/01-foundations/01-10-SUMMARY.md",".planning/phases/01-foundations/01-11-PLAN.md",".planning/phases/01-foundations/01-11-SUMMARY.md",".planning/phases/01-foundations/01-12-PLAN.md",".planning/phases/01-foundations/01-12-SUMMARY.md",".planning/phases/01-foundations/01-13-PLAN.md",".planning/phases/01-foundations/01-13-SUMMARY.md",".planning/phases/01-foundations/01-14-PLAN.md",".planning/phases/01-foundations/01-14-SUMMARY.md",".planning/phases/01-foundations/01-15-PLAN.md",".planning/phases/01-foundations/01-15-SUMMARY.md",".planning/phases/01-foundations/01-16-PLAN.md",".planning/phases/01-foundations/01-16-SUMMARY.md","AGENTS.md","CLAUDE.md","README.md","docs/USER-MANUAL.md","docs/design/2026-10-17-evidence-pack-builder-design.md","plugin/.claude-plugin/plugin.json","plugin/.codex-plugin/plugin.json","plugin/AGENTS.md","plugin/requirements-docs.txt","plugin/requirements-email.txt","plugin/requirements-media.txt","plugin/requirements.txt","plugin/security-exceptions.json","plugin/skills/evidence-pack/SKILL.md","plugin/skills/evidence-pack/references/evidence-pack-v2.md","plugin/skills/evidence-pack/references/workspace-contract.md","plugin/skills/evidence-pack/scripts/epb.py","plugin/skills/evidence-pack/scripts/epb/__init__.py","plugin/skills/evidence-pack/scripts/epb/casefile.py","plugin/skills/evidence-pack/scripts/epb/cli.py","plugin/skills/evidence-pack/scripts/epb/commands/__init__.py","plugin/skills/evidence-pack/scripts/epb/commands/doctor.py","plugin/skills/evidence-pack/scripts/epb/commands/init.py","plugin/skills/evidence-pack/scripts/epb/commands/scan.py","plugin/skills/evidence-pack/scripts/epb/commands/status.py","plugin/skills/evidence-pack/scripts/epb/doctor/__init__.py","plugin/skills/evidence-pack/scripts/epb/doctor/gitcheck.py","plugin/skills/evidence-pack/scripts/epb/doctor/probes.py","plugin/skills/evidence-pack/scripts/epb/doctor/report.py","plugin/skills/evidence-pack/scripts/epb/doctor/setup.py","plugin/skills/evidence-pack/scripts/epb/doctor/syncfolders.py","plugin/skills/evidence-pack/scripts/epb/doctor/tools.py","plugin/skills/evidence-pack/scripts/epb/errors.py","plugin/skills/evidence-pack/scripts/epb/faults.py","plugin/skills/evidence-pack/scripts/epb/formats/__init__.py","plugin/skills/evidence-pack/scripts/epb/formats/probematrix_v2.py","plugin/skills/evidence-pack/scripts/epb/formats/validate.py","plugin/skills/evidence-pack/scripts/epb/formats/writer.py","plugin/skills/evidence-pack/scripts/epb/fsio.py","plugin/skills/evidence-pack/scripts/epb/index.py","plugin/skills/evidence-pack/scripts/epb/launcher.py","plugin/skills/evidence-pack/scripts/epb/lock.py","plugin/skills/evidence-pack/scripts/epb/mime.py","plugin/skills/evidence-pack/scripts/epb/runs.py","plugin/skills/evidence-pack/scripts/epb/schema.py","plugin/skills/evidence-pack/scripts/epb/schemas/case.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/chunks.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/envelope.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/run.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/source.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/state.schema.json","plugin/skills/evidence-pack/scripts/epb/sources/__init__.py","plugin/skills/evidence-pack/scripts/epb/sources/classify.py","plugin/skills/evidence-pack/scripts/epb/sources/expanders/__init__.py","plugin/skills/evidence-pack/scripts/epb/sources/scan.py","plugin/skills/evidence-pack/scripts/epb/sources/sidecars.py","plugin/skills/evidence-pack/scripts/epb/state.py","plugin/skills/evidence-pack/scripts/epb/txn.py","plugin/skills/evidence-pack/scripts/epb/upgrade.py","plugin/skills/evidence-pack/scripts/epb/workspace.py","plugin/skills/evidence-pack/scripts/epb/yamlio.py","pyproject.toml","requirements-dev-full.txt","requirements-dev.txt","tests/cli/test_exit_codes.py","tests/conftest.py","tests/core/test_mime.py","tests/core/test_yamlio.py","tests/docs/test_manual.py","tests/doctor/test_gitcheck.py","tests/doctor/test_probes.py","tests/doctor/test_syncfolders.py","tests/epbtest/crash.py","tests/epbtest/envkit.py","tests/epbtest/packkit.py","tests/formats/test_contract.py","tests/formats/test_validator.py","tests/formats/test_writer.py","tests/index/test_index.py","tests/launcher/test_launcher.py","tests/launcher/test_setup.py","tests/launcher/test_setup_real.py","tests/packaging/test_host_install.py","tests/packaging/test_install_codex.py","tests/packaging/test_manifests.py","tests/packaging/test_plugin_agents_md.py","tests/packaging/test_references.py","tests/packaging/test_requirements.py","tests/packaging/test_skill_lint.py","tests/repo/test_ci_workflow.py","tests/repo/test_instructions_mirror.py","tests/repo/test_no_network.py","tests/schemas/test_state_schema.py","tests/sources/test_scan_classify.py","tests/sources/test_scan_fingerprint.py","tests/sources/test_sidecars.py","tests/store/test_crash_resume.py","tests/store/test_fsio_retry.py","tests/store/test_lock.py","tests/store/test_upgrade.py","tests/store/test_validate.py","tests/tools/test_dependency_checks.py","tests/tools/test_smoke_pack.py","tests/workspace/test_git_warning.py","tests/workspace/test_init.py","tests/workspace/test_init_defaults.py","tests/workspace/test_layout.py","tests/workspace/test_status.py","tools/check_dependency_age.py","tools/check_licences.py","tools/install-codex.py","tools/licence-allowlist.json","tools/make-smoke-pack.py"]
-covered_digest: "v3:sha256:d15e65643cb21a11eabedc30a05a07507811f22e2f9a7e61dda2e0636a68c11f"
+score: 19/23 must-haves verified
+covered_files: [".claude-plugin/marketplace.json",".github/workflows/ci.yml",".gitignore",".planning/phases/01-foundations/01-01-PLAN.md",".planning/phases/01-foundations/01-01-SUMMARY.md",".planning/phases/01-foundations/01-02-PLAN.md",".planning/phases/01-foundations/01-02-SUMMARY.md",".planning/phases/01-foundations/01-03-PLAN.md",".planning/phases/01-foundations/01-03-SUMMARY.md",".planning/phases/01-foundations/01-04-PLAN.md",".planning/phases/01-foundations/01-04-SUMMARY.md",".planning/phases/01-foundations/01-05-PLAN.md",".planning/phases/01-foundations/01-05-SUMMARY.md",".planning/phases/01-foundations/01-06-PLAN.md",".planning/phases/01-foundations/01-06-SUMMARY.md",".planning/phases/01-foundations/01-07-PLAN.md",".planning/phases/01-foundations/01-07-SUMMARY.md",".planning/phases/01-foundations/01-08-PLAN.md",".planning/phases/01-foundations/01-08-SUMMARY.md",".planning/phases/01-foundations/01-09-PLAN.md",".planning/phases/01-foundations/01-09-SUMMARY.md",".planning/phases/01-foundations/01-10-PLAN.md",".planning/phases/01-foundations/01-10-SUMMARY.md",".planning/phases/01-foundations/01-11-PLAN.md",".planning/phases/01-foundations/01-11-SUMMARY.md",".planning/phases/01-foundations/01-12-PLAN.md",".planning/phases/01-foundations/01-12-SUMMARY.md",".planning/phases/01-foundations/01-13-PLAN.md",".planning/phases/01-foundations/01-13-SUMMARY.md",".planning/phases/01-foundations/01-14-PLAN.md",".planning/phases/01-foundations/01-14-SUMMARY.md",".planning/phases/01-foundations/01-15-PLAN.md",".planning/phases/01-foundations/01-15-SUMMARY.md",".planning/phases/01-foundations/01-16-PLAN.md",".planning/phases/01-foundations/01-16-SUMMARY.md",".planning/phases/01-foundations/01-17-PLAN.md",".planning/phases/01-foundations/01-17-SUMMARY.md",".planning/phases/01-foundations/01-18-PLAN.md",".planning/phases/01-foundations/01-18-SUMMARY.md",".planning/phases/01-foundations/01-19-PLAN.md",".planning/phases/01-foundations/01-19-SUMMARY.md",".planning/phases/01-foundations/01-20-PLAN.md",".planning/phases/01-foundations/01-20-SUMMARY.md",".planning/phases/01-foundations/01-21-PLAN.md",".planning/phases/01-foundations/01-21-SUMMARY.md",".planning/phases/01-foundations/01-22-PLAN.md",".planning/phases/01-foundations/01-22-SUMMARY.md","AGENTS.md","CLAUDE.md","README.md","docs/USER-MANUAL.md","docs/design/2026-10-17-evidence-pack-builder-design.md","plugin/.claude-plugin/plugin.json","plugin/.codex-plugin/plugin.json","plugin/AGENTS.md","plugin/requirements-docs.txt","plugin/requirements-email.txt","plugin/requirements-media.txt","plugin/requirements.txt","plugin/security-exceptions.json","plugin/skills/evidence-pack/SKILL.md","plugin/skills/evidence-pack/references/evidence-pack-v2.md","plugin/skills/evidence-pack/references/workspace-contract.md","plugin/skills/evidence-pack/scripts/epb.py","plugin/skills/evidence-pack/scripts/epb/__init__.py","plugin/skills/evidence-pack/scripts/epb/casefile.py","plugin/skills/evidence-pack/scripts/epb/cli.py","plugin/skills/evidence-pack/scripts/epb/commands/__init__.py","plugin/skills/evidence-pack/scripts/epb/commands/doctor.py","plugin/skills/evidence-pack/scripts/epb/commands/init.py","plugin/skills/evidence-pack/scripts/epb/commands/scan.py","plugin/skills/evidence-pack/scripts/epb/commands/status.py","plugin/skills/evidence-pack/scripts/epb/doctor/__init__.py","plugin/skills/evidence-pack/scripts/epb/doctor/gitcheck.py","plugin/skills/evidence-pack/scripts/epb/doctor/probes.py","plugin/skills/evidence-pack/scripts/epb/doctor/report.py","plugin/skills/evidence-pack/scripts/epb/doctor/setup.py","plugin/skills/evidence-pack/scripts/epb/doctor/syncfolders.py","plugin/skills/evidence-pack/scripts/epb/doctor/tools.py","plugin/skills/evidence-pack/scripts/epb/errors.py","plugin/skills/evidence-pack/scripts/epb/faults.py","plugin/skills/evidence-pack/scripts/epb/formats/__init__.py","plugin/skills/evidence-pack/scripts/epb/formats/probematrix_v2.py","plugin/skills/evidence-pack/scripts/epb/formats/validate.py","plugin/skills/evidence-pack/scripts/epb/formats/writer.py","plugin/skills/evidence-pack/scripts/epb/fsio.py","plugin/skills/evidence-pack/scripts/epb/index.py","plugin/skills/evidence-pack/scripts/epb/launcher.py","plugin/skills/evidence-pack/scripts/epb/lock.py","plugin/skills/evidence-pack/scripts/epb/mime.py","plugin/skills/evidence-pack/scripts/epb/runs.py","plugin/skills/evidence-pack/scripts/epb/schema.py","plugin/skills/evidence-pack/scripts/epb/schemas/case.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/chunks.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/envelope.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/run.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/source.schema.json","plugin/skills/evidence-pack/scripts/epb/schemas/state.schema.json","plugin/skills/evidence-pack/scripts/epb/sources/__init__.py","plugin/skills/evidence-pack/scripts/epb/sources/classify.py","plugin/skills/evidence-pack/scripts/epb/sources/expanders/__init__.py","plugin/skills/evidence-pack/scripts/epb/sources/scan.py","plugin/skills/evidence-pack/scripts/epb/sources/sidecars.py","plugin/skills/evidence-pack/scripts/epb/state.py","plugin/skills/evidence-pack/scripts/epb/txn.py","plugin/skills/evidence-pack/scripts/epb/upgrade.py","plugin/skills/evidence-pack/scripts/epb/workspace.py","plugin/skills/evidence-pack/scripts/epb/yamlio.py","pyproject.toml","requirements-dev-full.txt","requirements-dev.txt","tests/cli/test_exit_codes.py","tests/conftest.py","tests/core/test_mime.py","tests/core/test_yamlio.py","tests/docs/test_manual.py","tests/doctor/test_gitcheck.py","tests/doctor/test_probes.py","tests/doctor/test_syncfolders.py","tests/epbtest/crash.py","tests/epbtest/envkit.py","tests/epbtest/packkit.py","tests/formats/test_contract.py","tests/formats/test_validator.py","tests/formats/test_writer.py","tests/index/test_index.py","tests/launcher/test_launcher.py","tests/launcher/test_setup.py","tests/launcher/test_setup_real.py","tests/packaging/test_host_install.py","tests/packaging/test_install_codex.py","tests/packaging/test_manifests.py","tests/packaging/test_plugin_agents_md.py","tests/packaging/test_references.py","tests/packaging/test_requirements.py","tests/packaging/test_skill_lint.py","tests/repo/test_ci_workflow.py","tests/repo/test_instructions_mirror.py","tests/repo/test_no_network.py","tests/repo/test_text_subprocess_encoding.py","tests/schemas/test_state_schema.py","tests/sources/test_scan_classify.py","tests/sources/test_scan_fingerprint.py","tests/sources/test_sidecars.py","tests/store/test_crash_resume.py","tests/store/test_fsio_retry.py","tests/store/test_lock.py","tests/store/test_upgrade.py","tests/store/test_validate.py","tests/tools/test_dependency_checks.py","tests/tools/test_smoke_pack.py","tests/workspace/test_git_warning.py","tests/workspace/test_init.py","tests/workspace/test_init_defaults.py","tests/workspace/test_layout.py","tests/workspace/test_status.py","tools/check_dependency_age.py","tools/check_licences.py","tools/install-codex.py","tools/licence-allowlist.json","tools/make-smoke-pack.py"]
+covered_digest: "v3:sha256:a56d2f70cff04fcbca1966de1a93cb51d33059410a8cdce2ad0a869a7f243271"
 behavior_unverified: 1
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 15/23
+  gaps_closed:
+    - "INDEX.md always has exactly six level-2 headings in order 1 to 6, and input file names cannot add headings or Imported? tick lines (gap 2, 01-18)"
+    - "On a folder that is not set up, a refused init exits 2 and writes nothing (gap 3, 01-19)"
+    - "epb scan records the correct MIME type for every input; magic bytes override the extension only for genuine signatures (gap 4, 01-20)"
+    - "The manual's privacy chapter describes what the plugin does today and does not promise that INDEX.md uses role labels instead of names (gap 5, 01-21; owner read-through still pending as a human item)"
+  gaps_remaining:
+    - "Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green (gap 1: narrowed from pytest red on both legs to the licence step red on the 3.11 leg)"
+  regressions: []
 gaps:
-  - truth: "Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green (ROADMAP SC5; PKG-09, TST-01, PKG-11 CI leg)"
-    status: failed
-    reason: "ci.yml sets PYTHONWARNDEFAULTENCODING=1 job-wide and pyproject.toml escalates EncodingWarning to an error. Under that environment the suite gives 86 failed, 1174 passed, 3 skipped, 2 errors (reproduced on Python 3.14.4, the CI's 3.14 leg). The same files pass without the variable (207 passed), so local green runs do not represent CI. The CI pytest step is red by construction."
-    artifacts:
-      - path: ".github/workflows/ci.yml"
-        issue: "PYTHONWARNDEFAULTENCODING=1 on the job; local runs never set it"
-      - path: "pyproject.toml"
-        issue: "filterwarnings = ['error::EncodingWarning'] catches openpyxl's tempfile.NamedTemporaryFile(mode='w+') call reached via epb/formats/writer.py _save"
-      - path: "plugin/skills/evidence-pack/scripts/epb/launcher.py"
-        issue: "_probe calls subprocess.run(universal_newlines=True) with no encoding= (fails tests/launcher/test_launcher.py::test_find_python_*)"
-    missing:
-      - "Silence only the third-party openpyxl temp-file EncodingWarning (narrow filterwarnings entry or warnings.catch_warnings around wb.save in writer._save)"
-      - "Add encoding='utf-8', errors='replace' to launcher._probe's subprocess.run"
-      - "Make local runs match CI (set PYTHONWARNDEFAULTENCODING in a conftest hook or document it in the check command in AGENTS.md/CLAUDE.md)"
-      - "Re-run the full suite with PYTHONWARNDEFAULTENCODING=1 and get 0 failed, then push and get a green GitHub CI run"
-  - truth: "INDEX.md always has exactly six level-2 headings in order 1 to 6, and input file names cannot add headings or Imported? tick lines (ROADMAP SC1 six sections; 01-11 edge WS-09/ordering; PF-04 tick syntax that Phase 6 reads back)"
-    status: failed
-    reason: "Reproduced: two symlinks in inputs/ whose names contain a newline produced a seventh '## Injected heading' line and a forged '- [x] Imported: evidence-pack-inj-master.xlsx' line inside section 5 Open issues. Only table cells go through _cell(); open_issues() list lines interpolate raw paths and mime_mismatch values. Regular files are sanitised in the Inputs table, but the ignored-path and removed/mismatch lines are not."
-    artifacts:
-      - path: "plugin/skills/evidence-pack/scripts/epb/index.py"
-        issue: "open_issues() interpolates _path_text(source), entry.get('path') and mime_mismatch values into list lines without single-line sanitising"
-      - path: "plugin/skills/evidence-pack/scripts/epb/schemas/run.schema.json"
-        issue: "input_path pattern allows embedded line breaks"
-    missing:
-      - "A single-line sanitiser (C0, C1, U+2028, U+2029 to space) applied to every interpolated value on non-table INDEX.md lines"
-      - "Regression test: scan a newline-bearing file name and a newline-bearing symlink name; assert exactly six '## ' lines and no '- [x]' line outside section 2"
-  - truth: "On a folder that is not set up, a refused init (no --title, blank title, TIMEZONE_REQUIRED) exits 2 and writes nothing (01-09 edge WS-01/empty)"
-    status: failed
-    reason: "Reproduced: 'epb init --timezone UTC --json' in an empty folder exits 2 BAD_ARGUMENT but leaves .epb/, .epb/lock and .epb/tmp/ behind, because workspace.open_for_init creates them before casefile.resolve_settings validates the arguments. tests/workspace/test_init_defaults.py _assert_nothing_written only checks case.yaml and state.json, so the test passes while the truth is false."
-    artifacts:
-      - path: "plugin/skills/evidence-pack/scripts/epb/commands/init.py"
-        issue: "resolve_settings runs inside open_for_init, after the disk writes"
-      - path: "plugin/skills/evidence-pack/scripts/epb/workspace.py"
-        issue: "open_for_init creates .epb/, .epb/lock and .epb/tmp/ unconditionally"
-      - path: "tests/workspace/test_init_defaults.py"
-        issue: "_assert_nothing_written does not assert that .epb/ is absent"
-    missing:
-      - "Resolve and validate settings before opening the init session when the folder is not yet set up"
-      - "Tighten _assert_nothing_written to assert not (case_dir / '.epb').exists()"
-  - truth: "epb scan records the correct MIME type for every input; magic bytes override the extension only for genuine signatures, and a disagreement is a real mismatch (WS-02, D-13)"
-    status: failed
-    reason: "Reproduced: UTF-16LE text files with a BOM (Notepad 'Unicode', Excel 'Unicode Text', PowerShell 5.1 Out-File) whose first character is e.g. 'A' are recorded as versions[].mime = 'audio/mpeg', and the user is told 'inputs/log.txt looks like MP3 audio but its name says Text. The plugin will treat it by its content.' The _mpeg_frame sniff accepts the FF FE BOM as an MPEG frame header. Under the content-wins rule, Phase 2 would route this text evidence to audio handling."
-    artifacts:
-      - path: "plugin/skills/evidence-pack/scripts/epb/mime.py"
-        issue: "_mpeg_frame accepts any 0xFF followed by a byte with the top three bits set, including the UTF-16LE BOM; it runs before any text-BOM check"
-    missing:
-      - "Return no content verdict for UTF-8/UTF-16LE/UTF-16BE BOMs (excluding UTF-32LE FF FE 00 00) before the audio rules, or confirm a second MPEG sync word at the computed frame length"
-      - "Regression tests for UTF-16LE and UTF-16BE .txt and .csv inputs starting with several different letters"
-  - truth: "The manual's privacy chapter describes what the plugin does today, so a user can inventory inputs safely: it does not promise that INDEX.md uses role labels instead of names (DOC-04; phase goal 'inventory its inputs safely')"
+  - truth: "Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green (ROADMAP SC5; PKG-09)"
     status: partial
-    reason: "docs/USER-MANUAL.md 'De-identification is always on' says 'Everything the plugin makes for you to share, such as the evidence pack workbook and INDEX.md, uses role labels instead of names.' In Phase 1, INDEX.md section 3 lists every raw input path (verified in a scratch case), Open issues and scan warnings repeat paths, and no de-identification code exists yet. workspace-contract.md classes INDEX.md as 'shareable' and .epb/sources/ and .epb/state.json as 'structural' (safe for version control), but both hold raw paths. Investigators commonly name files after people, so a user following the manual would share names. The code-side fix is scheduled for Phase 4 (see deferred); the present-tense documentation is a Phase 1 defect."
+    reason: "GitHub run 39141925712 for head 8c84d0d (read back by the verifier with gh) concluded failure. core (3.14) is green on every step. core (3.11) is green on Lint, Format, Tests (1977 passed, 4 skipped) and Dependency age, but fails 'Licence allow-list (D-12)': 'VIOLATION setuptools 79.0.1: licence unknown (no usable licence metadata; from none)', '1 of 36 distributions failed the licence check'. setuptools is preinstalled in the GitHub Python 3.11 toolcache and is absent from the 3.14 toolcache and from the local 3.14 dev venv, so no local run can reproduce it. Only planning documents changed between 8c84d0d and HEAD 835829c, so the run reflects the current source. The pytest half of the original gap (EncodingWarning) is closed."
     artifacts:
-      - path: "docs/USER-MANUAL.md"
-        issue: "Lines 58-66 promise role labels in INDEX.md now"
-      - path: "plugin/skills/evidence-pack/references/workspace-contract.md"
-        issue: "INDEX.md 'shareable'; .epb/sources/ and .epb/state.json 'structural' despite holding raw input paths"
-      - path: "plugin/skills/evidence-pack/SKILL.md"
-        issue: "No instruction to warn when an input file name looks like a person's name"
+      - path: "tools/check_licences.py"
+        issue: "Finds no License-Expression, License or License classifier for the runner's setuptools 79.0.1 and reports it as a violation"
+      - path: "tools/licence-allowlist.json"
+        issue: "No reviewed override for setuptools (MIT), and no rule for runner-preinstalled bootstrap tools"
+      - path: ".github/workflows/ci.yml"
+        issue: "The 3.11 job checks the toolcache's preinstalled setuptools along with the project's dependencies"
     missing:
-      - "Reword the manual: the workbook will use role labels (later version); INDEX.md and the plugin's records list files by file name until then; rename files that contain names and check INDEX.md before sharing"
-      - "Reclassify INDEX.md as 'shareable after review' and .epb/sources/ and .epb/state.json as confidential until Phase 4, or add sources/ to GITIGNORE_LINES"
-      - "Keep the tests/docs/test_manual.py golden blocks in step with the new wording"
+      - "Make the 3.11 licence step pass in a reviewed way: a documented override for setuptools (MIT) in licence-allowlist.json, OR exclude runner-preinstalled bootstrap distributions (pip, setuptools) from the check, OR remove or upgrade setuptools in the 3.11 job before the check"
+      - "Add a unit test in tests/tools for the chosen rule (a distribution with no licence metadata named setuptools)"
+      - "Optionally add tools/check_licences.py (and the dependency-age check) to the documented full check in AGENTS.md/CLAUDE.md, so local parity covers the step that failed (review IN-05)"
+      - "Owner-approved push, then a green ci run on both core legs for the pushed head SHA"
+  - truth: "epb scan inventories every input in inputs/; one awkward file name cannot stop the scan of the whole case (ROADMAP SC2 / WS-02 'scan fingerprints every input'; review CR-01, new scope with deterministic evidence)"
+    status: failed
+    reason: "Reproduced by the verifier in a scratch case: a file created as b'inputs/bad\\xffname.txt' (bytes that are not valid UTF-8, as produced by unzip of a Windows CP437/CP1252 ZIP or a copy from an old FAT/SMB share) makes 'epb scan --json' exit 4 with INTERNAL_ERROR ('An internal error occurred (UnicodeEncodeError)') and the hint 'Report this error code to the plugin maintainer. Do not edit the evidence or the .epb folder.' No input is inventoried and the error does not name the file. A second reproduction, a name containing the raw byte 0x85, crashed the same way ('\\udc85 ... surrogates not allowed'). os.walk yields surrogate-escaped str names, and fsio.json_bytes encodes them as strict UTF-8. No test covers undecodable names. scan.py and fsio.py predate the gap round, so this is a new-scope finding; it stays blocking because a reproducible crash is deterministic evidence."
+    artifacts:
+      - path: "plugin/skills/evidence-pack/scripts/epb/sources/scan.py"
+        issue: "walk() keeps surrogate-escaped names and passes them into source and run records"
+      - path: "plugin/skills/evidence-pack/scripts/epb/fsio.py"
+        issue: "json_bytes encodes with strict UTF-8 and raises UnicodeEncodeError on lone surrogates"
+      - path: "plugin/skills/evidence-pack/scripts/epb/index.py"
+        issue: "_IGNORED_REASONS has no reason for an undecodable name"
+    missing:
+      - "Detect names that do not encode as UTF-8 during the walk and record them as ignored with a new reason (for example 'bad-name': a file whose name is not valid text; rename it), using a display-safe path (surrogateescape then 'replace')"
+      - "Add the reason to the run schema's ignored-reason enum and to INDEX.md Open issues wording"
+      - "POSIX-only regression test: scan inputs/bad\\xffname.txt next to a normal file; assert exit 0, the normal file inventoried, an Open issues line for the bad name, and no INTERNAL_ERROR (also for a link with such a name)"
 deferred:
   - truth: "INDEX.md and shareable output show role labels instead of personal names found in input file names (code side of C-CR-01)"
     addressed_in: "Phase 4"
     evidence: "Phase 4 SC2: 'An input whose file name contains a name appears in INDEX.md under its role label.' PF-04: 'Phase 4 adds file-name substitution and scans INDEX'. WS-10 and DEID-08 are Phase 4 requirements."
+advisory: []
 behavior_unverified_items:
   - truth: "epb doctor --setup, launched through the standard-library-only epb.py, finds Python 3.11+, builds the private environment, installs the core packages under the two-week rule and reports what is ready and optional; afterwards normal commands re-run inside the environment (ROADMAP SC5, PKG-06)"
     test: "On a Linux machine with internet access, from the repo root run: EPB_NETWORK_TESTS=1 .venv/bin/python -m pytest -q tests/launcher/test_setup_real.py. Then, as a real user, run python3 plugin/skills/evidence-pack/scripts/epb.py doctor --setup and then epb.py doctor."
     expected: "The networked test passes. doctor --setup ends with the Ready / Optional, not installed / What to do next checklist and exit 0; ~/.local/share/probematrix-epb/envs/0.1.0-dev.1/epb-env.json exists; a following 'epb.py doctor' exits 0 and 'epb.py init' runs inside the environment."
-    why_human: "Needs network and a real package download (45-60 s); the verifier must not reach external services or write the real per-user data folder. 35 offline tests with fakes pass, but only the opt-in networked test exercises the real venv/pip path, and it was skipped in this run."
+    why_human: "Needs network and a real package download; the verifier must not reach external services or write the real per-user data folder. The offline tests with fakes pass, but the only real venv/pip test is opt-in and was skipped in this run."
 human_verification:
   - test: "Owner smoke import (ROADMAP SC4): run .venv/bin/python tools/make-smoke-pack.py (writes scratch/smoke/evidence-pack-smoke.xlsx), import it into a new ProbeMatrix test incident on Replit, and walk the 21-line checklist the tool prints."
     expected: "Every value shows exactly as written: =SUM(A1:A2), +44, -5 °C and @shift-lead stay text; 0 is not blank; 40000000000000000001 keeps all 20 digits; 2026-09 and 2026 stay as written; Tags and Linked Equipment split into 3 entries and Linked Individuals into 2; all eight QA Status values show. The owner reports the result; the agent never claims it."
-    why_human: "ProbeMatrix runs only on Replit and only the owner imports. The verifier confirmed the workbook builds, has only inlineStr cells and no <f> element in all three sheets, and has zero validator findings."
+    why_human: "ProbeMatrix runs only on Replit and only the owner imports. The verifier re-built the pack (0 validator findings) in this run."
   - test: "doctor --setup end to end (see behavior_unverified_items)"
     expected: "Networked test passes; setup completes with exit 0 and the environment marker written"
-    why_human: "Network and real per-user data folder"
-  - test: "First-use install in Claude Code (ROADMAP SC5, 01-15): EPB_HOST_TESTS=1 .venv/bin/python -m pytest -q tests/packaging/test_host_install.py, then follow manual chapter 4 on a clean Claude Code profile: /plugin marketplace add <repo path>, /plugin install probematrix-evidence-pack-builder."
+    why_human: "Network and the real per-user data folder"
+  - test: "First-use install in Claude Code (ROADMAP SC5, PKG-01): EPB_HOST_TESTS=1 .venv/bin/python -m pytest -q tests/packaging/test_host_install.py, then follow manual chapter 4 on a clean Claude Code profile: /plugin marketplace add <repo path>, /plugin install probematrix-evidence-pack-builder."
     expected: "Both host tests pass; the plugin cache holds skills/evidence-pack/SKILL.md, scripts/epb.py, the schemas, AGENTS.md and the requirement files, and no docs/, tests/, tools/ or .planning/."
     why_human: "Drives real host CLIs; opt-in and skipped in this run"
-  - test: "GitHub CI run after the owner approves pushing phase-01-foundations (and after the CI gap is fixed)"
-    expected: "Both matrix legs (3.11, 3.14) green on lint, format, pytest, the dependency-age check (queries PyPI) and the licence check"
-    why_human: "Needs a push, which requires owner approval; the age check needs network. Locally the licence check passed (35 distributions allowed) and ruff check / ruff format --check were clean."
-  - test: "Manual read-through (DOC-04, DOC-05, T-01-44): read docs/USER-MANUAL.md chapters 1-7 as a non-technical user."
-    expected: "Plain language; Windows and macOS sections each marked 'not yet tested on this system' (confirmed at lines 140, 161, 470, 483); the privacy chapter is accurate once the gap above is fixed; no claim that nothing leaves the computer."
+  - test: "GitHub CI run after the licence gap is fixed and the owner approves the push (01-22 human-check)"
+    expected: "Jobs core (3.11) and core (3.14) both green, including Lint, Format check, Tests, 'Dependency age, two-week rule (PKG-09)' and 'Licence allow-list (D-12)'; 'Plugin manifests (D-02)' prints 'claude CLI not installed; skipping plugin validate (D-02)'"
+    why_human: "Needs an owner-approved push; only the hosted run shows the 3.11 leg"
+  - test: "Owner read-through of the corrected privacy text (01-21 human-check; DOC-04; security T-01-55 high, open): read docs/USER-MANUAL.md chapter 2 'De-identification and file names' and chapter 6 'Put your files in inputs/' and 'Read INDEX.md'; read workspace-contract.md's review-before-sharing class."
+    expected: "Chapter 2 says this version shows file names as given in INDEX.md and .epb, tells you to rename files containing a person's name before putting them in inputs/, and says role labels arrive later; chapter 6 repeats it briefly; you agree with the interim review-before-sharing label for INDEX.md, .epb/state.json and .epb/sources/ until Phase 4. Also decide on review WR-01 (see Gaps Summary): SKILL.md step 6 suggests renaming after a scan, which does not remove the name when the content also changed."
+    why_human: "Plain-language quality and acceptance of the interim label are the owner's call; the security gate T-01-55 is held open for this read-through"
+  - test: "Manual read-through of chapters 1-7 as a non-technical user (DOC-05)"
+    expected: "Plain language; Windows and macOS sections each marked 'not yet tested on this system'; no claim that nothing leaves the computer"
     why_human: "Readability and tone are judgement calls"
-  - test: "Judgment-tier prohibitions (non-authoritative LLM verdict: holds): 01-04 'never claim an import worked', 01-15 'no real names, reference-report prose or prototype prose in SKILL.md, references, AGENTS.md, tests or fixtures', 01-16 'never imply nothing leaves the computer'."
-    expected: "Owner confirms. Note review C-IN-09: the GitHub handle 'ashley-eyekyam' in committed manifests contains a personal first name (the owner's own); decide whether that is acceptable under the 'never write real names' rule."
+  - test: "Judgment-tier prohibitions (non-authoritative LLM verdict: holds): 01-04 'never claim an import worked'; 01-15 'no real names, reference-report or prototype prose'; 01-16 'never imply nothing leaves the computer'; 01-21 'MUST NOT tell the agent to rename, move or edit a file in inputs/' (SKILL.md line 77: 'suggest they rename the file themselves ... You never rename, move or edit anything in inputs/'); 01-22 'no push without approval, no force-push, CI verdict only from the real run' (origin/phase-01-foundations at 8c84d0d is an ancestor of HEAD; verdict read from run 39141925712)."
+    expected: "Owner confirms each. Earlier note C-IN-09: the GitHub handle 'ashley-eyekyam' in committed manifests contains the owner's own first name; decide whether that is acceptable under the 'never write real names' rule."
     why_human: "Judgment-tier prohibitions need explicit human resolution in interactive verify"
   - test: "Wording check of design amendments A16-A30 (docs/design/2026-10-17-evidence-pack-builder-design.md lines 672-686)"
-    expected: "Each row states the decision as the owner intended; each cites its D-NN or research item (verified present)"
+    expected: "Each row states the decision as the owner intended and cites its D-NN or research item"
     why_human: "Spec wording is the owner's call"
 ---
 
 # Phase 1: Foundations Verification Report
 
 **Phase Goal:** A user can set the plugin up once, create a case folder and inventory its inputs safely. The workbook format is proven against the real ProbeMatrix importer before any evidence logic exists.
-**Verified:** 2026-10-18T12:08:58Z
+**Verified:** 2026-10-18T16:11:48Z
 **Status:** gaps_found
-**Re-verification:** No, initial verification
+**Re-verification:** Yes, after gap closure (plans 01-17 to 01-22)
 
-Most of the phase is real and works: `init`, `scan`, the journalled store, crash recovery, the lock, the exit-code contract, strict YAML, the workbook writer and validator, `doctor`, manifests and the manual all exist, are wired and behave as specified in independent scratch-folder runs. Four observable defects and one documentation defect stop the goal: CI cannot go green as configured, input file names can inject headings and forged tick lines into INDEX.md, a refused `init` leaves `.epb/` behind, common Windows UTF-16 text files are inventoried as MP3 audio, and the manual promises name-free INDEX.md output that the code does not produce. The owner-only items (smoke import, real setup, host install, CI run) are still outstanding.
+Four of the five earlier gaps are closed. I reproduced each fix myself in scratch case folders, not from the summaries. Two blockers remain:
+
+- **CI is still red (gap 1, narrowed).** The pytest failures under `PYTHONWARNDEFAULTENCODING=1` are fixed, and Tests pass on both CI legs. The 3.11 leg now fails the licence allow-list on the runner's preinstalled setuptools.
+- **New, evidenced: a file name that is not valid UTF-8 crashes `scan` for the whole case** (review CR-01, reproduced).
+
+No previously passing truth regressed. The owner-only items are still outstanding: smoke import, real setup, host install, a green CI run and the privacy read-through.
 
 ## Goal Achievement
 
 ### Observable Truths
 
-ROADMAP success criteria decomposed into checkable truths, plus the plan edge truths that the review findings contradict. Each of the roughly 150 plan-level truths was traced to one of these rows; the plan truths not listed separately are covered by the artifact and key-link checks and by the passing test files named in the evidence column.
+The must-haves are carried over verbatim from the previous report (re-verification mode). For the four gaps marked closed, I re-ran the original failing scenario plus edge variants. For the previously passing truths, I ran the full CI-equivalent suite once plus a regression spot-check.
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | `epb init` in an empty folder creates `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml`, `state.json`, `.gitignore`, `.gitattributes`, `inbox/`, `tmp/`, `runs/`, `private/` (SC1, WS-01) | ✓ VERIFIED | Scratch run: exit 0, all paths present; case.yaml has slug, title, id_prefix, timezone, plugin_version, all as text |
-| 2 | `state.json` already holds the workbook registry, Evidence ID and Tag counters and chunk status (SC1, WS-13) | ✓ VERIFIED | state.json keys `workbooks`, `counters` {run, source, evidence, tag, claim, conflict}, `chunks`; schema `$defs/workbook` (file, kind, number, draft/imported status, writes with sha256) and `$defs/chunk_status` (no raw text) |
-| 3 | `.epb/.gitignore` covers segments/, ledger/, inbox/, tmp/, media/, runs/, private/ (SC1, WS-11) | ✓ VERIFIED | File content is exactly the seven lines in A2 order |
-| 4 | INDEX.md shows six sections in order with "none yet" where no producer exists, after init (SC1, WS-09) | ✓ VERIFIED | Fresh INDEX.md: `## 1. Case` to `## 6. Run history`, sections 2-5 "none yet", run history has Run 001 |
-| 5 | INDEX.md keeps exactly six headings whatever the input names; names cannot forge `- [x] Imported:` lines (01-11 edge WS-09/ordering, PF-04) | ✗ FAILED | Newline-bearing symlink names produced 7 `## ` headings and a forged `- [x] Imported: evidence-pack-inj-master.xlsx` line (review A-CR-01 reproduced) |
-| 6 | `init` and `doctor` warn in plain language inside OneDrive, Dropbox, iCloud Drive or Google Drive, or a git repo that would track `.epb/private/` (SC1, WS-11, WS-12) | ✓ VERIFIED | Scratch case under `~/OneDrive/`: init printed the plain-language warning with exit 0; doctor returned `SYNC_FOLDER`. Inside a git repo with the default `.epb/.gitignore`, no warning (correct: private/ is ignored). Git-tracking cases covered by passing tests/doctor/test_gitcheck.py and tests/workspace/test_git_warning.py |
-| 7 | `scan` reports new, changed (`S004v2`), renamed, duplicate and removed inputs, lists OS junk as ignored, pairs `.note.md`/`.note.yaml` sidecars (SC2, WS-02, WS-03, WS-04) | ✓ VERIFIED | Scratch corpus: JSON data had new [S006], new_versions [S004 v2], renamed S002, duplicates S001, removed [S003] with INPUT_REMOVED, ignored .DS_Store and Thumbs.db, sidecars S005 to S004; INDEX.md shows `S004v2`; rescan "No changes since the last scan." |
-| 8 | `scan` records the correct MIME type for every input (WS-02, D-13) | ✗ FAILED | UTF-16LE `log.txt` and `export.csv` recorded as `audio/mpeg` with MIME_MISMATCH "looks like MP3 audio" (review B-CR-01 reproduced) |
-| 9 | A crash injected at every transaction step resumes without corrupting state (SC2, WS-06, TST-07) | ✓ VERIFIED | Independent run: recorded 15 real scan checkpoints (stage:0-5, pre-manifest, manifest, apply:0-5, cleanup); `os._exit(97)` at each, then the next scan exits 0 with 3 sources, no tmp journal, run counter equal to run folders, 6 headings, status exit 0. Named tests in tests/store/test_crash_resume.py (6) pass |
-| 10 | A second mutating run waits for the lock (SC2, WS-07) | ✓ VERIFIED | tests/store/test_lock.py 9 passed, incl. test_init_waits_until_the_lock_is_released, test_second_init_times_out_while_lock_is_held, test_status_does_not_wait_for_the_lock, test_a_killed_holder_releases_the_lock_at_once |
-| 11 | Every command returns exit codes 0-4 with a stable error code in `--json` (SC2, PKG-05) | ✓ VERIFIED | Spot-check: unknown command, exit 2 USAGE; no private env, exit 3 ENV_NOT_SET_UP; damaged state.json, exit 4 STATE_INVALID; tests/cli/test_exit_codes.py passes |
-| 12 | YAML values such as `12:30`, `0123` and `no` survive as text (SC2, WS-08) | ✓ VERIFIED | yamlio round trip of 15 YAML 1.1 boundary values exact; raw load of `a: 12:30 / b: 0123 / c: no` gives strings |
-| 13 | A refused `init` on a folder that is not set up writes nothing (01-09 edge WS-01/empty) | ✗ FAILED | `init --timezone UTC` without --title: exit 2 BAD_ARGUMENT, leaves `.epb/`, `.epb/lock`, `.epb/tmp/` (review A-CR-02 reproduced) |
-| 14 | Validator passes a generated pack and fails the prototype reference pack on list fragments (SC3, DEF-14) | ✓ VERIFIED | Smoke pack: 0 findings. Prototype pack: 24 LIST_FRAGMENT_UNBALANCED + 24 LIST_SEMICOLON in Linked Equipment |
-| 15 | Validator rejects formulas, non-string cells, blank Description/Type, non-exact enums, >32,767-char cells, invalid Chain of Custody JSON (SC3, BLD-03) | ✓ VERIFIED | tests/formats/test_validator.py value-level assertions pass in the normal environment (fail only under the CI encoding variable, see truth 21) |
-| 16 | Writer: every cell text, no formula, Pack Metadata 10-row layout, Attachments Manifest headers only (BLD-01, BLD-02, BLD-08) | ✓ VERIFIED | Smoke workbook XML: sheet1 15, sheet2 142 and sheet3 11 cells, all `inlineStr`, 0 `<f>` elements |
-| 17 | Owner smoke import shows every edge value exactly as written (SC4) | ? UNCERTAIN | Workbook builds and validates; the import itself is owner-only on Replit (human item 1) |
-| 18 | The plugin installs into Claude Code from this repo's marketplace with `source: "./plugin"` (SC5, PKG-01) | ? UNCERTAIN | `.claude-plugin/marketplace.json` name and source correct; plugin.json has no skills key; `plugin/` holds only AGENTS.md, requirements, security-exceptions.json and skills/. Real host install test is opt-in and was skipped (human item 3) |
-| 19 | `doctor --setup` through stdlib-only `epb.py` builds the private environment and reports ready/optional (SC5, PKG-06) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | setup.py, launcher wiring and 35 offline tests present and passing; the only real venv/pip test (test_setup_real.py) is network-gated and skipped |
-| 20 | `doctor` lists every tool with version, enabled input types and per-OS install commands; `plugin/AGENTS.md` holds the host-neutral rules (SC5, PKG-07, PKG-03) | ✓ VERIFIED | `doctor --verbose` run before setup: Ready (Python, 7-Zip, ffmpeg, LibreOffice, git with versions), Optional (Tesseract, pandoc with Linux/macOS/Windows commands; email, media, docs extras with licences). plugin/AGENTS.md has Just culture, Roles only, Inputs only, Facts only, Verbatim quotes, Evidence-bank entry rule, CLI rules |
-| 21 | Linux CI runs pytest, ruff, dependency-age and licence checks, all green (SC5, PKG-09, TST-01) | ✗ FAILED | Full suite under CI's `PYTHONWARNDEFAULTENCODING=1`: 86 failed, 1174 passed, 3 skipped, 2 errors (review D-CR-01 reproduced). Ruff clean; licence check passed locally |
-| 22 | Manual first edition covers install Python, adding the plugin, first-time setup and privacy, Windows/macOS marked "not yet tested"; root AGENTS.md and CLAUDE.md identical, at most 150 lines, CI test fails otherwise (SC5, DOC-05, PKG-11) | ✓ VERIFIED | Manual chapters 1-7 in the required order; four "not yet tested on this system" markers directly under the Windows/macOS headings; `cmp AGENTS.md CLAUDE.md` identical, 43 lines; tests/repo/test_instructions_mirror.py passes (also under the CI variable); golden doctor blocks tested |
-| 23 | The manual's privacy statement matches current behaviour, so inputs can be inventoried safely (DOC-04, goal "safely") | ✗ FAILED (partial) | Manual says INDEX.md "uses role labels instead of names"; INDEX.md lists raw input paths (review C-CR-01). Code fix deferred to Phase 4; the wording is a Phase 1 defect |
+| 1 | `epb init` in an empty folder creates the full layout (SC1, WS-01) | ✓ VERIFIED | Regression run: exit 0; `.epb/` holds `.gitattributes .gitignore case.yaml inbox lock private runs state.json tmp`; `inputs/`, `outputs/` and `INDEX.md` present |
+| 2 | `state.json` holds workbook registry, counters and chunk status (SC1, WS-13) | ✓ VERIFIED | Unchanged since previous pass; tests/schemas/test_state_schema.py passes in the full run |
+| 3 | `.epb/.gitignore` covers the seven folders (SC1, WS-11) | ✓ VERIFIED | Regression run: `segments/ ledger/ inbox/ tmp/ media/ runs/ private/` |
+| 4 | INDEX.md shows six sections with "none yet" after init (SC1, WS-09) | ✓ VERIFIED | Regression run: 6 `## ` headings |
+| 5 | INDEX.md keeps exactly six headings whatever the input names; names cannot forge `- [x] Imported:` lines (WS-09, PF-04) | ✓ VERIFIED (gap 2 closed) | Scratch scan with a regular file, a symlink, a FIFO, a folder, and a dangling link, all named with LF, CR, U+2028, U+0085 and U+001E plus `## …` and `- [x] Imported: …` text: exit 0, exactly 6 headings in order, zero tick lines, `splitlines()` equals `split("\n")`; Open issues render each hostile name on one line. `_inline` is used 20 times in index.py; `_SINGLE_LINE` covers C0, DEL, C1, U+2028 and U+2029. `test_scan_of_line_breaking_names_keeps_six_headings` passes |
+| 6 | `init` and `doctor` warn in sync folders and in git repos that track `.epb/private/` (SC1, WS-11, WS-12) | ✓ VERIFIED | Unchanged code; test_gitcheck, test_syncfolders and test_git_warning pass in the full run |
+| 7 | `scan` reports new, changed (`S004v2`), renamed, duplicate and removed inputs, ignores OS junk and pairs sidecars (SC2, WS-02-04) | ✓ VERIFIED | Regression corpus: new [S006], new_versions S004 v2, renamed S002, duplicates S001, removed [S003], ignored `.DS_Store` (junk), sidecar S005→S004; INDEX shows `S004v2`; rescan "No changes since the last scan." |
+| 8 | `scan` records the correct MIME type for every input; content wins only for genuine signatures (WS-02, D-13) | ✓ VERIFIED (gap 4 closed) | Scratch scan: UTF-16LE `log.txt` and `export.csv`, UTF-16BE `be.txt`, UTF-8-BOM `u8.csv`, UTF-32LE `u32.txt` and UTF-16LE `w.txt` starting with U+00FF are all recorded by name (text/plain, text/csv), with `mime_mismatch` null and no warning. A synthetic 3-frame MPEG stream named `.txt` is still detected as MP3 (genuine mismatch warning). A PDF named `report.docx` is still application/pdf with MIME_MISMATCH. `_TEXT_BOMS` is checked before MAGIC_RULES (mime.py:277); `_mpeg_frame` requires a second header at `_mpeg_frame_length` (mime.py:176-190) |
+| 9 | A crash injected at every transaction step resumes cleanly (SC2, WS-06, TST-07) | ✓ VERIFIED | txn/fsio unchanged; tests/store/test_crash_resume.py passes in the full CI-env run |
+| 10 | A second mutating run waits for the lock (SC2, WS-07) | ✓ VERIFIED | tests/store/test_lock.py passes (01-19 moved validation before the lock; lock tests unchanged and green) |
+| 11 | Exit codes 0-4 with stable error codes (SC2, PKG-05) | ✓ VERIFIED | Regression: unknown command, exit 2; refused init, exit 2 BAD_ARGUMENT; tests/cli/test_exit_codes.py passes |
+| 12 | YAML `12:30`, `0123` and `no` survive as text (SC2, WS-08) | ✓ VERIFIED | yamlio unchanged; tests/core/test_yamlio.py passes |
+| 13 | A refused `init` on a folder that is not set up writes nothing (WS-01) | ✓ VERIFIED (gap 3 closed) | Scratch runs: no `--title`, blank title, bad timezone, bad slug, lowercase prefix and an unusable title each exit 2 BAD_ARGUMENT and leave an empty folder empty. In a populated folder, two refused inits leave the tree unchanged (path, size and mtime hash), and a following valid init then sets it up fully. init.py:63-67 runs `resolve_settings` before `open_for_init`; `_assert_nothing_written` requires an empty folder |
+| 14 | Validator passes a generated pack and fails the prototype on list fragments (SC3, DEF-14) | ✓ VERIFIED | Regression: smoke pack 0 findings; prototype: 24 LIST_FRAGMENT_UNBALANCED, 25 LIST_SEMICOLON |
+| 15 | Validator rejects formulas, non-strings, blanks, inexact enums, over-long cells, bad custody JSON (SC3, BLD-03) | ✓ VERIFIED | tests/formats/test_validator.py now passes under the CI encoding variable too |
+| 16 | Writer: text-only cells, 10-row metadata, headers-only manifest (BLD-01, -02, -08) | ✓ VERIFIED | formats/ unchanged; tests/formats/test_writer.py passes |
+| 17 | Owner smoke import shows every edge value exactly as written (SC4) | ? UNCERTAIN | Pack builds with 0 findings; the import is owner-only (human item 1) |
+| 18 | Plugin installs into Claude Code from the repo marketplace, `source: "./plugin"` (SC5, PKG-01) | ? UNCERTAIN | Manifests unchanged and correct; host test is opt-in and was skipped (human item 3) |
+| 19 | `doctor --setup` builds the private environment (SC5, PKG-06) | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | Offline tests pass; the networked real-path test was skipped |
+| 20 | `doctor` tool report with per-OS commands; `plugin/AGENTS.md` rules (SC5, PKG-07, PKG-03) | ✓ VERIFIED | Unchanged; test_probes and test_plugin_agents_md pass |
+| 21 | Linux CI runs pytest, ruff, dependency-age and licence checks, all green (SC5, PKG-09) | ✗ FAILED (gap 1 remains, narrowed) | `gh run view 39141925712`: conclusion failure, headSha 8c84d0d. core (3.14) all green; core (3.11) Tests 1977 passed, 4 skipped, but "Licence allow-list (D-12)" fails: `VIOLATION setuptools 79.0.1: licence unknown (no usable licence metadata; from none)`. Since 8c84d0d only `.planning/` files changed |
+| 22 | Manual first edition; AGENTS.md == CLAUDE.md, ≤150 lines, CI test (SC5, DOC-05, PKG-11) | ✓ VERIFIED | `cmp` identical, 43 lines; the full check now carries `PYTHONWARNDEFAULTENCODING=1`; test_instructions_mirror and the drift guard test_documented_full_check_matches_ci pass, including in the CI Tests step on both legs |
+| 23 | The manual's privacy statement matches current behaviour (DOC-04, goal "safely") | ✓ VERIFIED (gap 5 closed; owner read-through pending) | Manual lines 58-79: "This version does not replace any names yet. `INDEX.md` and the plugin's own records in the hidden `.epb` folder list your files by their file and folder names"; rename *before* putting files in `inputs/`; check INDEX.md before sharing; do not share `.epb`. Contract and `CONTRACT_PATHS` class INDEX.md, `.epb/state.json` and `.epb/sources/` as review-before-sharing. SKILL.md step 6 tells the agent to flag names by input ID and never to rename. A scratch scan confirms INDEX.md does show the raw file name, as the manual now says. test_no_paragraph_promises_a_name_free_index passes. See WR-01 below for a residual inaccuracy in SKILL.md's after-scan advice |
 
-**Score:** 15/23 truths verified (1 present but not behaviorally verified, 2 uncertain pending owner, 5 failed)
+**Score:** 19/23 truths verified (1 present but behaviour-unverified, 2 uncertain pending owner, 1 failed). Separately, one new evidenced blocker (CR-01) sits outside the carried-over must-haves; see Anti-Patterns.
 
 ### Deferred Items
 
 | # | Item | Addressed In | Evidence |
 |---|------|-------------|----------|
-| 1 | INDEX.md and shareable output show role labels for names in input file names (code side of C-CR-01) | Phase 4 | Phase 4 SC2: "An input whose file name contains a name appears in `INDEX.md` under its role label"; PF-04; WS-10, DEID-08 |
+| 1 | INDEX.md shows role labels for names in input file names (code side of C-CR-01) | Phase 4 | Phase 4 SC2 "An input whose file name contains a name appears in `INDEX.md` under its role label"; PF-04; WS-10, DEID-08 |
+
+Neither open gap is deferred. Phase 10 SC4 also requires CI green on 3.11 and 3.14, but Phase 1 SC5 requires it now, and the ROADMAP note puts the core CI job in Phase 1 (PKG-09). No later phase names undecodable input file names; Phase 2's archive expanders (WS-05) cover zip-slip, not scan of the top-level walk.
+
+### Advisory (New Scope, Unevidenced)
+
+None. Both new-scope findings carry reproducible evidence: CR-01 (a crash) blocks, and WR-01 (a reproduction) is a warning because it does not falsify a must-have.
 
 ### Required Artifacts
 
-`gsd-tools verify.artifacts` across all 16 plans: 75/75 artifacts exist and pass their content checks (01-01 5/5, 01-02 2/2, 01-03 5/5, 01-04 4/4, 01-05 5/5, 01-06 5/5, 01-07 6/6, 01-08 6/6, 01-09 3/3, 01-10 3/3, 01-11 5/5, 01-12 4/4, 01-13 6/6, 01-14 3/3, 01-15 4/4, 01-16 4/4).
+`gsd-tools verify.artifacts`: plans 01-01 to 01-16 still 75/75; gap plans 01-17 6/6, 01-18 2/2, 01-19 2/2, 01-20 2/2, 01-21 5/5, 01-22 1/1.
 
 | Artifact | Expected | Status | Details |
 | -------- | -------- | ------ | ------- |
-| `plugin/skills/evidence-pack/scripts/epb.py` + `epb/launcher.py` | stdlib launcher | ✓ VERIFIED | Routes doctor before setup; exit 3 ENV_NOT_SET_UP otherwise |
-| `epb/txn.py`, `fsio.py`, `lock.py`, `faults.py` | journalled store, lock, crash seam | ✓ VERIFIED | Independent crash matrix passes |
-| `epb/index.py` | six-section INDEX renderer | ⚠️ WARNING | Works on normal names; unsanitised list lines (gap 2) |
-| `epb/mime.py` | extension table + magic bytes | ⚠️ WARNING | MPEG-frame false positive on UTF-16 BOM (gap 4) |
-| `epb/commands/init.py` + `workspace.py` | init command | ⚠️ WARNING | Writes `.epb/` before validating arguments (gap 3) |
-| `epb/formats/*` + `tools/make-smoke-pack.py` | format, writer, validator, smoke pack | ✓ VERIFIED | Text-only cells, validator findings as specified |
-| `epb/doctor/*` | doctor, setup, sync, git | ✓ VERIFIED (setup behaviour unverified) | See truth 19 |
-| `.github/workflows/ci.yml` | Linux CI | ✗ FAILED | Encoding variable makes pytest red (gap 1) |
-| `docs/USER-MANUAL.md` | first edition | ⚠️ WARNING | Inaccurate INDEX.md privacy promise (gap 5) |
-| `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`, `plugin/AGENTS.md` | packaging | ✓ VERIFIED | Names match; source `./plugin` |
+| `epb/launcher.py` | probe decodes child output as UTF-8 | ✓ VERIFIED | `encoding="utf-8"`, `errors="replace"` at lines 223-224 |
+| `pyproject.toml` | EncodingWarning error, openpyxl temp-file ignore only | ✓ VERIFIED | Two entries; the ignore is scoped to `openpyxl\.worksheet\._writer` |
+| `tests/repo/test_text_subprocess_encoding.py`, `tests/repo/test_ci_workflow.py` | AST guard, filter guard, parity guard | ✓ VERIFIED | Present, pass (narrower than claimed: review IN-04, IN-05; security T-01-46 below threshold) |
+| `epb/index.py` | `_inline` on every interpolated value | ✓ VERIFIED | Gap 2 reproduction now clean |
+| `epb/commands/init.py` | validate before writing | ✓ VERIFIED | Gap 3 reproduction now clean |
+| `epb/mime.py` | `_TEXT_BOMS`, two-header MPEG | ✓ VERIFIED | Gap 4 reproduction now clean |
+| `docs/USER-MANUAL.md`, `workspace-contract.md`, `workspace.py`, `SKILL.md` | honest file-name privacy text, review-before-sharing class | ✓ VERIFIED | Gap 5 text present and pinned by tests |
+| `.github/workflows/ci.yml` | Linux CI, green | ✗ FAILED | Run 39141925712 red on 3.11 licence step |
+| `epb/sources/scan.py` + `epb/fsio.py` | scan every input | ✗ BLOCKER | Crashes on non-UTF-8 names (CR-01) |
 
 ### Key Link Verification
 
-`gsd-tools verify.key-links`: 37/38 automatically verified. The one unresolved link (01-02, design §20 to CONTEXT.md decisions) failed only because the from-path contains `§20`. A manual check found amendment rows A16 to A30 at design lines 672-686, each citing D-01, D-02, D-03, D-05, D-06, D-07, D-08, D-12, D-13, D-14, D-18, D-19, D-20, research Q7 or research Pattern 1. Status: WIRED.
+`gsd-tools verify.key-links`: 01-17 3/3, 01-18 2/2, 01-19 2/2 and 01-21 2/2. 01-20 scored 1/3 and 01-22 0/1 only because their `from:` fields are not plain paths. I checked those links by hand:
 
 | From | To | Via | Status |
 | ---- | -- | --- | ------ |
-| epb.py | launcher.main | sys.path insert | WIRED |
-| init.py | txn.Transaction, index.render_index, syncfolders.check | init transaction, post-commit warnings | WIRED |
-| scan.py (sources) | classify, sidecars.pair_sidecars, mime.detect | one transaction | WIRED |
-| workspace.py | lock.acquire, upgrade.run_upgrade | open_for_mutation | WIRED |
-| doctor.py | probes.collect, setup.run_setup | --setup flag | WIRED |
-| writer.py | validate_rows / validate_workbook | before write, temp file before replace | WIRED |
-| test_manual.py | report.render_human / render_setup_human | golden blocks | WIRED |
+| mime.py `sniff` | `_TEXT_BOMS` | `head.startswith(_TEXT_BOMS)` before MAGIC_RULES (line 277) | WIRED |
+| mime.py `_mpeg_frame` | `_mpeg_frame_length` | lines 181 and 185 locate and validate the second header | WIRED |
+| `git push origin phase-01-foundations` | ci.yml | `push:` trigger (line 5); run 39141925712 was event push, headSha 8c84d0d | WIRED |
+| init.py | casefile.resolve_settings | `resolve_settings(args, case)` before `open_for_init` (lines 63-67) | WIRED |
+| index.py providers | `_inline` | every f-string value | WIRED |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 | -------- | ------------- | ------ | ------------------ | ------ |
-| INDEX.md section 3 Inputs | source records | `.epb/sources/S*.json` written by scan | Yes: real paths, sizes, hashes, `S004v2` | ✓ FLOWING |
-| INDEX.md section 6 Run history | runs | `.epb/runs/NNN/run.json` | Yes: one line per run | ✓ FLOWING |
-| doctor report | tool probes | `shutil.which` + version probes | Yes: real versions (7z 26.00, ffmpeg 8.0.1) | ✓ FLOWING |
-| state.json counters | counters | committed with records in the same transaction | Yes: run counter equals run folders after every crash point | ✓ FLOWING |
+| INDEX.md section 3 / 5 | source records, ignored entries | `.epb/sources/S*.json`, run record `scan.ignored` | Yes: real sanitised paths, `S004v2` | ✓ FLOWING |
+| Source record `versions[].mime` | mime | `mime.detect` (sniff, then extension) | Yes: correct for UTF-16/32 and BOM text | ✓ FLOWING |
+| CI verdict | run conclusion | GitHub run 39141925712 | Yes: failure (3.11 licence) | ✓ FLOWING (red) |
 
 ### Behavioral Spot-Checks
 
-Scripts in the session scratchpad (`crash_check.sh`, `criticals_check.sh`, `criticals_check2.sh`, `exit_check.sh`), each in a fresh scratch folder with a fake HOME and `EPB_IN_ENV=1` against the dev venv.
+The scripts are `gapcheck.sh` in the session scratchpad plus the inline runs shown. Each runs in a fresh scratch case with a fake HOME and `EPB_IN_ENV=1`.
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| init layout | `epb.py init --title "Pump Fire 2026" --timezone Europe/London --json` | exit 0, full layout | ✓ PASS |
-| scan change corpus | `epb.py scan --json` after edit, rename, copy, delete, add | new, new version, renamed, duplicate, removed, ignored, sidecar all correct | ✓ PASS |
-| crash at every scan checkpoint | `crash_check.sh` | 15/15 checkpoints recover cleanly | ✓ PASS |
-| exit codes | `exit_check.sh` | 2 USAGE, 3 ENV_NOT_SET_UP, 4 STATE_INVALID | ✓ PASS |
-| refused init writes nothing | `criticals_check.sh` | `.epb/`, `.epb/lock`, `.epb/tmp` left | ✗ FAIL |
-| INDEX.md heading invariant | `criticals_check2.sh` | 7 headings + forged tick line | ✗ FAIL |
-| UTF-16 text MIME | `criticals_check2.sh` | `audio/mpeg` | ✗ FAIL |
-| YAML text preservation | yamlio round trip | exact | ✓ PASS |
-| Smoke pack | `tools/make-smoke-pack.py --out <scratch>` | 21-line checklist, 0 findings, inlineStr only | ✓ PASS |
-| Prototype pack fails | `validate_workbook(prototype)` | 24 LIST_FRAGMENT_UNBALANCED | ✓ PASS |
-| doctor before setup | `python3 epb.py doctor --verbose` | grouped checklist, per-OS commands | ✓ PASS |
-| Lint | `ruff check .` / `ruff format --check .` | clean / 97 files formatted | ✓ PASS |
-| Licence allow-list | `tools/check_licences.py` | 35 distributions allowed | ✓ PASS |
-| Full suite, CI environment (single full run) | `PYTHONWARNDEFAULTENCODING=1 python -m pytest -q` | 86 failed, 1174 passed, 3 skipped, 2 errors | ✗ FAIL |
-| Failing files without the variable | `pytest tests/formats tests/launcher/test_launcher.py tests/tools/test_smoke_pack.py` | 207 passed | ✓ PASS (shows the failure is environment-only) |
-| Dependency-age check | `tools/check_dependency_age.py` | not run (queries PyPI) | ? SKIP: human item 4 |
-| Real `doctor --setup` / host install | opt-in networked and host tests | not run | ? SKIP: human items 2-3 |
+| CI-equivalent full check (single full run) | `ruff check . && ruff format --check . && PYTHONWARNDEFAULTENCODING=1 pytest -q`; `tools/check_licences.py`; `cmp AGENTS.md CLAUDE.md` | All checks passed; 98 files formatted; **1978 passed, 3 skipped**; licence check passed (35 distributions, local 3.14); mirror identical | ✓ PASS |
+| Hosted CI | `gh run view 39141925712 --json jobs,conclusion,headSha` | failure; 3.14 success; 3.11 Licence allow-list failure | ✗ FAIL |
+| Refused init writes nothing | 6 refusal variants, empty and populated folders | exit 2, folders unchanged; then valid init succeeds | ✓ PASS |
+| INDEX.md heading/tick invariant | hostile names (LF, CR, U+2028, U+0085, U+001E) on file, link, FIFO, folder | 6 headings, 0 tick lines | ✓ PASS |
+| UTF-16 / BOM text MIME | 6 BOM text files + MPEG and PDF controls | text by name, no mismatch; genuine signatures still win | ✓ PASS |
+| Non-UTF-8 file name | `open(b'inputs/bad\xffname.txt','wb')` then `epb scan --json` | exit 4 INTERNAL_ERROR (UnicodeEncodeError) | ✗ FAIL (CR-01) |
+| Rename plus edit after scan | WR-01 sequence | name remains in INDEX.md lines 23 and 32 and in `.epb/sources/S001.json` | ⚠️ reproduces WR-01 |
+| Regression scan corpus | new / edit / rename / copy / delete / junk / sidecar | all correct, `S004v2`, idempotent rescan | ✓ PASS |
+| Smoke pack + prototype | `make-smoke-pack.py --out <scratch>`; `validate_workbook` | 0 findings; prototype 24 LIST_FRAGMENT_UNBALANCED | ✓ PASS |
+| Dependency-age check | not run (queries PyPI) | green on both hosted legs in run 39141925712 | ✓ PASS (hosted) |
+| Real setup / host install | opt-in tests | not run | ? SKIP: human items 2-3 |
 
 ### Probe Execution
 
@@ -222,110 +205,76 @@ No `scripts/*/tests/probe-*.sh` exists and no plan declares a probe. Step 7c: no
 
 ### Requirements Coverage
 
-All 27 phase requirement IDs are claimed by at least one plan. REQUIREMENTS.md maps no other IDs to Phase 1, so none are orphaned.
+All 27 phase requirement IDs are claimed by at least one plan (01-01 to 01-22). REQUIREMENTS.md maps no other ID to Phase 1, so none are orphaned. REQUIREMENTS.md currently shows every Phase 1 checkbox `[ ]` and the traceability status "Gaps Found" (PKG-11 "Pending"). The recommended statuses below follow from the evidence.
 
 | Requirement | Source Plan | Description (short) | Status | Evidence |
 | ----------- | ----------- | ------------------- | ------ | -------- |
-| WS-01 | 01-07, 01-09, 01-11 | `epb init` layout and case.yaml | ⚠️ PARTIAL | Layout verified; a refused init leaves `.epb/` (gap 3) |
-| WS-02 | 01-13 | scan fingerprints, stable IDs, junk ignored | ✗ BLOCKED (partial) | SHA-256, size, mtime, IDs, junk OK; MIME wrong for UTF-16 text (gap 4) |
-| WS-03 | 01-13, 01-14 | new version, rename, duplicate, removed | ✓ SATISFIED | Truth 7 |
-| WS-04 | 01-14 | sidecars paired and hashed | ✓ SATISFIED | S005 sidecar of S004 |
-| WS-06 | 01-07, 01-12 | atomic journalled writes, crash resume | ✓ SATISFIED | Truth 9 |
-| WS-07 | 01-12 | lock with 60 s wait | ✓ SATISFIED | Truth 10 |
-| WS-08 | 01-07, 01-09 | schema on write, strict text YAML | ✓ SATISFIED | Truth 12; RECORD_INVALID tests pass |
-| WS-09 | 01-11 | INDEX.md six sections, none yet | ✗ BLOCKED (partial) | Holds after init; breakable through input names (gap 2) |
-| WS-11 | 01-08, 01-11 | `.epb/.gitignore`, git warning | ✓ SATISFIED | Truths 3, 6 (see warning B-WR-01) |
+| WS-01 | 01-07, 01-09, 01-11, 01-19 | init layout, case.yaml | ✓ SATISFIED | Truths 1, 13 |
+| WS-02 | 01-13, 01-20 | scan fingerprints every input, MIME | ✗ BLOCKED (partial) | MIME fixed (truth 8); a non-UTF-8 name stops the whole scan (CR-01) |
+| WS-03 | 01-13, 01-14 | change detection | ✓ SATISFIED | Truth 7 |
+| WS-04 | 01-14 | sidecars | ✓ SATISFIED | Truth 7 |
+| WS-06 | 01-07, 01-12 | atomic journalled writes | ✓ SATISFIED | Truth 9 |
+| WS-07 | 01-12 | lock | ✓ SATISFIED | Truth 10 |
+| WS-08 | 01-07, 01-09 | schema on write, strict YAML | ✓ SATISFIED | Truth 12 |
+| WS-09 | 01-11, 01-18 | INDEX.md six sections | ✓ SATISFIED | Truths 4, 5 |
+| WS-11 | 01-08, 01-11 | .gitignore, git warning | ✓ SATISFIED | Truths 3, 6 |
 | WS-12 | 01-08, 01-11 | sync-folder warnings | ✓ SATISFIED | Truth 6 |
-| WS-13 | 01-07 | state schema registry, counters, chunks | ✓ SATISFIED | Truth 2 |
-| BLD-01 | 01-04, 01-15 | format module and reference doc | ✓ SATISFIED | Artifacts; evidence-pack-v2.md dated 2026-10-17 |
+| WS-13 | 01-07 | state schema | ✓ SATISFIED | Truth 2 |
+| BLD-01 | 01-04, 01-15 | format module + reference | ✓ SATISFIED | Truth 16 |
 | BLD-02 | 01-04 | text-only cells | ✓ SATISFIED | Truth 16 |
 | BLD-03 | 01-04 | strict validator | ✓ SATISFIED | Truth 15 |
 | BLD-08 | 01-02, 01-04 | 10-row metadata, empty manifest | ✓ SATISFIED | Truth 16 |
-| PKG-01 | 01-02, 01-06, 01-15 | plugin/ + marketplace | ? NEEDS HUMAN | Manifests correct; real install pending (human item 3) |
-| PKG-03 | 01-06, 01-15 | plugin AGENTS.md rules | ✓ SATISFIED | Truth 20 |
-| PKG-05 | 01-03 | exit codes 0-4 + stable codes | ✓ SATISFIED | Truth 11 |
+| PKG-01 | 01-02, 01-06, 01-15 | plugin/ + marketplace | ? NEEDS HUMAN | Truth 18 |
+| PKG-03 | 01-06, 01-15 | plugin AGENTS.md | ✓ SATISFIED | Truth 20 |
+| PKG-05 | 01-03 | exit codes | ✓ SATISFIED | Truth 11 |
 | PKG-06 | 01-03, 01-10 | stdlib launcher, doctor --setup | ? NEEDS HUMAN | Truth 19 |
 | PKG-07 | 01-08 | doctor tool report | ✓ SATISFIED | Truth 20 |
-| PKG-08 | 01-01, 01-02, 01-10 | permissive pinned core, GPL extras split | ✓ SATISFIED | tests/packaging/test_requirements.py passes; extras state licences |
-| PKG-09 | 01-05 | CI dependency-age and licence checks | ✗ BLOCKED | Tooling present and unit-tested; CI job red (gap 1) |
-| PKG-11 | 01-05, 01-16 | AGENTS.md == CLAUDE.md, at most 150 lines, CI test | ⚠️ PARTIAL | Mirror and test verified; CI not green (gap 1). REQUIREMENTS.md still shows `[ ]` / Pending |
-| TST-01 | 01-01, 01-05 | pytest + ruff, no network, optional skips | ✗ BLOCKED (partial) | No-network guard and skips work; suite fails in the CI environment (gap 1) |
+| PKG-08 | 01-01, 01-02, 01-10 | permissive pinned core, GPL extras split | ✓ SATISFIED | test_requirements passes |
+| PKG-09 | 01-05, 01-17, 01-22 | CI dependency-age and licence checks | ✗ BLOCKED | Age check green on both legs; licence check red on 3.11 (truth 21) |
+| PKG-11 | 01-05, 01-16, 01-17, 01-22 | AGENTS.md == CLAUDE.md, ≤150 lines, CI test | ✓ SATISFIED | Truth 22; the mirror test runs green inside the CI Tests step on both legs. The red licence step belongs to PKG-09, not PKG-11 |
+| TST-01 | 01-01, 01-05, 01-17, 01-22 | pytest + ruff, no network, optional skips | ✓ SATISFIED | Lint, Format and Tests green on both hosted legs (1977 passed, 4 skipped); locally 1978 passed, 3 skipped under the CI variable |
 | TST-07 | 01-12, 01-14 | crash injection per step | ✓ SATISFIED | Truth 9 |
-| DOC-04 | 01-16 | privacy chapter in plain language | ⚠️ PARTIAL | Topics covered; INDEX.md promise inaccurate (gap 5) |
+| DOC-04 | 01-16, 01-21 | privacy chapter | ? NEEDS HUMAN | Text is accurate and tested (truth 23); owner read-through is the open high threat T-01-55 |
 | DOC-05 | 01-16 | manual started, Win/mac marked | ✓ SATISFIED | Truth 22 |
-
-Bookkeeping note: REQUIREMENTS.md marks 26 of these IDs `[x]` / Complete before verification. WS-01, WS-02, WS-09, PKG-09, TST-01 and DOC-04 should not read Complete until the gaps close.
-
-### Decision Coverage
-
-All trackable CONTEXT.md decisions are honored by shipped artifacts (20/20, `check.decision-coverage-verify`).
-
-### Test Quality Audit
-
-| Test File | Linked Req | Active | Skipped | Circular | Assertion Level | Verdict |
-| --------- | ---------- | ------ | ------- | -------- | --------------- | ------- |
-| tests/store/test_crash_resume.py | WS-06, TST-07 | 6 | 0 | No | Behavioral | OK, but D-WR-07: the per-checkpoint tests do not assert the checkpoint list is non-empty (saved only by a sibling test). Independently confirmed non-vacuous here |
-| tests/workspace/test_init_defaults.py | WS-01 | yes | 0 | No | Value | INSUFFICIENT for "writes nothing": does not check `.epb/` (gap 3) |
-| tests/formats/test_validator.py | BLD-03, DEF-14 | yes | 0 | No (prototype is an external oracle) | Value | OK; D-WR-09: on-disk ordering test writes a valid pack |
-| tests/launcher/test_setup_real.py | PKG-06 | 0 by default | 1 (opt-in network) | No | Behavioral | Only real-path test is opt-in, so PKG-06 is routed to human |
-| tests/packaging/test_host_install.py | PKG-01 | 0 by default | 2 (opt-in host) | No | Behavioral | Opt-in, routed to human |
-| tests/workspace/test_layout.py::test_no_absolute_path_user_or_host_in_any_file | 01-11 prohibition | 1 | 0 | No | Value | OK for init files (review D-IN-02 concerns a different test) |
-
-Disabled tests on requirements: 0 (skips are the documented opt-in network/host markers). Circular patterns: none found. Insufficient assertions: 1 (test_init_defaults "nothing written").
-
-### Prohibitions
-
-| Plan | Prohibition | Tier | Disposition |
-| ---- | ----------- | ---- | ----------- |
-| 01-04 | No silent alteration of cell text | test | Enforced: test_edge_values_survive_as_exact_strings, test_formula_risk_depends_only_on_first_character |
-| 01-04 | Never claim an import succeeded | judgment | LLM verdict holds (SKILL.md line 25, plugin/AGENTS.md); flagged for owner (human item 6) |
-| 01-06 | install-codex never touches foreign folders | test | Enforced: test_foreign_folder_is_left_untouched |
-| 01-08 | No git modification | test | Enforced: test_source_uses_only_read_only_subcommands, test_git_argv_uses_dash_c_and_never_a_shell |
-| 01-10 | No downloads except doctor --setup; no sudo | test | Enforced: test_only_setup_builds_a_pip_command_line, test_no_module_runs_sudo_or_a_shell, tests/repo/test_no_network.py |
-| 01-11 | No absolute paths, user or host names in trackable files | test | Enforced for init (test_no_absolute_path_user_or_host_in_any_file); scan records checked by hand here (relative paths only) |
-| 01-13 | scan never modifies inputs/ | test | Enforced: snapshot assertion in tests/sources/test_scan_fingerprint.py lines 63-65 |
-| 01-15 | No real names, reference-report or prototype prose | judgment | LLM verdict holds, with C-IN-09 (owner's handle) flagged; owner decision (human item 6) |
-| 01-16 | Never imply nothing leaves the computer | judgment | LLM verdict holds (manual "Every excerpt the agent reads is sent to the AI host's model provider"); flagged for owner (human item 6) |
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
-| (116 phase-changed files) | - | TBD / FIXME / XXX | none found | - |
-| `tools/check_licences.py` | 32 | `_PLACEHOLDERS` | ℹ️ Info | Legitimate SPDX placeholder set, not a stub |
-| `epb/index.py` | open_issues | unsanitised interpolation | 🛑 Blocker | Gap 2 |
-| `epb/mime.py` | `_mpeg_frame` | over-broad magic signature | 🛑 Blocker | Gap 4 |
-| `epb/commands/init.py` | run | side effects before validation | 🛑 Blocker | Gap 3 |
-| `.github/workflows/ci.yml` + `pyproject.toml` | env / filterwarnings | CI-only failure mode | 🛑 Blocker | Gap 1 |
-| `epb/doctor/gitcheck.py` | - | reports "safe" when git errors (review B-WR-01) | ⚠️ Warning | The WS-11 git warning can be silently missed |
-| `.github/workflows/ci.yml` | - | `claude plugin validate --strict` never runs on GitHub runners (C-WR-06); actions on mutable tags, no `permissions:` (C-WR-05) | ⚠️ Warning | The D-02 gate runs only locally |
-| `tests/store/test_crash_resume.py` | - | the upgrade transaction is outside the crash matrix (D-WR-06) | ℹ️ Info | v0.1.0 registers no upgrade step, so it never runs in production yet |
-
-The remaining 01-REVIEW.md warnings and info findings (all disposition `open`) do not, on their own, falsify a phase must-have. They should be triaged in 01-REVIEW-DISPOSITION.md before the phase closes.
+| 20 files changed since the previous pass | - | TBD / FIXME / XXX | none found | - |
+| `epb/sources/scan.py` + `epb/fsio.py` | scan.py:150-175, fsio.py:64-67 | Surrogate-escaped names reach strict UTF-8 encoding | 🛑 Blocker (new scope, evidenced by reproduction) | CR-01: one file stops every scan of the case |
+| `tools/check_licences.py` / CI 3.11 job | - | Runner-preinstalled package with no licence metadata | 🛑 Blocker | Gap 1 (carried forward) |
+| `plugin/skills/evidence-pack/SKILL.md` | 77 | After-scan "suggest they rename the file" remedy does not hold for rename plus edit, or for older versions | ⚠️ Warning (WR-01, reproduced) | A name can persist in a review-before-sharing file with no supported way to remove it; the manual's "check before sharing" step still prevents an unknowing share |
+| `epb/index.py` | 79 | `_inline` leaves bidi/zero-width (Cf) characters and Markdown link syntax | ℹ️ Info (IN-01) | Names can be visually disguised in a file the user is told to check |
+| `workspace-contract.md` vs manual | 12-15 vs 79 | Contract allows keeping `.epb` records in version control after review; manual says never share `.epb` | ℹ️ Info (IN-03) | Mixed advice |
+| `tests/repo/test_ci_workflow.py`, `test_text_subprocess_encoding.py` | - | Guards narrower than their docstrings | ℹ️ Info (IN-04, IN-05; T-01-46 below threshold) | Parity guard does not cover the licence step that failed |
+| `tests/doctor/test_gitcheck.py` | 142-154 | Skips instead of being hermetic | ℹ️ Info (IN-06) | Branch untested on machines with a `.git` above the temp folder |
 
 ### Human Verification Required
 
-1. **Owner smoke import (SC4).** Run `.venv/bin/python tools/make-smoke-pack.py`, import `scratch/smoke/evidence-pack-smoke.xlsx` into a new ProbeMatrix test incident, and check all 21 checklist lines. Expected: every value shows exactly as written and lists split into separate entries. Only the owner reports the result.
-2. **Real `doctor --setup` (PKG-06).** Run `EPB_NETWORK_TESTS=1 .venv/bin/python -m pytest -q tests/launcher/test_setup_real.py`, then `python3 plugin/skills/evidence-pack/scripts/epb.py doctor --setup`. Expected: pass; exit 0; marker written; `init` then runs inside the environment.
-3. **Claude Code install (PKG-01, 01-15).** Run `EPB_HOST_TESTS=1 .venv/bin/python -m pytest -q tests/packaging/test_host_install.py`, then follow manual chapter 4 on a clean profile. Expected: the cache holds only the plugin subtree.
-4. **GitHub CI run (PKG-09, TST-01, PKG-11)** after the CI gap is fixed and the owner approves the push. Expected: both legs green, including the dependency-age check.
-5. **Manual read-through (DOC-04, DOC-05).** Expected: plain language, accurate privacy chapter.
-6. **Judgment prohibitions and C-IN-09.** Owner confirms the three judgment-tier prohibitions and decides on the GitHub handle.
-7. **Design amendments A16-A30 wording.**
+1. **Owner smoke import (SC4).** Run `.venv/bin/python tools/make-smoke-pack.py`, import `scratch/smoke/evidence-pack-smoke.xlsx` into a new ProbeMatrix test incident, and check all 21 checklist lines. Expected: every value shows exactly as written. Only the owner reports the result.
+2. **Real `doctor --setup` (PKG-06).** Run `EPB_NETWORK_TESTS=1 .venv/bin/python -m pytest -q tests/launcher/test_setup_real.py`, then `python3 plugin/skills/evidence-pack/scripts/epb.py doctor --setup`. Expected: the test passes, exit 0 and the marker is written.
+3. **Claude Code install (PKG-01).** Run `EPB_HOST_TESTS=1 .venv/bin/python -m pytest -q tests/packaging/test_host_install.py`, then follow manual chapter 4 on a clean profile.
+4. **GitHub CI (PKG-09)**, after the licence gap is fixed and the owner approves a push. Expected: both core legs green on every step.
+5. **Privacy read-through (DOC-04, T-01-55).** Read chapters 2 and 6 and the review-before-sharing class, and decide on WR-01.
+6. **Manual read-through of chapters 1-7 (DOC-05).**
+7. **Judgment-tier prohibitions** (01-04, 01-15, 01-16, 01-21, 01-22) and the C-IN-09 handle question.
+8. **Design amendments A16-A30 wording.**
 
 ### Gaps Summary
 
-Five gaps, from four independent root causes plus one documentation defect:
+Two blockers, from two independent root causes:
 
-1. **CI cannot be green (gap 1).** This is one configuration mismatch: CI escalates EncodingWarning, which openpyxl and `launcher._probe` trigger. The fix is a narrow warning filter, `encoding=` on the probe, and local runs that match CI. Blocks SC5, PKG-09, TST-01 and the CI leg of PKG-11.
-2. **INDEX.md integrity (gap 2).** List lines in Open issues interpolate raw paths. A newline in a file name adds headings and can forge an `Imported?` tick, which Phase 6 will read back as a workbook lock. This is a small sanitiser fix plus a regression test.
-3. **Refused init leaves `.epb/` (gap 3).** Settings are validated after `open_for_init` writes. Move validation first and tighten the test.
-4. **UTF-16 text inventoried as MP3 (gap 4).** The MPEG sniff matches the UTF-16LE BOM. Since content wins (D-13), Phase 2 would mis-route Windows text exports, which are common in investigations.
-5. **Privacy promise (gap 5).** The manual says INDEX.md uses role labels; it shows raw file names. The code fix is Phase 4 (deferred). The wording, the workspace-contract classifications and a SKILL.md warning are Phase 1 fixes.
+1. **CI licence step on Python 3.11 (gap 1, carried forward and narrowed).** 01-17 fixed the EncodingWarning failures. The hosted Tests step is green on both legs, and so are lint, format and the dependency-age rule. The run is still red because the GitHub 3.11 toolcache ships setuptools 79.0.1, and `tools/check_licences.py` finds no licence metadata for it. The fix is a reviewed decision: override setuptools as MIT, exclude runner bootstrap tools, or remove or upgrade setuptools in the 3.11 job. Then an owner-approved push and a green run are needed. Blocks ROADMAP SC5 and PKG-09.
+2. **Non-UTF-8 input file names crash `scan` (review CR-01, new scope, reproduced).** On Linux such names are realistic, for example from unzipping Windows ZIPs or copying from old shares. One such file stops every scan with INTERNAL_ERROR, and the error does not name the file. That contradicts the phase goal "inventory its inputs safely" and WS-02 "fingerprints every input". The fix is small: report the file as ignored with a rename hint and add a POSIX regression test. It was not part of the gap round, but a reproducible crash is deterministic evidence, so it blocks.
 
-Gaps 2 to 4 are each well localised. The review supplies concrete fixes for all of them, and none requires redesign. The phase should not be marked complete, and REQUIREMENTS.md should not list WS-01, WS-02, WS-09, PKG-09, TST-01 or DOC-04 as Complete until `/gsd-plan-phase 1 --gaps` closes these and the owner-only items above are reported.
+One warning, for the owner to decide at UAT:
+
+- **WR-01.** The manual is accurate: rename before copying in, and check INDEX.md before sharing. But SKILL.md step 6 suggests renaming *after* a scan. If the content also changed, the old name stays in INDEX.md as a removed input. Older versions keep it in `.epb/sources/` in every case. No supported command removes it. Either reword SKILL.md (warn before the copy, and say the only clean fix after a scan is a new case folder) or render removed sources by ID only.
+
+The phase should not be marked complete. REQUIREMENTS.md can move WS-01, WS-03, WS-04, WS-06, WS-07, WS-08, WS-09, WS-11, WS-12, WS-13, BLD-01/02/03/08, PKG-03/05/07/08/11, TST-01, TST-07 and DOC-05 to Complete on this evidence. WS-02 and PKG-09 wait for the two gaps. PKG-01, PKG-06 and DOC-04 wait for the owner items. Next step: `/gsd-plan-phase 1 --gaps`.
 
 ---
 
-_Verified: 2026-10-18T12:08:58Z_
+_Verified: 2026-10-18T16:11:48Z_
 _Verifier: Claude (gsd-verifier)_
