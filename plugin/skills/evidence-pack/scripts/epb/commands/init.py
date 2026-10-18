@@ -59,9 +59,12 @@ def run(args, ctx):
             f"The case folder {case} does not exist or is not a folder.",
             hint="Create the folder first, or pass --case with an existing folder.",
         )
+    settings = None
     if not (case / STATE_FILE).exists() and not txn.pending_journals(case):
-        # Checked before anything is created, so a refusal leaves the folder untouched.
+        # Checked before the session creates .epb/, its lock or .epb/tmp/, so a refusal
+        # leaves the folder exactly as it was (A-CR-02). resolve_settings only reads.
         _refuse_foreign_index(case, index.INDEX_FILE)
+        settings = casefile.resolve_settings(args, case)
     new_dirs = workspace.missing_layout(case)
     with workspace.open_for_init(case, ctx) as session:
         if session.state_exists:
@@ -84,7 +87,9 @@ def run(args, ctx):
             )
         _refuse_foreign_index(case, index.INDEX_FILE)
         started_at = fsio.utc_now_iso()
-        settings = casefile.resolve_settings(args, case)
+        if settings is None:
+            # Only when the session recovered an interrupted change before validating.
+            settings = casefile.resolve_settings(args, case)
         record = casefile.new_case_record(settings, __version__, started_at)
         state = new_state(__version__)
         run_id, run_record = runs.new_run(
