@@ -233,7 +233,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **PKG-05**: Exit codes are 0 OK, 1 gate failure, 2 usage, 3 missing dependency, and 4 internal or environment error, with a stable error code in the JSON. (§15.2, §20 A11)
 - [ ] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
 - [ ] **PKG-07**: `epb doctor` reports each tool: found or not, its version, the input types it enables, and install commands for each OS. A missing optional tool never fails a run. (§7.2)
-- [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`. GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
+- [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
 - [ ] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
 - [ ] **PKG-10**: The plugin installs through `/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder` plus `/plugin install` on Claude Code, through Cowork's plugin upload, and on Codex through its supported route. (§15.3, kickoff §11)
 - [ ] **PKG-11**: The repo-root `AGENTS.md` and `CLAUDE.md` are exact copies of each other, holding the developer instructions. They are regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least at every phase transition), and a CI test fails if they differ or exceed 150 lines. They are hand-maintained and concise (aim for 60 lines or fewer, pointers rather than copies); GSD's `generate-claude-md` is never run on them. (§20 A15)
@@ -496,4 +496,4 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 
 ---
 *Requirements defined: 2026-10-17*
-*Last updated: 2026-10-17 after roadmap creation (traceability filled); PKG-11 added (design §20 A15)*
+*Last updated: 2026-10-18 after Phase 1 plan 01-02: PKG-08 amended for tzdata on Windows (D-20, design §20 A28). Earlier: 2026-10-17 roadmap creation (traceability filled); PKG-11 added (design §20 A15)*

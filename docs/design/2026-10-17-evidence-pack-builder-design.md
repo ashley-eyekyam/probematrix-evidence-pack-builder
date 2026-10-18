@@ -103,7 +103,8 @@ probematrix-evidence-pack-builder/
 ├── CLAUDE.md                       # one line: "See @AGENTS.md"
 ├── README.md  LICENSE (MIT)  CHANGELOG.md  CONTRIBUTING.md  SECURITY.md
 ├── requirements.txt                # core: openpyxl, pyyaml, rapidfuzz, pdfplumber, pypdf, python-docx,
-│                                   #       python-pptx, beautifulsoup4, markdownify, Pillow
+│                                   #       python-pptx, beautifulsoup4, markdownify, Pillow,
+│                                   #       tzdata on Windows only (A28)
 ├── requirements-email.txt          # optional: extract-msg (GPL) for Outlook .msg
 ├── requirements-media.txt          # optional: faster-whisper, opencv-python-headless (scene detection)
 ├── requirements-docs.txt           # optional: docling (layout/table-aware PDF/DOCX → Markdown)
@@ -650,5 +651,6 @@ Project research (`.planning/research/SUMMARY.md`, "Owner Decisions Needed") rai
 | A13 (OD-12) | **Page citations:** per source, the plugin decides once which numbering applies. Reliably detected printed numbers are cited as `p.12` / `pp.16–17`; otherwise the physical page is cited as `PDF p.12`. Annexes that restart numbering use their label (`Annex B p.3`). Never mixed within one source. | §7.3, §8.4 Source |
 | A14 | **Non-technical user manual.** v0.1.0 ships a detailed manual for non-technical users covering installation and use on Windows, macOS and Linux: installing Python and the optional tools, installing the plugin in Claude Code, Cowork and Codex, first setup, a first case folder, importing into ProbeMatrix, and troubleshooting, with exact on-screen text. It is started in Phase 1 and extended in each phase that adds tools. | §5 docs, §17 |
 | A15 | **Mirrored developer instructions.** The repo root holds `AGENTS.md` and `CLAUDE.md` as exact copies of each other (not the one-line `CLAUDE.md` "See @AGENTS.md" of §5). They hold the developer instructions and are kept current: regenerated and re-copied whenever the project context, roadmap, stack or a workflow rule changes, at least at every phase transition, and committed together. A test fails if they differ. They are hand-maintained and concise, following Anthropic's guidance (target under 200 lines): aim for 60 lines or fewer, never exceed 150, keep only lines whose absence would cause agent mistakes, and point to files instead of copying them. GSD's `generate-claude-md` is never run on them. The plugin's rules for end users' agents stay in `plugin/AGENTS.md`, outside this pair. | §5 |
+| A28 (D-20) | **tzdata on Windows.** `plugin/requirements.txt` adds `tzdata; sys_platform == "win32"` (Apache-2.0), so `zoneinfo` validates IANA timezone names the same way on every OS. | §5 requirements, PKG-08 |
 
 The remaining research items (OD-13 to OD-37) are decided in the discussion of the phase they affect.
