@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epb:state",
+  "title": "epb workspace state (.epb/state.json)",
+  "description": "The authoritative workspace state, written last in every transaction (WS-06, WS-13). It holds no raw source text (D-07).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plugin_version",
+    "last_txn",
+    "counters",
+    "fingerprints",
+    "workbooks",
+    "items",
+    "chunks",
+    "imports"
+  ],
+  "properties": {
+    "schema_version": {
+      "description": "The state layout version (D-09). The supported maximum is checked in code, not here, so upgrade steps can validate older and newer layouts.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "plugin_version": {
+      "description": "The plugin version that last wrote this file.",
+      "type": "string",
+      "minLength": 1
+    },
+    "last_txn": {
+      "description": "The transaction that last wrote this file, or null before the first one.",
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/txn" }]
+    },
+    "counters": {
+      "description": "The last number issued for each ID series. IDs are never reused.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run", "source", "evidence", "tag", "claim", "conflict"],
+      "properties": {
+        "run": { "type": "integer", "minimum": 0 },
+        "source": { "type": "integer", "minimum": 0 },
+        "evidence": { "type": "integer", "minimum": 0 },
+        "tag": { "type": "integer", "minimum": 0 },
+        "claim": { "type": "integer", "minimum": 0 },
+        "conflict": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "fingerprints": {
+      "description": "Input file path (relative to the case folder, under inputs/) to its last seen fingerprint.",
+      "type": "object",
+      "propertyNames": { "pattern": "^inputs/" },
+      "additionalProperties": { "$ref": "#/$defs/fingerprint" }
+    },
+    "workbooks": {
+      "description": "Every workbook the plugin has written to outputs/.",
+      "type": "array"
+    },
+    "items": {
+      "description": "Evidence item ID to where it was first shipped.",
+      "type": "object"
+    },
+    "chunks": {
+      "description": "Per-chunk extraction status; the chunk plan with headings lives in ledger/chunks.json (D-07).",
+      "type": "object"
+    },
+    "imports": {
+      "description": "Records of workbooks marked as imported into ProbeMatrix.",
+      "type": "array"
+    }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "txn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "committed_at"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^\\d{8}T\\d{6}Z-\\d+-[0-9a-f]{6}$" },
+        "command": { "type": "string", "minLength": 1 },
+        "committed_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src_id", "version", "sha256", "size", "mtime_ns"],
+      "properties": {
+        "src_id": { "type": "string", "pattern": "^S\\d{3,}$" },
+        "version": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "size": { "type": "integer", "minimum": 0 },
+        "mtime_ns": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
