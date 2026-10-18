@@ -9,6 +9,10 @@ folder. The plugin works in the folder where it is run; it never looks in parent
 - **user-owned**: the user's own files. The plugin reads them and never changes, moves or
   deletes them.
 - **shareable**: de-identified output meant to be read, shared or imported.
+- **review-before-sharing**: lists input file and folder names exactly as the user gave them.
+  This version does not replace names in file names yet, so share it, or keep it in version
+  control, only after checking those names for personal names. A later version shows role
+  labels instead.
 - **structural**: settings and bookkeeping that hold no source text. Safe to keep in version
   control.
 - **raw-text-confidential**: working files that hold raw source text, which can include
@@ -21,10 +25,10 @@ folder. The plugin works in the folder where it is run; it never looks in parent
 | --- | --- | --- |
 | `inputs/` | user-owned | The evidence files the user puts in, at any depth and of any type. |
 | `outputs/` | shareable | Only the evidence-pack workbooks to import into ProbeMatrix. |
-| `INDEX.md` | shareable | The case summary, rewritten every run. Only its Imported? boxes may be ticked. |
+| `INDEX.md` | review-before-sharing | The case summary, rewritten every run; lists each input's file name. Only its Imported? boxes may be ticked. |
 | `.epb/case.yaml` | structural | Case title, slug, ID prefix, timezone, creation time, plugin version and fixed settings. |
-| `.epb/state.json` | structural | Input fingerprints, ID counters, workbooks, items and the status of each chunk. |
-| `.epb/sources/` | structural | One record per input (`S001.json` and so on) with its paths, versions and status. |
+| `.epb/state.json` | review-before-sharing | Input fingerprints (keyed by input path), ID counters, workbooks, items and the status of each chunk. |
+| `.epb/sources/` | review-before-sharing | One record per input (`S001.json` and so on) with its paths, versions and status. |
 | `.epb/segments/` | raw-text-confidential | The page- and time-anchored text of each input (later versions). |
 | `.epb/media/` | raw-text-confidential | Keyframes, audio and page images used for conversion (later versions). |
 | `.epb/ledger/claims.jsonl` | raw-text-confidential | Every claim extracted from the inputs (later versions). |
@@ -59,7 +63,9 @@ Every other path appears when a later version first needs it.
   changes it.
 - Git ignores these folders through `.epb/.gitignore`, because they hold raw source text:
   `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/` and `private/`. The structural
-  files can be kept in version control. The private folder has its own ignore file as well.
+  files can be kept in version control. `INDEX.md`, `.epb/state.json` and `.epb/sources/` list
+  input file names as given, so check those names for personal names first. The private
+  folder has its own ignore file as well.
 - `.epb/.gitattributes` holds `* -text` so the state files keep their exact bytes.
 - If the case folder sits in a cloud sync folder or a git repository, `init` and `doctor`
   warn (`SYNC_FOLDER`, `GIT_PRIVATE_NOT_IGNORED`, `GIT_TRACKS_PRIVATE`).
@@ -112,8 +118,10 @@ Every other path appears when a later version first needs it.
   archive), one entry per carrier. It is empty for a file the user put in `inputs/` directly.
   An identical attachment delivered by two emails is one input with two parents.
 - Chunk data is split in two. `.epb/state.json` holds only each chunk's status, with no raw
-  text, so it stays safe to keep in version control. `.epb/ledger/chunks.json` holds the
-  chunk plan with its section headings, which are raw text, so it is git-ignored.
+  text, so chunk data adds no raw text to it. `.epb/ledger/chunks.json` holds the chunk plan
+  with its section headings, which are raw text, so it is git-ignored. The fingerprints in
+  `.epb/state.json` are keyed by input path, so check its file names before you keep it in
+  version control (review-before-sharing).
 - Every stored file carries `schema_version`. A case folder written by an older plugin is
   upgraded automatically by the next command that changes it: copies of `state.json`,
   `case.yaml` and the source records go to `.epb/runs/<NNN>/pre-upgrade/`, the upgrade runs
