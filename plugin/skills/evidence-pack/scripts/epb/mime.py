@@ -82,6 +82,16 @@ def by_extension(name) -> str:
     return OCTET_STREAM
 
 
+# Interface stubs; the magic-byte table arrives in the GREEN step.
+HEAD_BYTES = 4096
+MAGIC_RULES: tuple = ()
+AMBIGUOUS_FAMILIES: dict = {}
+
+
+def sniff(path):
+    raise NotImplementedError
+
+
 def detect(path):
     """``(mime, mismatch)`` for the file at ``path``. ``mismatch`` is ``None`` when the name
     and the content agree, else ``{"by_extension": ..., "by_content": ...}``."""
