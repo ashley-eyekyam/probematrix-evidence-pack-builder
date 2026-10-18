@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "epb --json envelope",
+  "description": "The single JSON object every epb command prints on stdout under --json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ok", "command", "exit_code", "epb_version", "data", "warnings", "errors", "next"],
+  "properties": {
+    "ok": {
+      "description": "True exactly when exit_code is 0.",
+      "type": "boolean"
+    },
+    "command": {
+      "description": "The command that ran, or null when no command could be identified.",
+      "type": ["string", "null"]
+    },
+    "exit_code": {
+      "description": "0 OK, 1 gate failure, 2 usage, 3 missing dependency, 4 internal or environment.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "epb_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "data": {
+      "description": "Command-specific result. A failing command may still return its report here.",
+      "type": "object"
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/warning" }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/error" }
+    },
+    "next": {
+      "description": "Suggested follow-up commands, without the launcher prefix.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": true } } },
+      "then": { "properties": { "exit_code": { "const": 0 }, "errors": { "maxItems": 0 } } },
+      "else": { "properties": { "exit_code": { "minimum": 1 }, "errors": { "minItems": 1 } } }
+    }
+  ],
+  "$defs": {
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]+$"
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "hint"],
+      "properties": {
+        "code": { "$ref": "#/$defs/code" },
+        "message": { "type": "string", "minLength": 1 },
+        "hint": { "type": ["string", "null"] }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "hint", "pointer"],
+      "properties": {
+        "code": { "$ref": "#/$defs/code" },
+        "message": { "type": "string", "minLength": 1 },
+        "hint": { "type": ["string", "null"] },
+        "pointer": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

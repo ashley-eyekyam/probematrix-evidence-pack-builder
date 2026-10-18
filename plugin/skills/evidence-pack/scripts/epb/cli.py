@@ -8,6 +8,7 @@ be built before the private environment exists. The CLI never prompts and never 
 import argparse
 import json
 import sys
+import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -15,6 +16,29 @@ from epb import __version__, commands, launcher
 from epb.errors import EXIT_OK, EpbError, warning
 
 DEFAULT_WAIT = 60.0
+
+# Top-level import names of the core packages (plugin/requirements.txt and the dependencies
+# commands import directly). A missing one means the private environment is incomplete.
+CORE_IMPORT_NAMES = frozenset(
+    {
+        "jsonschema",
+        "yaml",
+        "openpyxl",
+        "defusedxml",
+        "lxml",
+        "charset_normalizer",
+        "pdfplumber",
+        "pypdf",
+        "PIL",
+        "rapidfuzz",
+        "docx",
+        "pptx",
+        "bs4",
+        "markdownify",
+        "referencing",
+        "rpds",
+    }
+)
 
 
 @dataclass
@@ -145,6 +169,31 @@ def _render_human(envelope, message):
             print(f"What to do: {item['hint']}", file=sys.stderr)
 
 
+def _internal_error(exc):
+    """Map an unexpected exception to INTERNAL_ERROR. The traceback goes to stderr only; the
+    envelope names the exception type, never its message (T-01-04)."""
+    traceback.print_exc(file=sys.stderr)
+    return EpbError(
+        "INTERNAL_ERROR",
+        f"An internal error occurred ({type(exc).__name__}). "
+        "Details were printed to the error stream.",
+        hint="Report this error code to the plugin maintainer. "
+        "Do not edit the evidence or the .epb folder.",
+    )
+
+
+def _import_failure(exc):
+    """A missing core package is a setup problem (exit 3); any other import failure is a bug."""
+    top_level = (exc.name or "").partition(".")[0]
+    if top_level in CORE_IMPORT_NAMES:
+        return EpbError(
+            "CORE_PACKAGE_MISSING",
+            f"The package that provides '{top_level}' is missing from the private environment.",
+            hint="Run doctor --setup to install the plugin's packages.",
+        )
+    return _internal_error(exc)
+
+
 def main(argv=None):
     """Run one command and return its exit code (0 OK, 1 gate, 2 usage, 3 missing
     dependency, 4 internal or environment)."""
@@ -184,9 +233,23 @@ def main(argv=None):
         message = result.message
         exit_code = EXIT_OK
     except EpbError as exc:
-        errors = [exc.to_dict()]
-        data = dict(exc.data or {})
-        exit_code = exc.exit_code
+        failure = exc
+    except KeyboardInterrupt:
+        failure = EpbError(
+            "INTERNAL_ERROR",
+            "The command was interrupted.",
+            hint="Run the command again when you are ready.",
+        )
+    except ImportError as exc:
+        failure = _import_failure(exc)
+    except Exception as exc:
+        failure = _internal_error(exc)
+    else:
+        failure = None
+    if failure is not None:
+        errors = [failure.to_dict()]
+        data = dict(failure.data or {})
+        exit_code = failure.exit_code
     warnings = ctx.warnings if ctx is not None else []
     envelope = _envelope(command, exit_code, data, warnings, errors, next_steps)
     if json_mode:

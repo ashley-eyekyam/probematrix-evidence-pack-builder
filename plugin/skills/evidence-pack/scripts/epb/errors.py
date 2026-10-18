@@ -1,4 +1,52 @@
-"""Exit codes, stable error and warning codes, and the ``EpbError`` exception (PKG-05)."""
+"""Exit codes, stable error and warning codes, and the ``EpbError`` exception (PKG-05).
+
+The code strings are a published contract: skills, agents and the user manual quote them, so
+never rename one. This docstring is the source for the manual's troubleshooting chapter.
+
+Exit codes
+    0  OK. The command did what was asked; warnings may still be present.
+    1  Gate failure. The content was checked and rejected; fix the content, not the setup.
+    2  Usage. The command line was wrong or the folder is not what the command needs.
+    3  Missing dependency. Python, the private environment or a package is missing.
+    4  Internal or environment. The workspace or the plugin is in a state it cannot use.
+
+Error codes
+    VALIDATION_FAILED     (1) The evidence pack or a record failed validation.
+    USAGE                 (2) Unknown command, unknown option or a missing argument.
+    BAD_ARGUMENT          (2) An argument has a value the command cannot use.
+    NOT_A_WORKSPACE       (2) The folder has no .epb workspace; run init first.
+    WORKSPACE_EXISTS      (2) init was run on a folder that already has a workspace.
+    TIMEZONE_REQUIRED     (2) No valid IANA timezone could be determined for the case.
+    ENV_NOT_SET_UP        (3) First-time setup has not been run, or the private environment
+                              is out of date for this plugin version; run doctor --setup.
+    CORE_PACKAGE_MISSING  (3) A required package is missing from the private environment;
+                              run doctor --setup.
+    PYTHON_TOO_OLD        (3) Python is older than 3.11; install a newer Python.
+    VENV_UNAVAILABLE      (3) Python cannot create a virtual environment on this computer
+                              (on Debian or Ubuntu, the python3-venv package is missing).
+    LOCK_TIMEOUT          (4) Another epb command held the workspace lock for too long.
+    WORKSPACE_TOO_NEW     (4) The workspace was written by a newer plugin version.
+    STATE_INVALID         (4) .epb/state.json is damaged or was edited by hand; restore it
+                              from a backup instead of repairing it by hand (D-19).
+    RECORD_INVALID        (4) A stored workspace record is damaged or fails its schema.
+    SETUP_FAILED          (4) doctor --setup could not finish building the environment.
+    INTERNAL_ERROR        (4) An unexpected error or an interruption; details go to stderr.
+
+Warning codes (never change the exit code)
+    ALREADY_SET_UP           The private environment was already current; nothing to do.
+    RECOVERY_PENDING         An interrupted change was found and will be finished.
+    RECOVERED                An interrupted change was finished before this command ran.
+    UPGRADE_PENDING          The workspace will be upgraded by the next changing command.
+    WORKSPACE_UPGRADED       The workspace was upgraded to this plugin version.
+    SYNC_FOLDER              The case folder is inside a cloud sync folder.
+    GIT_TRACKS_PRIVATE       Git is tracking files from the private .epb folders.
+    GIT_PRIVATE_NOT_IGNORED  Git would pick up the private .epb folders.
+    GIT_UNAVAILABLE          Git is not installed, so the git checks were skipped.
+    MIME_MISMATCH            A file's content does not match its extension; content wins.
+    INPUT_REMOVED            A previously scanned input file is no longer there.
+    SIDECAR_ORPHAN           A sidecar file has no matching input file.
+    LINK_IGNORED             A symbolic link in inputs/ was not followed.
+"""
 
 EXIT_OK = 0
 EXIT_GATE = 1
