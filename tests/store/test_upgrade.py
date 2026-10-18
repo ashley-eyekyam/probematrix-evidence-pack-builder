@@ -149,3 +149,31 @@ def test_damaged_workspace_exits_4(run_epb, initialised, command, damage):
     assert (exit_code, errors) == (4, ["STATE_INVALID"])
     if damage is _damaged_case:
         assert ".epb/case.yaml" in envelope["errors"][0]["message"]
+
+
+def test_upgrade_backs_up_and_rewrites_source_records(cli, initialised, monkeypatch):
+    """The 01-12 follow-up: a workspace that already holds source records (here an input and
+    its sidecar note) is upgraded with byte-identical backups of every record, and each record
+    is restamped and still valid, with its pairing intact."""
+    (initialised / "inputs").mkdir(exist_ok=True)
+    (initialised / "inputs/cam3.mp4").write_bytes(b"\x00\x00\x00\x18ftypisomsynthetic video")
+    (initialised / "inputs/cam3.mp4.note.md").write_bytes(b"Synthetic note for camera 3.\n")
+    assert cli(["scan", "--json", "--case", str(initialised)]).exit_code == 0
+    names = ("S001.json", "S002.json")
+    old = {name: (initialised / ".epb/sources" / name).read_bytes() for name in names}
+
+    monkeypatch.setattr(state, "SCHEMA_VERSION", 2)
+    monkeypatch.setitem(upgrade.UPGRADE_STEPS, 1, _synthetic_step)
+    result = cli(["init", "--json", "--case", str(initialised)])
+
+    assert result.exit_code == 0, result.stdout
+    assert "WORKSPACE_UPGRADED" in codes(result.envelope["warnings"])
+    backup = initialised / ".epb/runs/003/pre-upgrade/.epb/sources"
+    for name in names:
+        assert (backup / name).read_bytes() == old[name]
+        record = json.loads((initialised / ".epb/sources" / name).read_bytes())
+        assert record["schema_version"] == 2
+        assert schema.validate(record, "source") == []
+    note = json.loads((initialised / ".epb/sources/S002.json").read_bytes())
+    assert (note["source_kind"], note["sidecar_of"]) == ("sidecar", "S001")
+    assert_workspace_consistent(initialised)
