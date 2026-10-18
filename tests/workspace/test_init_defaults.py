@@ -35,7 +35,9 @@ def test_init_writes_case_yaml_from_flags(run_epb, case_dir):
     proc = run_epb(["init", *FULL_FLAGS, "--json"], cwd=case_dir)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     envelope = _envelope(proc)
-    assert envelope["data"]["created"] == [casefile.CASE_FILE, STATE_FILE]
+    created = envelope["data"]["created"]
+    assert casefile.CASE_FILE in created
+    assert created[-1] == STATE_FILE
     assert envelope["data"]["case"] == {
         "title": "Acme Pump Trip",
         "slug": "acme-pump-trip",

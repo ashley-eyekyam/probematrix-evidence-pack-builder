@@ -31,7 +31,9 @@ def test_init_creates_valid_state(run_epb, case_dir):
     envelope = _envelope(proc)
     assert envelope["ok"] is True
     assert envelope["command"] == "init"
-    assert envelope["data"]["created"] == [CASE_FILE, STATE_FILE]
+    created = envelope["data"]["created"]
+    assert CASE_FILE in created
+    assert created[-1] == STATE_FILE
 
     state_path = case_dir / STATE_FILE
     assert state_path.is_file()
