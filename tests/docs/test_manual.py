@@ -144,21 +144,39 @@ def test_golden_block_reader_rejects_a_changed_block():
 # --- structure and content of the first edition (DOC-04, DOC-05, D-03) --------------------
 
 
-def _without_fences(text):
-    """The manual with every fenced block blanked, so quoted output is never read as a
-    heading."""
-    return re.sub(r"^```.*?^```$", "", text, flags=re.DOTALL | re.MULTILINE)
+def _headed_lines(text):
+    """Each line of ``text`` with its heading level (0 for a non-heading line). A line inside
+    a fenced block, indented or not, is never a heading, so quoted output cannot start a
+    section."""
+    fenced = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+        match = None if fenced else re.match(r"(#+) (.+)$", line)
+        yield (len(match.group(1)), match.group(2)) if match else (0, line)
+
+
+def _headings(text):
+    return [title for level, title in _headed_lines(text) if level]
 
 
 def _sections(text, level):
-    """``(title, body)`` for each heading of ``level`` (2 for ``##``) in ``text``."""
-    marker = "#" * level
-    parts = re.split(rf"^{marker} (.+)$", text, flags=re.MULTILINE)
-    return list(zip(parts[1::2], parts[2::2], strict=True))
+    """``(title, body)`` for each heading of ``level`` (2 for ``##``) in ``text``. A body
+    keeps its fenced blocks and runs to the next heading of the same or a higher level."""
+    sections = []
+    for line_level, line in _headed_lines(text):
+        if line_level and line_level <= level:
+            if line_level == level:
+                sections.append((line, []))
+            else:
+                sections.append((None, []))
+        elif sections:
+            sections[-1][1].append(line if not line_level else "#" * line_level + " " + line)
+    return [(title, "\n".join(body)) for title, body in sections if title is not None]
 
 
 def chapters():
-    return dict(_sections(_without_fences(manual_text()), 2))
+    return dict(_sections(manual_text(), 2))
 
 
 def chapter(title):
@@ -274,7 +292,6 @@ def test_chapter_one_says_once_which_stages_later_editions_add():
 
 
 def test_no_heading_is_a_placeholder():
-    headings = re.findall(r"^#+ (.+)$", _without_fences(manual_text()), flags=re.MULTILINE)
-    for heading in headings:
+    for heading in _headings(manual_text()):
         for word in ("todo", "tbd", "coming soon"):
             assert word not in heading.lower(), heading
