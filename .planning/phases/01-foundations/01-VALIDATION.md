@@ -72,6 +72,14 @@ Task IDs filled in by the planner (2026-10-17). Commands run from the repo root 
 | PKG-11 | 01-05 T3, 01-16 T3 | root AGENTS.md == CLAUDE.md, ≤150 lines | unit | `pytest tests/repo/test_instructions_mirror.py -x && cmp AGENTS.md CLAUDE.md` | ✅ | ✅ green |
 | TST-01 | 01-01 T3, 01-05 T3 | no-network guard; optional-tool skips; lint | meta | `pytest tests/repo/test_no_network.py tests/repo/test_ci_workflow.py -x && ruff check . && ruff format --check .` | ✅ | ✅ green |
 | DOC-04 / DOC-05 | 01-16 T1–T2 | manual chapters, privacy statement, "not yet tested on this system", golden doctor output | unit | `pytest tests/docs/test_manual.py -x` | ✅ | ✅ green |
+| PKG-09 / TST-01 (gap 1) | 01-17 T1 | launcher probe decodes as UTF-8; every text-mode subprocess call names an encoding (AST guard) | unit | `PYTHONWARNDEFAULTENCODING=1 pytest tests/repo/test_text_subprocess_encoding.py tests/launcher/test_launcher.py -x` | ✅ | ✅ green |
+| PKG-09 (gap 1) | 01-17 T2 | `error::EncodingWarning` kept; only openpyxl's temp-file warning ignored | unit | `PYTHONWARNDEFAULTENCODING=1 pytest tests/repo/test_ci_workflow.py tests/formats tests/tools/test_smoke_pack.py -x` | ✅ | ✅ green |
+| PKG-11 / TST-01 (gap 1) | 01-17 T3 | documented full check matches ci.yml; hermetic git-walk test | unit | `PYTHONWARNDEFAULTENCODING=1 pytest tests/repo/test_ci_workflow.py tests/doctor/test_gitcheck.py -x && cmp AGENTS.md CLAUDE.md` | ✅ | ✅ green |
+| WS-09 (gap 2) | 01-18 T1–T2 | line-breaking input names cannot add headings or forge Imported ticks in INDEX.md | unit + integration | `PYTHONWARNDEFAULTENCODING=1 pytest tests/index/test_index.py -x` | ✅ | ✅ green |
+| WS-01 (gap 3) | 01-19 T1–T2 | refused `epb init` leaves the folder unchanged; refused-then-valid init works | integration | `PYTHONWARNDEFAULTENCODING=1 pytest tests/workspace/test_init_defaults.py tests/store/test_lock.py -x` | ✅ | ✅ green |
+| D-13 / WS-02 (gap 4) | 01-20 T1–T2 | text byte-order marks beat magic rules; MPEG needs a second frame header | unit + integration | `PYTHONWARNDEFAULTENCODING=1 pytest tests/core/test_mime.py tests/sources -x` | ✅ | ✅ green |
+| DOC-04 (gap 5) | 01-21 T1–T3 | manual, workspace contract and SKILL.md describe Phase 1 file-name behaviour; review-before-sharing class | unit | `PYTHONWARNDEFAULTENCODING=1 pytest tests/docs/test_manual.py tests/workspace/test_layout.py tests/packaging/test_skill_lint.py tests/packaging/test_references.py -x` | ✅ | ✅ green |
+| PKG-09 / PKG-11 / TST-01 (gap 1, CI leg) | 01-22 T1, T3 | CI-equivalent local run; GitHub `ci` run for the pushed HEAD green on 3.11 and 3.14 | CI step | local: full suite + `tools/check_licences.py`; hosted: `gh run list --branch phase-01-foundations --workflow ci` (`ci.yml` 404s until it is on main) | ✅ | ❌ red (3.11 licence step: setuptools 79.0.1 has no licence metadata; run 39141925712) |
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
@@ -94,7 +102,7 @@ Task IDs filled in by the planner (2026-10-17). Commands run from the repo root 
 | Owner smoke import of the synthetic edge-case workbook | BLD-02 / SC4 | ProbeMatrix runs only on Replit; the owner does every import | Generate with `python tools/make-smoke-pack.py`, then the owner follows the UAT checklist |
 | Plugin install via `/plugin` in Claude Code on Linux | PKG-01 / SC5 | Needs the interactive host | UAT numbered procedure |
 | Real `doctor --setup` venv build | PKG-06 | Network + slow | `EPB_NETWORK_TESTS=1 pytest tests/launcher/test_setup_real.py` |
-| CI green on GitHub (Python 3.11 + 3.14) incl. dependency-age and licence steps | PKG-09 / PKG-11 | Only the owner can see the hosted run; needs a push | Owner CI check in 01-16 Task 3 (push asked first) |
+| CI green on GitHub (Python 3.11 + 3.14) incl. dependency-age and licence steps | PKG-09 / PKG-11 | Only the owner can see the hosted run; needs a push | Owner CI check in 01-16 Task 3, then 01-22 Task 3 (push asked first). 2026-10-18 run 39141925712: 3.14 green, 3.11 red at the licence allow-list (runner-preinstalled setuptools) — needs a gap plan |
 | Plain-language quality of the manual; chapter 2 privacy read-through | DOC-04 / DOC-05 | Human judgement | 01-16 Task 2 read-through steps |
 | Real Windows / macOS behaviour (incl. real sharing-violation retry) | WS-06 / DOC-05 | CI is Linux-only until after v0.1.0 | Deferred to post-v0.1.0 platform CI |
 
@@ -109,7 +117,7 @@ Task IDs filled in by the planner (2026-10-17). Commands run from the repo root 
 - [x] Feedback latency < 120s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** validated 2026-10-18 by /gsd-validate-phase (Nyquist audit; 1 gap filled: WS-06 Windows replace retry, `tests/store/test_fsio_retry.py`)
+**Approval:** validated 2026-10-18 by /gsd-validate-phase (Nyquist audit; 1 gap filled: WS-06 Windows replace retry, `tests/store/test_fsio_retry.py`). Re-audited 2026-10-18 after gap plans 01-17 to 01-22: every gap task has an automated command and its tests exist and pass; no new test gaps. The hosted-CI row is red for an environment reason (licence check on the 3.11 runner), not missing coverage.
 
 ## Validation Audit 2026-10-18
 
@@ -117,4 +125,12 @@ Task IDs filled in by the planner (2026-10-17). Commands run from the repo root 
 |---|---|
 | Gaps found | 1 |
 | Resolved | 1 |
+| Escalated | 0 |
+
+## Validation Audit 2026-10-18
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
 | Escalated | 0 |
