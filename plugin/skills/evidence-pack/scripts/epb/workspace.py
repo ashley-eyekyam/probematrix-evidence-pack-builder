@@ -17,14 +17,17 @@ Commands open the case folder through one of three sessions: ``open_for_init`` (
 the workspace lock and the automatic upgrade inside them.
 """
 
+import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from epb import txn
-from epb.state import STATE_FILE
+from epb import casefile, fsio, runs, schema, txn
+from epb.errors import EpbError
+from epb.state import STATE_FILE, load_state
 
 CASE_DIRS = ("inputs", "outputs")
+SOURCES_DIR = ".epb/sources"
 EPB_DIRS = (".epb/inbox", ".epb/tmp", ".epb/runs", ".epb/private")
 
 GITIGNORE_FILE = ".epb/.gitignore"
@@ -37,6 +40,12 @@ GITIGNORE_TEXT = "".join(f"{line}\n" for line in GITIGNORE_LINES)
 # D-06: no line-ending conversion of state files.
 GITATTRIBUTES_TEXT = "* -text\n"
 PRIVATE_GITIGNORE_TEXT = "*\n"
+
+_SOURCE_NAME = re.compile(r"^S\d{3,}$")
+_RESTORE_HINT = (
+    "Restore the .epb folder from a backup or from version control if you keep one. "
+    "Do not edit it by hand, and do not ask the agent to repair it."
+)
 
 CLASSIFICATIONS = (
     "user-owned",
@@ -125,19 +134,82 @@ def create_layout(case_root) -> None:
         (case_root / rel).mkdir(parents=True, exist_ok=True)
 
 
-def find_workspace(case_dir):
-    raise NotImplementedError
+def find_workspace(case_dir) -> Path:
+    """The case folder itself when it is set up (it holds ``.epb/state.json``), else
+    ``NOT_A_WORKSPACE``. Parent folders are never searched."""
+    case_dir = Path(case_dir)
+    if not (case_dir / STATE_FILE).is_file():
+        raise EpbError(
+            "NOT_A_WORKSPACE",
+            "This folder is not set up as a case folder.",
+            hint="Run epb init here, or pass --case with the case folder.",
+        )
+    return case_dir
 
 
-def load_sources(case_root):
-    raise NotImplementedError
+def load_sources(case_root) -> list[dict]:
+    """Every source record in ``.epb/sources/``, checked against its schema and sorted by
+    source number; an empty list when there are none yet."""
+    folder = Path(case_root) / SOURCES_DIR
+    if not folder.is_dir():
+        return []
+    found = []
+    for path in folder.glob("S*.json"):
+        if not _SOURCE_NAME.fullmatch(path.stem):
+            continue
+        rel = f"{SOURCES_DIR}/{path.name}"
+        try:
+            record = fsio.read_json(path)
+        except (OSError, UnicodeDecodeError, ValueError):
+            raise EpbError(
+                "STATE_INVALID",
+                f"The source record {rel} is damaged and cannot be read safely.",
+                hint=_RESTORE_HINT,
+            ) from None
+        schema.check(record, "source", label=rel)
+        found.append((int(path.stem[1:]), record))
+    return [record for _, record in sorted(found, key=lambda pair: pair[0])]
 
 
-def open_read_only(case_root, ctx):
-    raise NotImplementedError
+@dataclass
+class Session:
+    """A loaded case folder: its settings, state, source records and run records."""
+
+    case_root: Path
+    case: dict
+    state: dict
+    sources: list
+    runs: list
+
+
+def _load(case_root: Path) -> Session:
+    state = load_state(case_root)  # first, so damaged state is reported before anything else
+    return Session(
+        case_root=case_root,
+        case=casefile.load_case(case_root),
+        state=state,
+        sources=load_sources(case_root),
+        runs=runs.load_runs(case_root),
+    )
+
+
+def open_read_only(case_root, ctx) -> Session:
+    """Load the case folder for a command that only looks. It takes no lock, finishes no
+    interrupted change and writes nothing; an interrupted change only gives a warning."""
+    case_root = find_workspace(case_root)
+    if txn.pending_journals(case_root):
+        ctx.warn(
+            "RECOVERY_PENDING",
+            "The last command was interrupted. The next command that changes the case folder "
+            "will finish it.",
+        )
+    return _load(case_root)
 
 
 @contextmanager
 def open_for_mutation(case_root, ctx, command):
-    raise NotImplementedError
-    yield
+    """The session every changing command except ``init`` runs in: find the case folder,
+    finish any interrupted change, then load it."""
+    case_root = find_workspace(case_root)
+    _recover(case_root, ctx)
+    yield _load(case_root)

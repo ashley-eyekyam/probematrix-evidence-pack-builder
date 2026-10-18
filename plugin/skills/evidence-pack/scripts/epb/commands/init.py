@@ -45,7 +45,7 @@ def _refuse_foreign_index(case, index_file):
 
 
 def run(args, ctx):
-    from epb import __version__, casefile, fsio, index, txn, workspace, yamlio
+    from epb import __version__, casefile, fsio, index, runs, txn, workspace, yamlio
     from epb.cli import Result
     from epb.state import STATE_FILE, load_state, new_state
 
@@ -80,17 +80,23 @@ def run(args, ctx):
                 message="Nothing to do: this folder is already set up as a case folder.",
             )
         _refuse_foreign_index(case, index.INDEX_FILE)
+        started_at = fsio.utc_now_iso()
         settings = casefile.resolve_settings(args, case)
-        record = casefile.new_case_record(settings, __version__, fsio.utc_now_iso())
+        record = casefile.new_case_record(settings, __version__, started_at)
         state = new_state(__version__)
+        run_id, run_record = runs.new_run(
+            state, NAME, started_at=started_at, summary="Case folder created."
+        )
         workspace.create_layout(case)
         transaction = txn.Transaction(case, NAME)
         transaction.stage_record(casefile.CASE_FILE, record, "case", yamlio.dump_yaml_bytes)
         transaction.stage_text(workspace.GITIGNORE_FILE, workspace.GITIGNORE_TEXT)
         transaction.stage_text(workspace.GITATTRIBUTES_FILE, workspace.GITATTRIBUTES_TEXT)
         transaction.stage_text(workspace.PRIVATE_GITIGNORE_FILE, workspace.PRIVATE_GITIGNORE_TEXT)
+        transaction.stage_json(runs.run_json_path(run_id), run_record, "run")
         transaction.stage_text(
-            index.INDEX_FILE, index.render_index(index.IndexInputs(record, state, [], []))
+            index.INDEX_FILE,
+            index.render_index(index.IndexInputs(record, state, [], [run_record])),
         )
         transaction.set_state(state)
         transaction.commit()

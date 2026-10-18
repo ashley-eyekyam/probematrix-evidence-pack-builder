@@ -1,7 +1,314 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "epb:run",
-  "title": "epb run record (inert skeleton for TDD RED)",
+  "title": "epb run record (.epb/runs/<NNN>/run.json)",
+  "description": "One record per pipeline-level run (init, scan, upgrade and later run/build; research Q11). Runs are reports: a missing or damaged record is skipped, never repaired.",
   "type": "object",
-  "additionalProperties": false
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run",
+    "command",
+    "started_at",
+    "finished_at",
+    "plugin_version",
+    "summary",
+    "scan",
+    "upgrade"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "run": {
+      "$ref": "#/$defs/run_id"
+    },
+    "command": {
+      "type": "string",
+      "pattern": "^[a-z][a-z-]*$"
+    },
+    "started_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "finished_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "plugin_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "description": "One plain-language line, shown in the INDEX.md run history.",
+      "type": "string",
+      "minLength": 1
+    },
+    "scan": {
+      "description": "What a scan found, or null for any other command.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/scan"
+        }
+      ]
+    },
+    "upgrade": {
+      "description": "What an automatic workspace upgrade did (D-09), or null.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/upgrade"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^\\d{3,}$"
+    },
+    "src_id": {
+      "type": "string",
+      "pattern": "^S\\d{3,}$"
+    },
+    "input_path": {
+      "type": "string",
+      "pattern": "^inputs/"
+    },
+    "src_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/src_id"
+      }
+    },
+    "mime": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "new",
+        "new_versions",
+        "renamed",
+        "duplicates",
+        "moved",
+        "removed",
+        "restored",
+        "ignored",
+        "mime_mismatches",
+        "sidecars",
+        "orphan_sidecars"
+      ],
+      "properties": {
+        "new": {
+          "$ref": "#/$defs/src_ids"
+        },
+        "new_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_id",
+              "version"
+            ],
+            "properties": {
+              "src_id": {
+                "$ref": "#/$defs/src_id"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 2
+              }
+            }
+          }
+        },
+        "renamed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_id",
+              "from",
+              "to"
+            ],
+            "properties": {
+              "src_id": {
+                "$ref": "#/$defs/src_id"
+              },
+              "from": {
+                "$ref": "#/$defs/input_path"
+              },
+              "to": {
+                "$ref": "#/$defs/input_path"
+              }
+            }
+          }
+        },
+        "duplicates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_id",
+              "path"
+            ],
+            "properties": {
+              "src_id": {
+                "$ref": "#/$defs/src_id"
+              },
+              "path": {
+                "$ref": "#/$defs/input_path"
+              }
+            }
+          }
+        },
+        "moved": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "from_src",
+              "to_src"
+            ],
+            "properties": {
+              "path": {
+                "$ref": "#/$defs/input_path"
+              },
+              "from_src": {
+                "$ref": "#/$defs/src_id"
+              },
+              "to_src": {
+                "$ref": "#/$defs/src_id"
+              }
+            }
+          }
+        },
+        "removed": {
+          "$ref": "#/$defs/src_ids"
+        },
+        "restored": {
+          "$ref": "#/$defs/src_ids"
+        },
+        "ignored": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "reason"
+            ],
+            "properties": {
+              "path": {
+                "$ref": "#/$defs/input_path"
+              },
+              "reason": {
+                "enum": [
+                  "junk",
+                  "link",
+                  "special"
+                ]
+              }
+            }
+          }
+        },
+        "mime_mismatches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_id",
+              "path",
+              "by_extension",
+              "by_content"
+            ],
+            "properties": {
+              "src_id": {
+                "$ref": "#/$defs/src_id"
+              },
+              "path": {
+                "$ref": "#/$defs/input_path"
+              },
+              "by_extension": {
+                "$ref": "#/$defs/mime"
+              },
+              "by_content": {
+                "$ref": "#/$defs/mime"
+              }
+            }
+          }
+        },
+        "sidecars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_id",
+              "target"
+            ],
+            "properties": {
+              "src_id": {
+                "$ref": "#/$defs/src_id"
+              },
+              "target": {
+                "description": "The source the note file belongs to.",
+                "$ref": "#/$defs/src_id"
+              }
+            }
+          }
+        },
+        "orphan_sidecars": {
+          "$ref": "#/$defs/src_ids"
+        }
+      }
+    },
+    "upgrade": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "steps",
+        "backup_dir"
+      ],
+      "properties": {
+        "from": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "to": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "backup_dir": {
+          "type": "string",
+          "pattern": "^\\.epb/runs/\\d{3,}/pre-upgrade/?$"
+        }
+      }
+    }
+  }
 }
