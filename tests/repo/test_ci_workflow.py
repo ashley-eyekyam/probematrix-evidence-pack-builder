@@ -158,6 +158,26 @@ def test_openpyxl_ignore_comes_after_the_error_entry():
 
 AGENTS = REPO_ROOT / "AGENTS.md"
 DOCUMENTED_PYTEST = "PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q"
+DOCUMENTED_LICENCES = ".venv/bin/python tools/check_licences.py"
+
+# Each command in AGENTS.md's full check and the ci.yml step it stands for, in CI's order.
+# The dependency-age check is CI-only on purpose: it queries PyPI, and the full check runs
+# offline like the test suite.
+FULL_CHECK_STEPS = [
+    ("ruff check .", "ruff check ."),
+    ("ruff format --check .", "ruff format --check ."),
+    (DOCUMENTED_PYTEST, "python -m pytest -q"),
+    (DOCUMENTED_LICENCES, "python tools/check_licences.py"),
+]
+
+
+def _full_check_line():
+    """AGENTS.md's single line containing "Full check"."""
+    lines = [
+        line for line in AGENTS.read_text(encoding="utf-8").splitlines() if "Full check" in line
+    ]
+    assert len(lines) == 1, f"expected one 'Full check' line in AGENTS.md, found {len(lines)}"
+    return lines[0]
 
 
 def test_documented_full_check_matches_ci(core):
@@ -169,3 +189,20 @@ def test_documented_full_check_matches_ci(core):
         "AGENTS.md's full check must run pytest the way CI does: " + DOCUMENTED_PYTEST
     )
     assert core["env"]["PYTHONWARNDEFAULTENCODING"] == "1"
+
+
+@pytest.mark.parametrize(
+    ("documented", "ci_step"), FULL_CHECK_STEPS, ids=["lint", "format", "tests", "licences"]
+)
+def test_documented_full_check_runs_every_local_ci_step(runs, documented, ci_step):
+    assert documented in _full_check_line(), f"AGENTS.md's full check must run {documented!r}"
+    _index(runs, ci_step)
+
+
+def test_documented_full_check_keeps_ci_order(runs):
+    line = _full_check_line()
+    documented = [line.find(command) for command, _ci_step in FULL_CHECK_STEPS]
+    assert -1 not in documented, f"the full check is missing a step: {line!r}"
+    assert documented == sorted(documented), "the full check runs its steps out of CI's order"
+    in_ci = [_index(runs, ci_step) for _command, ci_step in FULL_CHECK_STEPS]
+    assert in_ci == sorted(in_ci), "ci.yml runs these steps in a different order"
