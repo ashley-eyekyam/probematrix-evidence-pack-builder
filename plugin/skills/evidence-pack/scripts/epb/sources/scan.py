@@ -237,8 +237,21 @@ def _warn_ignored(walk, ctx) -> None:
             )
 
 
+def _label(kind: str) -> str:
+    from epb.index import MIME_LABELS
+
+    return MIME_LABELS.get(kind, kind)
+
+
 def _warn_changes(plan, ctx) -> None:
     by_id = {record["src_id"]: record for record in plan.sources}
+    for entry in plan.mime_mismatches:
+        ctx.warn(
+            "MIME_MISMATCH",
+            f"{entry['path']} looks like {_label(entry['by_content'])} but its name says "
+            f"{_label(entry['by_extension'])}. The plugin will treat it by its content.",
+            "Nothing is needed if the content is right; rename the file if you prefer.",
+        )
     for src_id in plan.removed:
         last = by_id[src_id]["versions"][-1]["paths"]
         ctx.warn(

@@ -7,10 +7,18 @@ reads ``/etc/mime.types`` and the Windows registry), so it is only a fallback fo
 the table does not know, through a private ``mimetypes.MimeTypes()`` instance. Anything
 still unknown is ``application/octet-stream``.
 
+``sniff`` reads at most the first 4,096 bytes (plus, for a ZIP, its list of member names; no
+member is ever extracted) and checks ``MAGIC_RULES``. ``detect`` lets the content win: when
+the name suggests a different known type, the disagreement is returned as a mismatch, unless
+the content only names a family (``AMBIGUOUS_FAMILIES``: an OLE2 ``.msg`` or ``.doc``, a
+Matroska ``.webm``) or a container the name refines.
+
 Standard library only; no ``python-magic``.
 """
 
 import mimetypes
+import re
+import zipfile
 from functools import cache
 from pathlib import PurePath
 
@@ -82,17 +90,159 @@ def by_extension(name) -> str:
     return OCTET_STREAM
 
 
-# Interface stubs; the magic-byte table arrives in the GREEN step.
-HEAD_BYTES = 4096
-MAGIC_RULES: tuple = ()
-AMBIGUOUS_FAMILIES: dict = {}
+# --- content -----------------------------------------------------------------------------------
+
+HEAD_BYTES = 4096  # sniff never reads more than this, except a ZIP's central directory
+
+ZIP = "application/zip"
+OLE2 = "application/x-ole-storage"
+_ODF_PREFIX = "application/vnd.oasis.opendocument."
+_ODF_TYPE = re.compile(r"^application/vnd\.oasis\.opendocument\.[a-z0-9.+-]{1,60}$")
+_OOXML_PARTS = (
+    ("word/", EXTENSION_TABLE["docx"]),
+    ("xl/", EXTENSION_TABLE["xlsx"]),
+    ("ppt/", EXTENSION_TABLE["pptx"]),
+)
+_HEIC_BRANDS = (b"heic", b"heix", b"mif1")
 
 
-def sniff(path):
-    raise NotImplementedError
+def _ftyp(head: bytes) -> str | None:
+    """ISO base media files (``....ftyp<brand>``): QuickTime, M4A audio, HEIC or MP4."""
+    if head[4:8] != b"ftyp":
+        return None
+    brand = head[8:12]
+    if brand == b"qt  ":
+        return "video/quicktime"
+    if brand in (b"M4A ", b"M4B "):
+        return "audio/mp4"
+    if brand in _HEIC_BRANDS:
+        return "image/heic"
+    return "video/mp4"
+
+
+def _riff(head: bytes) -> str | None:
+    if head[:4] != b"RIFF":
+        return None
+    return {b"WAVE": "audio/wav", b"AVI ": "video/x-msvideo"}.get(head[8:12])
+
+
+def _mpeg_frame(head: bytes) -> str | None:
+    """An MPEG audio frame header with a valid version, layer, bitrate and sample rate."""
+    if len(head) < 4 or head[0] != 0xFF or head[1] & 0xE0 != 0xE0:
+        return None
+    version, layer = (head[1] >> 3) & 3, (head[1] >> 1) & 3
+    bitrate, rate = head[2] >> 4, (head[2] >> 2) & 3
+    if version == 1 or layer == 0 or bitrate == 0xF or rate == 3:
+        return None
+    return "audio/mpeg"
+
+
+# Checked in this order; the first match wins. A rule is a byte prefix or a function of the
+# first HEAD_BYTES bytes. ZIP is told apart from OOXML and ODF by ``_zip_kind``.
+MAGIC_RULES = (
+    (b"%PDF-", "application/pdf"),
+    (b"PK\x03\x04", ZIP),
+    (bytes.fromhex("d0cf11e0a1b11ae1"), OLE2),
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"GIF87a", "image/gif"),
+    (b"GIF89a", "image/gif"),
+    (_riff, None),
+    (_ftyp, None),
+    (b"\x1a\x45\xdf\xa3", "video/x-matroska"),
+    (b"7z\xbc\xaf\x27\x1c", "application/x-7z-compressed"),
+    (b"\x1f\x8b", "application/gzip"),
+    (b"ID3", "audio/mpeg"),
+    (_mpeg_frame, None),
+    (b"OggS", "audio/ogg"),
+    (b"II*\x00", "image/tiff"),
+    (b"MM\x00*", "image/tiff"),
+)
+
+# Content types that name a family rather than a format. When the file name names a member of
+# the family, the name is the more precise answer and there is no mismatch.
+AMBIGUOUS_FAMILIES = {
+    OLE2: frozenset(
+        {
+            EXTENSION_TABLE["msg"],
+            EXTENSION_TABLE["doc"],
+            EXTENSION_TABLE["xls"],
+            EXTENSION_TABLE["ppt"],
+        }
+    ),
+    "video/x-matroska": frozenset({EXTENSION_TABLE["webm"]}),
+    "video/mp4": frozenset({EXTENSION_TABLE["mov"], EXTENSION_TABLE["m4a"]}),
+}
+# Container formats that many other formats are built on (an .epub is a ZIP, a .3gp is MP4,
+# an .opus is Ogg). A name outside the extension table that the fallback still recognises is
+# more precise than the container, so it is kept and is not a mismatch.
+_CONTAINERS = frozenset({ZIP, OLE2, "video/mp4", "video/x-matroska", "audio/ogg"})
+_TABLE_TYPES = frozenset(EXTENSION_TABLE.values())
+
+
+def _zip_kind(head: bytes, path) -> str:
+    """OOXML, ODF or plain ZIP, from the first member's header and the member names only.
+    Nothing is extracted; a damaged archive is simply ``application/zip``."""
+    # ODF stores an uncompressed "mimetype" member first, so its value sits in the header.
+    if head[26:30] == b"\x08\x00\x00\x00" and head[30:38] == b"mimetype":
+        extra = int.from_bytes(head[28:30], "little")
+        value = head[38 + extra : 38 + extra + 80].split(b"PK", 1)[0]
+        try:
+            text = value.decode("ascii").strip()
+        except UnicodeDecodeError:
+            text = ""
+        if _ODF_TYPE.match(text):
+            return text
+    try:
+        with zipfile.ZipFile(path) as archive:
+            names = archive.namelist()
+    except Exception:  # BadZipFile, OSError, EOFError...: a damaged archive never stops a scan
+        return ZIP
+    if "[Content_Types].xml" in names:
+        for prefix, kind in _OOXML_PARTS:
+            if any(name.startswith(prefix) for name in names):
+                return kind
+    return ZIP
+
+
+def sniff(path) -> str | None:
+    """The type the first bytes of the file at ``path`` show, or ``None`` when they show none
+    of the types in ``MAGIC_RULES`` (plain text, for example)."""
+    with open(path, "rb") as handle:
+        head = handle.read(HEAD_BYTES)
+    for rule, kind in MAGIC_RULES:
+        if callable(rule):
+            found = rule(head)
+            if found:
+                return found
+        elif head.startswith(rule):
+            return _zip_kind(head, path) if kind == ZIP else kind
+    return None
+
+
+def _agree(by_name: str, by_content: str) -> bool:
+    if by_name == by_content or by_name in AMBIGUOUS_FAMILIES.get(by_content, ()):
+        return True
+    return by_content in _CONTAINERS and by_name not in _TABLE_TYPES
 
 
 def detect(path):
-    """``(mime, mismatch)`` for the file at ``path``. ``mismatch`` is ``None`` when the name
-    and the content agree, else ``{"by_extension": ..., "by_content": ...}``."""
-    return by_extension(PurePath(path).name), None
+    """``(mime, mismatch)`` for the file at ``path``.
+
+    The content wins when ``sniff`` recognises it. ``mismatch`` is
+    ``{"by_extension": ..., "by_content": ...}`` when the name suggests a different known type,
+    and ``None`` otherwise, including for a name inside the content's family (an OLE2 ``.msg``
+    keeps the Outlook type) and for content ``sniff`` does not recognise.
+    """
+    by_name = by_extension(PurePath(path).name)
+    try:
+        by_content = sniff(path)
+    except OSError:
+        by_content = None
+    if by_content is None:
+        return by_name, None
+    if by_name == OCTET_STREAM:
+        return by_content, None
+    if _agree(by_name, by_content):
+        return by_name, None  # the same type, or the name is the more precise member
+    return by_content, {"by_extension": by_name, "by_content": by_content}
