@@ -74,6 +74,7 @@ Conversion of inputs to text, extraction of facts, de-identification and buildin
    - `ignored`: links, special files and system leftovers such as `.DS_Store`, which are never registered.
 4. Pass on `MIME_MISMATCH` (a file's content does not match its extension; the content wins), `SIDECAR_ORPHAN` (a note with no matching file, usually a misspelt name) and `INPUT_REMOVED` in plain words.
 5. `changed: false` means nothing has changed since the last scan.
+6. `INDEX.md` and the plugin's records show file and folder names exactly as they are, because this version does not replace names yet. If a name in `data` looks like a person's name, tell the user, naming the input by its ID (for example S003) rather than repeating the name, and suggest they rename the file themselves before they share `INDEX.md`. You never rename, move or edit anything in `inputs/`.
 
 ## Reading INDEX.md
 
@@ -81,7 +82,7 @@ Conversion of inputs to text, extraction of facts, de-identification and buildin
 
 1. Case: the title, slug, ID prefix, timezone, plugin version and last run.
 2. What to import where: the workbooks in `outputs/` and the order to import them. Each has a line `- [ ] Imported: <file>` for the user to tick after importing it.
-3. Inputs: one row per input with its ID, path, type, size, short fingerprint and status.
+3. Inputs: one row per input with its ID, path, type, size, short fingerprint and status. The paths are the file names exactly as they are.
 4. Outputs: which inputs went into each workbook.
 5. Open issues: removed inputs, content that does not match its extension, notes with no matching file, and skipped links or special files.
 6. Run history: one line per run of `init` or `scan`.

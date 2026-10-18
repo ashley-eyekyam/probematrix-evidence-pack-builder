@@ -5,6 +5,9 @@ be shared:
 
 - ``user-owned``: the user's own files; the plugin never changes them.
 - ``shareable``: de-identified output meant to be read or shared.
+- ``review-before-sharing``: lists input file and folder names as the user gave them; share
+  it or keep it in version control only after checking those names for personal names, until
+  a later version shows role labels instead.
 - ``structural``: settings and bookkeeping that hold no source text, safe to keep in version
   control.
 - ``raw-text-confidential``: working files that hold raw source text, including names; git
@@ -52,6 +55,7 @@ _RESTORE_HINT = (
 CLASSIFICATIONS = (
     "user-owned",
     "shareable",
+    "review-before-sharing",
     "structural",
     "raw-text-confidential",
     "private-never-shared",
@@ -60,10 +64,22 @@ CLASSIFICATIONS = (
 CONTRACT_PATHS = (
     ("inputs/", "user-owned", "The evidence files the user drops in; read-only to the plugin."),
     ("outputs/", "shareable", "Only the evidence-pack workbooks to import into ProbeMatrix."),
-    ("INDEX.md", "shareable", "The case summary, rewritten every run; only its ticks are edited."),
+    (
+        "INDEX.md",
+        "review-before-sharing",
+        "The case summary, rewritten every run; lists input file names; only its ticks are edited.",
+    ),
     (".epb/case.yaml", "structural", "Case title, slug, ID prefix, timezone and fixed settings."),
-    (".epb/state.json", "structural", "Fingerprints, counters, workbooks and chunk status."),
-    (".epb/sources/", "structural", "One record per input file, with its versions and status."),
+    (
+        ".epb/state.json",
+        "review-before-sharing",
+        "Fingerprints keyed by input path, counters, workbooks and chunk status.",
+    ),
+    (
+        ".epb/sources/",
+        "review-before-sharing",
+        "One record per input file, with its paths, versions and status.",
+    ),
     (".epb/segments/", "raw-text-confidential", "Page- and time-anchored text of each input."),
     (".epb/media/", "raw-text-confidential", "Keyframes, audio and page images for conversion."),
     (".epb/ledger/claims.jsonl", "raw-text-confidential", "Every claim extracted from sources."),

@@ -55,15 +55,31 @@ personal details. How the model provider stores and uses what it receives is set
 agreement with that company, not by this plugin. Check with your organisation that you may use
 your AI app with incident material before you start.
 
-### De-identification is always on
+### De-identification and file names
 
-The plugin's de-identification replaces people's names with role labels, such as "Shift
-Supervisor (Control Room)". It is always on and cannot be switched off.
+De-identification means replacing people's names with role labels, such as "Shift Supervisor
+(Control Room)".
 
-- Everything the plugin makes for you to share, such as the evidence pack workbook and
-  `INDEX.md`, uses role labels instead of names.
-- The only list that links real names to role labels is kept in the hidden folder
-  `.epb/private/` inside your case folder. Never send, share or upload that folder.
+De-identification arrives in a later version, together with reading the contents of your
+files. From then on it is always on and cannot be switched off, and the evidence pack workbook
+uses role labels instead of names.
+
+This version does not replace any names yet. `INDEX.md` and the plugin's own records in the
+hidden `.epb` folder list your files by their file and folder names, exactly as you gave them.
+If a file is named after a person, that person's name appears in `INDEX.md`.
+
+So, until then:
+
+1. If a file name or folder name contains a person's name (for example a statement named after
+   the witness), rename it before you put it in `inputs/`. `INDEX.md` shows every file name as
+   it is.
+2. Before you share `INDEX.md` or send it to anyone, read it and check that it contains no
+   names.
+3. Do not share, send or upload the `.epb` folder.
+
+When de-identification arrives, the only list that links real names to role labels will be
+kept in the hidden folder `.epb/private/` inside your case folder. Never send, share or upload
+that folder.
 
 ### Never put a case folder in a sync folder
 
@@ -392,9 +408,12 @@ below use a made-up incident called "Acme Pump Trip".
 
 ### Put your files in `inputs/`
 
-1. Copy the incident files into the `inputs` folder. Any type of file is fine, and you can use
+1. Before you copy a file in, check its name. If a file name or folder name contains a
+   person's name, rename it first, for example to `witness-statement-1.pdf`. `INDEX.md` shows
+   file names exactly as they are, and renaming is up to you.
+2. Copy the incident files into the `inputs` folder. Any type of file is fine, and you can use
    sub-folders. The plugin never changes, moves or renames anything in `inputs/`.
-2. If you want to add a note about a file, for example where it came from, make a text file
+3. If you want to add a note about a file, for example where it came from, make a text file
    next to it with the same name followed by `.note.md`. For example, a note about
    `inputs/control-room-log.pdf` is called `inputs/control-room-log.pdf.note.md`.
 
@@ -425,11 +444,15 @@ It has six sections, always in this order:
   current version of the evidence pack.
 - **2. What to import where**: the workbooks to import into ProbeMatrix, in order, once the
   plugin can build them.
-- **3. Inputs**: one row for each file in `inputs/`, with its ID, type, size and status.
+- **3. Inputs**: one row for each file in `inputs/`, with its ID, its file name and folder,
+  type, size and status.
 - **4. Outputs**: each workbook and the inputs that contributed to it.
 - **5. Open issues**: anything that needs your attention, for example a note whose file is
   missing or a file the plugin had to skip.
 - **6. Run history**: one line for each time the plugin changed the case folder.
+
+Before you share `INDEX.md`, check that no file name in it contains a person's name (see
+chapter 2).
 
 Two phrases appear often in this edition:
 

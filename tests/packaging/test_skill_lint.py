@@ -130,3 +130,12 @@ def test_router_forbids_elevated_commands_and_import_claims():
     assert "never run sudo" in body
     assert "never say a probematrix import worked" in body
     assert "never put personal names on the command line" in body
+
+
+def test_router_says_file_names_are_shown_as_they_are():
+    """Gap 5 (C-CR-01): INDEX.md and the records show input file names as given, so the agent
+    flags a name that looks personal, by input ID, and leaves renaming to the user."""
+    body = re.sub(r"\s+", " ", router_text()).lower()
+    assert "names exactly as they are" in body
+    assert "looks like a person's name" in body
+    assert "never rename, move or edit" in body

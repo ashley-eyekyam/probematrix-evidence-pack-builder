@@ -295,3 +295,88 @@ def test_no_heading_is_a_placeholder():
     for heading in _headings(manual_text()):
         for word in ("todo", "tbd", "coming soon"):
             assert word not in heading.lower(), heading
+
+
+# --- what this version does with file names (DOC-04, gap 5, review C-CR-01) ---------------
+
+_ITEM_START = re.compile(r"(- |\d+\. )")
+
+
+def _items(text):
+    """Each paragraph or list item of ``text`` as one line of single-spaced text.
+
+    A blank line ends a paragraph, a heading stands alone, and a line starting with ``- `` or
+    with digits followed by ``. `` (indented or not) starts a new item. Fenced blocks are
+    skipped, so quoted plugin output is never an item.
+    """
+    items, current, fenced = [], [], False
+
+    def flush():
+        if current:
+            items.append(" ".join(current))
+            current.clear()
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            flush()
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        if not stripped:
+            flush()
+        elif stripped.startswith("#"):
+            flush()
+            items.append(stripped)
+        else:
+            if _ITEM_START.match(stripped):
+                flush()
+            current.append(stripped)
+    flush()
+    return items
+
+
+def test_items_splits_paragraphs_list_items_and_skips_fences():
+    text = "One\ntwo.\n\n- a\n  b\n1. c\n```text\n- quoted\n```\n### Head\nend"
+    assert _items(text) == ["One two.", "- a b", "1. c", "### Head", "end"]
+
+
+def test_no_paragraph_promises_a_name_free_index():
+    for item in _items(manual_text()):
+        lowered = item.lower()
+        if "index.md" in lowered and "role label" in lowered:
+            assert "later version" in lowered, (
+                f"this paragraph says INDEX.md uses role labels without saying that arrives "
+                f"in a later version: {item}"
+            )
+
+
+def test_privacy_chapter_says_file_names_are_shown_as_given():
+    items = [item.lower() for item in _items(chapter("2. What stays on your computer"))]
+    assert any("index.md" in item and "file name" in item and "rename" in item for item in items), (
+        "chapter 2 needs one paragraph or step about INDEX.md, file names and renaming"
+    )
+
+
+def test_privacy_chapter_has_a_file_names_section():
+    titles = [title.lower() for title, _ in _sections(chapter("2. What stays on your computer"), 3)]
+    assert any("file names" in title for title in titles), titles
+
+
+def test_first_case_folder_chapter_warns_about_names_in_file_names():
+    body = chapter("6. Your first case folder")
+    assert "rename" in body.lower()
+    assert "file name" in body.lower()
+    sections = dict(_sections(body, 3))
+    put_files = next(text for title, text in sections.items() if title.startswith("Put your files"))
+    assert any(
+        "rename" in item.lower() and "index.md" in item.lower() for item in _items(put_files)
+    ), "the inputs step must say to rename files because INDEX.md shows file names"
+    read_index = next(text for title, text in sections.items() if title.startswith("Read "))
+    inputs_bullet = next(item for item in _items(read_index) if item.startswith("- **3. Inputs**"))
+    assert "file name" in inputs_bullet.lower(), inputs_bullet
+    assert any(
+        "before you share" in item.lower() and "person's name" in item.lower()
+        for item in _items(read_index)
+    ), "Read INDEX.md must say to check file names for a person's name before sharing"

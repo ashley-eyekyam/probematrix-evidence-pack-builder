@@ -237,3 +237,14 @@ def test_every_ignored_folder_is_confidential(line):
     }
     assert classes
     assert classes <= {"raw-text-confidential", "private-never-shared"}
+
+
+@pytest.mark.parametrize("path", ["INDEX.md", ".epb/state.json", ".epb/sources/"])
+def test_records_that_list_file_names_are_review_before_sharing(path):
+    """Until a later version shows role labels for names in file names (gap 5, C-CR-01),
+    the records that list input paths as given need a name check before they are shared."""
+    assert "review-before-sharing" in workspace.CLASSIFICATIONS
+    classes = {
+        classification for name, classification, _ in workspace.CONTRACT_PATHS if name == path
+    }
+    assert classes == {"review-before-sharing"}, path
