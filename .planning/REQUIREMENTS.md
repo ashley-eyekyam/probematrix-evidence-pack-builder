@@ -155,7 +155,7 @@ Each hard gate blocks the build. (§14)
 
 ### Build and format (BLD)
 
-- [ ] **BLD-01**: `formats/probematrix_v2.py` owns the format marker, sheet names, header order, column widths, enums, list separator and the 10-row metadata layout, all transcribed from the importer. `references/evidence-pack-v2.md` documents the format with the date it was checked. (§8.5, §8.4 importer re-check)
+- [x] **BLD-01**: `formats/probematrix_v2.py` owns the format marker, sheet names, header order, column widths, enums, list separator and the 10-row metadata layout, all transcribed from the importer. `references/evidence-pack-v2.md` documents the format with the date it was checked. (§8.5, §8.4 importer re-check)
 - [x] **BLD-02**: Every cell is written as text, with control characters removed. A cell starting with `=`, `+`, `-` or `@` never becomes a formula, and dates and long IDs never become numbers. (§8.4 re-check item 8)
 - [x] **BLD-03**: The validator is stricter than the importer. It rejects:
   - a blank Description or Type
@@ -217,7 +217,7 @@ Each hard gate blocks the build. (§14)
 
 ### Packaging and setup (PKG)
 
-- [ ] **PKG-01**: The plugin lives in `plugin/`, with `.claude-plugin/plugin.json`. The repo root holds `marketplace.json` (name `probematrix-evidence-pack-builder`, `source: "./plugin"`). (§5, §20 A4)
+- [x] **PKG-01**: The plugin lives in `plugin/`, with `.claude-plugin/plugin.json`. The repo root holds `marketplace.json` (name `probematrix-evidence-pack-builder`, `source: "./plugin"`). (§5, §20 A4)
 - [ ] **PKG-02**: Seven skills follow the Agent Skills format, each SKILL.md at most about 150 lines:
   - `evidence-pack` (the router)
   - `evidence-intake`
@@ -228,7 +228,7 @@ Each hard gate blocks the build. (§14)
   - `evidence-web-snapshot`
 
   Shared rules live in `evidence-pack/references/`. (§5, §15.1)
-- [ ] **PKG-03**: `AGENTS.md` holds the plugin's host-neutral rules for agents: just culture, roles only, inputs only, facts only, verbatim quotes, and the evidence-bank entry rule. (§5, kickoff §6a)
+- [x] **PKG-03**: `AGENTS.md` holds the plugin's host-neutral rules for agents: just culture, roles only, inputs only, facts only, verbatim quotes, and the evidence-bank entry rule. (§5, kickoff §6a)
 - [ ] **PKG-04**: The CLI provides every command in §15.2, plus the §20 A12 verbs (`sources set`, `sections tag`, `coverage omit`, `items update/remove`, roster input from a file, and `run` returning `next[]`). Every command accepts `--json`. (§15.2, §20 A12)
 - [x] **PKG-05**: Exit codes are 0 OK, 1 gate failure, 2 usage, 3 missing dependency, and 4 internal or environment error, with a stable error code in the JSON. (§15.2, §20 A11)
 - [x] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
@@ -426,7 +426,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | COV-01 | Phase 5 | Pending |
 | COV-02 | Phase 5 | Pending |
 | COV-03 | Phase 5 | Pending |
-| BLD-01 | Phase 1 | Pending |
+| BLD-01 | Phase 1 | Complete |
 | BLD-02 | Phase 1 | Complete |
 | BLD-03 | Phase 1 | Complete |
 | BLD-04 | Phase 5 | Pending |
@@ -461,9 +461,9 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | WEB-01 | Phase 9 | Pending |
 | WEB-02 | Phase 9 | Pending |
 | WEB-03 | Phase 9 | Pending |
-| PKG-01 | Phase 1 | Pending |
+| PKG-01 | Phase 1 | Complete |
 | PKG-02 | Phase 9 | Pending |
-| PKG-03 | Phase 1 | Pending |
+| PKG-03 | Phase 1 | Complete |
 | PKG-04 | Phase 9 | Pending |
 | PKG-05 | Phase 1 | Complete |
 | PKG-06 | Phase 1 | Complete |

@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-14-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T11:08:11.550Z"
+stopped_at: Completed 01-15-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T11:19:05.664Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 0541ccbcefa0e227880dc5f0c1cbbcf553dc7c83
+state_head: 60dbdff739317b31192c4fa63d37e5046c1c4899
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 15 of 16
+Plan: 16 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P12 | 9min | 3 tasks | 10 files |
 | Phase 01 P13 | 13min | 3 tasks | 1 files |
 | Phase 01 P14 | 11min | 3 tasks | 10 files |
+| Phase 01 P15 | 6min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,10 @@ Recent decisions affecting current work:
 - [Phase 01]: When one note's content sits at several sidecar paths, every target lists it and sidecar_of is the target of its first path in sorted order; run and envelope sidecars hold one {src_id, target} entry per pair, so run.schema.json needed no widening
 - [Phase 01]: SIDECAR_ORPHAN is warned on every scan while the orphan exists (like LINK_IGNORED); INPUT_REMOVED only on the scan that marks the source removed
 - [Phase 01]: When a removed source's path still exists but holds other content (content wins), the change line and INPUT_REMOVED say the earlier content is gone rather than that the file is gone
+- [Phase 01]: Finding codes are extracted from formats/validate.py by AST (upper-case snake-case string literals) because the validator has no code-list constant; a sanity test requires at least 20
+- [Phase 01]: The Codex install test checks the same file list as the Claude one (schemas, AGENTS.md, requirement files), not only SKILL.md, since the Codex cache was observed to hold them all
+- [Phase 01]: SKILL.md tells the agent to always pass --timezone to init (01-09 carry-over
+- [Phase 01]: The workspace contract states content wins and that restoring an older version counts as new content, in one sentence each (01-13 carry-over)
 
 ### Pending Todos
 
@@ -176,6 +181,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T11:08:11.515Z
-Stopped at: Completed 01-14-PLAN.md (merged from worktree)
+Last session: 2026-10-18T11:19:05.628Z
+Stopped at: Completed 01-15-PLAN.md (merged from worktree)
 Resume file: None
