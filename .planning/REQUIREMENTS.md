@@ -10,7 +10,7 @@
 
 ### Workspace and state (WS)
 
-- [ ] **WS-01**: The user can run `epb init` in any folder to create `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml` (slug, title, ID prefix, timezone, plugin version). (§6)
+- [x] **WS-01**: The user can run `epb init` in any folder to create `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml` (slug, title, ID prefix, timezone, plugin version). (§6)
 - [ ] **WS-02**: `epb scan` fingerprints every input:
   - It records SHA-256, size, MIME type and mtime for each file, walking `inputs/` recursively.
   - It assigns stable `S001…` IDs.
@@ -22,14 +22,14 @@
   - **Removed:** a source missing from the folder is marked `removed from folder`. (§7.1)
 - [ ] **WS-04**: `scan` pairs `<file>.note.md` and `<file>.note.yaml` sidecars with their input, and hashes them as inputs too. (§7.2, research PF-01)
 - [ ] **WS-05**: Archives (`.zip`, plus `.7z` when a `7z` binary exists) and email attachments are registered as child sources with a parent link. Zip-slip paths are refused. (§7.1, PF-11)
-- [ ] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
-- [ ] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
+- [x] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
+- [x] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
 - [x] **WS-08**: Every persisted file is validated against its JSON Schema on write. YAML is read with a strict loader that keeps every scalar as text, so values such as `12:30`, `0123` and `no` survive unchanged. (§5 schemas, §20 A7)
 - [x] **WS-09**: `INDEX.md` is regenerated on every run with the six sections in order: case header, what to import where (with an "Imported?" checkbox), inputs snapshot, outputs snapshot, open issues, and run history. A section whose producer does not exist yet shows "none yet". (§6.1, PF-04)
 - [ ] **WS-10**: `INDEX.md` shows no personal names. File names that contain names are shown with role-label substitution. (§6.1)
 - [x] **WS-11**: `.epb/.gitignore` ignores every file that can hold raw text: `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/` and `private/`. `init` warns when the case folder is a git repo that would track `.epb/private/`. (§6, §20 A2)
 - [x] **WS-12**: `init` and `doctor` warn in plain language when the case folder is inside OneDrive, Dropbox, iCloud Drive or Google Drive. (§20 A1)
-- [ ] **WS-13**: The `state.json` schema defines the following from Phase 1, so later phases never migrate it: the workbook registry (file, version, draft or imported, fingerprint), the Evidence ID and Tag counters, and chunk status. (PF-07)
+- [x] **WS-13**: The `state.json` schema defines the following from Phase 1, so later phases never migrate it: the workbook registry (file, version, draft or imported, fingerprint), the Evidence ID and Tag counters, and chunk status. (PF-07)
 
 ### Text intake (INT)
 
@@ -333,19 +333,19 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WS-01 | Phase 1 | Pending |
+| WS-01 | Phase 1 | Complete |
 | WS-02 | Phase 1 | Pending |
 | WS-03 | Phase 1 | Pending |
 | WS-04 | Phase 1 | Pending |
 | WS-05 | Phase 2 | Pending |
-| WS-06 | Phase 1 | Pending |
-| WS-07 | Phase 1 | Pending |
+| WS-06 | Phase 1 | Complete |
+| WS-07 | Phase 1 | Complete |
 | WS-08 | Phase 1 | Complete |
 | WS-09 | Phase 1 | Complete |
 | WS-10 | Phase 4 | Pending |
 | WS-11 | Phase 1 | Complete |
 | WS-12 | Phase 1 | Complete |
-| WS-13 | Phase 1 | Pending |
+| WS-13 | Phase 1 | Complete |
 | INT-01 | Phase 2 | Pending |
 | INT-02 | Phase 2 | Pending |
 | INT-03 | Phase 2 | Pending |

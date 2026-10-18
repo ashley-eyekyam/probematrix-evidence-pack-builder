@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-11-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:34:20.591Z"
+stopped_at: Completed 01-12-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:47:21.836Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 2a52af4f8d4b965ffd6d0cec983f56c3ded237a4
+state_head: c8b443a013ebbfa6cd9b5fbe38fc5afdbfe895bd
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 12 of 16
+Plan: 13 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P09 | 7min | 2 tasks | 9 files |
 | Phase 01 P10 | 7min | 2 tasks | 7 files |
 | Phase 01 P11 | 10min | 3 tasks | 13 files |
+| Phase 01 P12 | 9min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,12 @@ Recent decisions affecting current work:
 - [Phase 01]: load_sources
 - [Phase 01]: open_read_only is a plain function returning a Session; open_for_init and open_for_mutation are context managers, so 01-12 can add the lock around their yield
 - [Phase 01]: status message is five plain lines ending with a pointer to INDEX.md; data has exactly case, inputs, runs, last_run, workbooks
+- [Phase 01]: recover
+- [Phase 01]: open_for_init creates .epb/ before taking the lock and .epb/tmp/ only after it, so a LOCK_TIMEOUT on a folder whose .epb/ already exists changes nothing
+- [Phase 01]: The lock file is never deleted or truncated on release; the next holder overwrites it. Deleting lock files races with waiters that already opened the old file
+- [Phase 01]: The upgrade reads case.yaml and source records raw (no schema check) because they follow the older version's schemas; the upgraded versions are validated when staged
+- [Phase 01]: The upgrade also stamps state.plugin_version with the running plugin and records the run summary 'Case folder upgraded from workspace version <a> to <b>.'
+- [Phase 01]: LOCK_TIMEOUT data is {lock
 
 ### Pending Todos
 
@@ -153,6 +160,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:34:20.558Z
-Stopped at: Completed 01-11-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:47:21.801Z
+Stopped at: Completed 01-12-PLAN.md (merged from worktree)
 Resume file: None
