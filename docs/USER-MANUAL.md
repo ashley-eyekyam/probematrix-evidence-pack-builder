@@ -416,6 +416,11 @@ below use a made-up incident called "Acme Pump Trip".
 3. If you want to add a note about a file, for example where it came from, make a text file
    next to it with the same name followed by `.note.md`. For example, a note about
    `inputs/control-room-log.pdf` is called `inputs/control-room-log.pdf.note.md`.
+4. Some file names cannot be read as text, for example names in a ZIP file made on an older
+   Windows computer, or files copied from an old shared drive. The plugin skips such a file or
+   folder, tells you, and lists it in `INDEX.md` under **5. Open issues** as named with
+   characters that are not valid text. Rename it to a plain name, then ask the agent to take
+   stock again.
 
 ### Take stock of the inputs
 

@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 import pytest
-from epb import workspace
+from epb import errors, workspace
 from epb.formats import probematrix_v2 as fmt
 from epb.sources import scan, sidecars
 
@@ -116,6 +116,13 @@ def test_contract_lists_every_junk_pattern(pattern):
 @pytest.mark.parametrize("suffix", sidecars.SIDECAR_SUFFIXES)
 def test_contract_names_sidecar_suffixes(suffix):
     assert f"<file>{suffix}" in read(CONTRACT)
+
+
+def test_contract_names_the_bad_name_skip():
+    text = read(CONTRACT)
+    assert "`bad-name`" in text
+    assert "BAD_NAME_IGNORED" in text
+    assert "BAD_NAME_IGNORED" in errors.WARNING_CODES
 
 
 def test_contract_says_reverted_content_is_new_content():
