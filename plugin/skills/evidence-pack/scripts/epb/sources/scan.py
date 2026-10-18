@@ -96,6 +96,16 @@ def _unreadable(rel, error) -> EpbError:
     )
 
 
+def _same_name(rel) -> EpbError:
+    return EpbError(
+        "BAD_ARGUMENT",
+        f"Two files in the inputs folder have the same name written in two different ways "
+        f"({rel}): the letters are the same but are stored as different characters. The "
+        "plugin cannot tell them apart, so nothing was changed.",
+        hint="Rename one of the two files, then scan again.",
+    )
+
+
 def _fingerprint(path):
     """``(sha256, size, mtime_ns)`` of a regular file, or ``None`` when ``path`` is not a
     regular file (any more). A link is never followed and a pipe is never waited on."""
@@ -117,7 +127,11 @@ def _fingerprint(path):
 def walk_inputs(case_root) -> WalkResult:
     """Fingerprint every regular file under ``inputs/``, sorted by path. Links (and junctions)
     are listed as ``link`` and never followed; pipes, sockets and devices as ``special`` and
-    never opened; OS junk as ``junk``. Nothing under ``inputs/`` is ever written."""
+    never opened; OS junk as ``junk``. Nothing under ``inputs/`` is ever written.
+
+    Path keys are NFC, so a name stored in NFD form (as macOS writes it) is the same key as its
+    NFC spelling. Two files whose names differ only in that way (possible on Linux) would share
+    one key, so the scan stops with ``BAD_ARGUMENT`` rather than silently keep one of them."""
     case_root = Path(case_root)
     inputs = case_root / INPUTS_DIR
     result = WalkResult()
@@ -131,6 +145,7 @@ def walk_inputs(case_root) -> WalkResult:
         rel = rel_key(case_root, error.filename) if error.filename else INPUTS_DIR
         raise _unreadable(rel, error)
 
+    seen = set()  # NFC keys already used; two spellings of one name cannot both be kept
     for folder, dirnames, filenames in os.walk(inputs, onerror=fail, followlinks=False):
         kept = []
         for name in sorted(dirnames):
@@ -162,6 +177,9 @@ def walk_inputs(case_root) -> WalkResult:
                 raise _unreadable(rel, error) from None
             if found is None:
                 continue
+            if rel in seen:
+                raise _same_name(rel)
+            seen.add(rel)
             sha256, size, mtime_ns = found
             detected, mismatch = mime.detect(path)
             result.files.append(

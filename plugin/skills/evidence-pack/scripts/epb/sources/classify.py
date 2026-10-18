@@ -6,7 +6,8 @@ disk. The rules, in order:
 
 1. The files found now are grouped by SHA-256; each group's paths are sorted.
 2. Every known source, in numeric ID order, whose *current* content is still present keeps
-   it: its paths become that group's paths. It is reported as renamed (some old paths gone,
+   it: its paths become that group's paths. Content is claimed once: should two records share
+   a current SHA-256 (only a damaged or hand-edited folder), the lower ID keeps it. It is reported as renamed (some old paths gone,
    new ones appeared), a duplicate (paths added, none gone), restored (it had been removed
    from the folder), or not at all (unchanged). A path that belonged to another source before
    is also reported as moved.
@@ -146,8 +147,8 @@ def classify(previous, sources, files, *, run_id, source_counter) -> ScanPlan:
     for src_id in order:
         record = records[src_id]
         sha = _current(record)["sha256"]
-        if sha not in groups:
-            continue
+        if sha not in groups or sha in taken:
+            continue  # gone, or already claimed by a lower ID (a damaged or hand-edited record)
         new_paths = groups[sha]
         old_paths = sorted(record["paths"])
         claimed.add(src_id)
