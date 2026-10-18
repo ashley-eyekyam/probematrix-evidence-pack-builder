@@ -1,9 +1,9 @@
 ---
 phase: "1"
 slug: "foundations"
-status: verified
+status: draft
 # threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate)
-threats_open: 0
+threats_open: 1
 asvs_level: 1
 created: "2026-10-18"
 ---
@@ -119,6 +119,25 @@ created: "2026-10-18"
 | T-01-44 | Information disclosure | privacy chapter | medium | mitigate | Chapter 2 states what reaches the AI host's provider and why sync folders are unsafe; a test checks the required terms; the owner reads it (human-check) | open — below high threshold (non-blocking): owner read-through of manual chapter 2 not yet recorded |
 | T-01-45 | Repudiation | manual versus real output | low | mitigate | Golden test keeps quoted doctor and setup output equal to the renderer | closed |
 | T-01-SC (01-16) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-46 | Tampering | pyproject.toml filterwarnings (CI gate integrity) | medium | mitigate | Ignore scoped to module openpyxl.worksheet._writer; guard and parity tests in tests/repo/test_ci_workflow.py | open — below high threshold (non-blocking): guard misses `ignore::Warning`, a bare `ignore`, `default::Warning` and regex modules such as `openpyxl\|.*` (reproduced in a scratch project); `-W` / `-p no:warnings` in addopts unchecked |
+| T-01-47 | Denial of service | epb/launcher.py `_probe` | low | mitigate | launcher.py:223-224 encoding="utf-8", errors="replace"; AST guard tests/repo/test_text_subprocess_encoding.py | closed |
+| T-01-SC (01-17) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-48 | Tampering | epb/index.py every interpolated value | high | mitigate | `_inline` (index.py:100-102) and `_cell` cover C0, DEL, C1, U+2028/2029 on every interpolation; scan regression and 13-case matrix in tests/index/test_index.py | closed |
+| T-01-49 | Spoofing | INDEX.md tick lines | medium | mitigate | index.py:219 is the only `Imported:` writer; all INDEX.md writes go through render_index; matrix asserts one tick line in section 2 | closed |
+| T-01-50 | Spoofing | bidirectional-control characters in names | low | accept | Cannot add lines, headings or ticks; display hardening deferred to Phase 4 | closed |
+| T-01-SC (01-18) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-51 | Tampering | epb/commands/init.py writes before validation | medium | mitigate | init.py:63-67 validates before open_for_init (:69); refused-init tests require an unchanged folder | closed |
+| T-01-52 | Tampering | validation outside the lock (TOCTOU) | low | mitigate | Validation only reads; state_exists re-checked under the lock (workspace.py:158); tests/store/test_lock.py green | closed |
+| T-01-SC (01-19) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-53 | Tampering | epb/mime.py text misrouted as audio | high | mitigate | Text BOMs return before MAGIC_RULES (mime.py:277-279); `_mpeg_frame` needs a second matching header at the computed length; BOM matrix and boundary tests in tests/core/test_mime.py | closed |
+| T-01-54 | Spoofing | text BOM followed by another format's signature | low | accept | Name decides as for any text file; Phase 2 converters check content | closed |
+| T-01-SC (01-20) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-55 | Information disclosure | USER-MANUAL.md ch.2/ch.6, workspace-contract.md (name-free promise) | high | mitigate | Manual and contract describe Phase 1 behaviour with rename-and-check step; `review-before-sharing` class (workspace.py:55-80); tests in test_manual.py and test_layout.py pass; owner read-through (human-check) | open: owner read-through of the new wording and agreement to the interim `review-before-sharing` label not yet recorded (owner chose to do it at /gsd-verify-work UAT, together with T-01-44) |
+| T-01-56 | Tampering | SKILL.md (agent altering inputs/) | medium | mitigate | SKILL.md:77 refers to inputs by ID and never renames, moves or edits inputs/; test_skill_lint.py pins wording | closed |
+| T-01-SC (01-21) | Tampering | package installs | low | accept | This plan installs no packages | closed |
+| T-01-57 | Repudiation | CI result reporting | medium | mitigate | Verdict read with gh from run 39141925712 (headSha 8c84d0d); auditor re-read it: 3.14 success, 3.11 failure at the licence step, as recorded | closed |
+| T-01-58 | Information disclosure | git push to the public repository | medium | mitigate | Owner answered push at the blocking-human gate; fast-forward a24d0d4..8c84d0d, no force; no scratch output or extra workbook tracked | closed |
+| T-01-SC (01-22) | Tampering | package installs | low | accept | This plan installs nothing locally | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
@@ -133,6 +152,11 @@ Evidence (file:line and enforcing tests) for every closed `mitigate` row is in t
 3. T-01-23: the reserved-name refusal lives only in `derive_slug` / `--slug`; a hand-edited `case.yaml` slug `con` passes the schema.
 4. Mitigations not pinned by a test: `allow_abbrev=False` (T-01-06), launcher probe timeout (T-01-05), hostile-XML input (T-01-08); the `os.kill` source test (T-01-34) scans only `lock.py`.
 5. T-01-SC (01-01): summary says 16 packages, checkpoint listed 17 names — wording only.
+6. T-01-56: the lint test pins three phrases but not the "by its ID" clause.
+7. T-01-55: the paragraph test only catches text naming both INDEX.md and "role label"; a promise worded differently would pass (none exists today).
+8. T-01-47: the encoding guard recognises only a literal `True` and does not flag `errors=` without `encoding=`.
+9. `review-before-sharing` for `.epb/state.json` and `.epb/sources/` is documentation-only: `.epb/.gitignore` does not cover them and the git check does not warn when they are tracked.
+10. The 3.11 CI runner arrives with setuptools 79.0.1 preinstalled, outside the two-week install rule (the post-install age and licence checks do see it; the licence check fails on it — run 39141925712).
 
 ---
 
@@ -157,6 +181,14 @@ Evidence (file:line and enforcing tests) for every closed `mitigate` row is in t
 | AR-15 | T-01-SC (01-14) | This plan installs no packages | owner (plan-time, D-11 where cited) | 2026-10-17 |
 | AR-16 | T-01-SC (01-15) | This plan installs no packages (the UAT's setup installs the 01-01-approved list) | owner (plan-time, D-11 where cited) | 2026-10-17 |
 | AR-17 | T-01-SC (01-16) | This plan installs no packages | owner (plan-time, D-11 where cited) | 2026-10-17 |
+| AR-18 | T-01-SC (01-17) | This plan installs no packages | owner (plan-time) | 2026-10-18 |
+| AR-19 | T-01-50 | Bidi controls reorder display but cannot add lines, headings or ticks; display hardening belongs with the Phase 4 file-name substitution | owner (plan-time) | 2026-10-18 |
+| AR-20 | T-01-SC (01-18) | This plan installs no packages | owner (plan-time) | 2026-10-18 |
+| AR-21 | T-01-SC (01-19) | This plan installs no packages | owner (plan-time) | 2026-10-18 |
+| AR-22 | T-01-54 | A text mark makes the name decide, as for any text file; Phase 2 converters check what they parse | owner (plan-time) | 2026-10-18 |
+| AR-23 | T-01-SC (01-20) | This plan installs no packages | owner (plan-time) | 2026-10-18 |
+| AR-24 | T-01-SC (01-21) | This plan installs no packages | owner (plan-time) | 2026-10-18 |
+| AR-25 | T-01-SC (01-22) | This plan installs nothing locally; CI installs under the two-week rule and the 01-05 exceptions file | owner (plan-time) | 2026-10-18 |
 
 *Accepted risks do not resurface in future audit runs.*
 
@@ -174,7 +206,15 @@ Evidence (file:line and enforcing tests) for every closed `mitigate` row is in t
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [x] `threats_open: 0` confirmed
-- [x] `status: verified` set in frontmatter
+- [ ] `threats_open: 0` confirmed (1 open: T-01-55, pending owner read-through)
+- [ ] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-10-18 (2 medium threats remain open below the high block threshold: T-01-05, T-01-44)
+**Approval:** verified 2026-10-18 (2 medium threats remain open below the high block threshold: T-01-05, T-01-44). Re-audit 2026-10-18 after gap plans 01-17 to 01-22: blocked on T-01-55 (owner read-through); T-01-46 open below threshold.
+
+## Security Audit 2026-10-18
+
+| Metric | Count |
+|---|---|
+| Threats found | 19 |
+| Closed | 17 |
+| Open | 2 |
