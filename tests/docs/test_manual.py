@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 import pytest
+from epb import index
 from epb.doctor import probes, report, syncfolders, tools
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -380,3 +381,17 @@ def test_first_case_folder_chapter_warns_about_names_in_file_names():
         "before you share" in item.lower() and "person's name" in item.lower()
         for item in _items(read_index)
     ), "Read INDEX.md must say to check file names for a person's name before sharing"
+
+
+def test_first_case_folder_chapter_explains_names_that_are_not_valid_text():
+    sections = dict(_sections(chapter("6. Your first case folder"), 3))
+    put_files = next(text for title, text in sections.items() if title.startswith("Put your files"))
+    items = [item for item in _items(put_files) if "not valid text" in item]
+    assert len(items) == 1, (
+        "the inputs step needs exactly one item about names that are not valid text"
+    )
+    assert "Open issues" in items[0], items[0]
+    assert "Rename" in items[0], items[0]
+    assert "not valid text" in index._IGNORED_REASONS["bad-name"], (
+        "the manual and INDEX.md must describe a skipped bad name in the same words"
+    )
