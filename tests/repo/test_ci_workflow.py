@@ -1,5 +1,6 @@
 """Shape of the Linux core CI workflow (TST-01, PKG-09, D-02, D-12, D-18)."""
 
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -97,3 +98,74 @@ def test_plugin_validate_is_guarded_by_the_claude_cli(runs):
     script = runs[_index(runs, "claude plugin validate")]
     assert "command -v claude" in script
     assert "skipping plugin validate (D-02)" in script
+
+
+# --- EncodingWarning filters (verification gap 1, review D-CR-01) ----------------------------
+
+PYPROJECT = REPO_ROOT / "pyproject.toml"
+ENCODING_ERROR = "error::EncodingWarning"
+
+
+def _filterwarnings():
+    with PYPROJECT.open("rb") as handle:
+        config = tomllib.load(handle)
+    return config["tool"]["pytest"]["ini_options"]["filterwarnings"]
+
+
+def _fields(entry):
+    """``action:message:category:module:lineno``, padded with empty strings."""
+    parts = entry.split(":", 4)
+    return parts + [""] * (5 - len(parts))
+
+
+def _relaxed_encoding_entries(entries):
+    """Every entry that would stop an EncodingWarning from being an error."""
+    return [
+        entry
+        for entry in entries
+        if _fields(entry)[0] != "error" and _fields(entry)[2].endswith("EncodingWarning")
+    ]
+
+
+def test_encoding_warnings_stay_errors_for_project_code():
+    entries = _filterwarnings()
+    assert ENCODING_ERROR in entries
+    relaxed = _relaxed_encoding_entries(entries)
+    assert relaxed, "expected the openpyxl temp-file ignore entry"
+    for entry in relaxed:
+        action, _message, _category, module, _lineno = _fields(entry)
+        assert action == "ignore", entry
+        assert module.startswith("openpyxl"), (
+            f"EncodingWarning may be relaxed only for openpyxl, not: {entry!r}"
+        )
+
+
+def test_openpyxl_ignore_comes_after_the_error_entry():
+    # pytest gives later filterwarnings entries precedence over earlier ones.
+    entries = _filterwarnings()
+    openpyxl_entries = [
+        entry
+        for entry in _relaxed_encoding_entries(entries)
+        if _fields(entry)[3].startswith("openpyxl")
+    ]
+    assert openpyxl_entries, "no EncodingWarning ignore entry for openpyxl"
+    error_index = entries.index(ENCODING_ERROR)
+    for entry in openpyxl_entries:
+        assert entries.index(entry) > error_index, entry
+
+
+# --- local / CI parity (PKG-11) ---------------------------------------------------------------
+
+AGENTS = REPO_ROOT / "AGENTS.md"
+DOCUMENTED_PYTEST = "PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q"
+
+
+def test_documented_full_check_matches_ci(core):
+    lines = [
+        line for line in AGENTS.read_text(encoding="utf-8").splitlines() if "Full check" in line
+    ]
+    assert len(lines) == 1, f"expected one 'Full check' line in AGENTS.md, found {len(lines)}"
+    assert DOCUMENTED_PYTEST in lines[0], (
+        "AGENTS.md's full check must run pytest the way CI does: " + DOCUMENTED_PYTEST
+    )
+    assert core["env"]["PYTHONWARNDEFAULTENCODING"] == "1"
