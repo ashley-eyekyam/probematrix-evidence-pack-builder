@@ -6,10 +6,10 @@ current_phase: 01
 current_phase_name: Foundations
 status: executing
 stopped_at: Completed 01-07-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:10:16.247Z"
+last_updated: "2026-10-18T10:10:35.147Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 811c33013f9390cc4104ef30dbba9ea9a861b3d7
+state_head: 9a310bd79073e7ec83cbaa06566f573ce2105490
 progress:
   total_phases: 10
   completed_phases: 0
@@ -92,6 +92,12 @@ Recent decisions affecting current work:
 - [Phase 01]: Codex installer replaces only folders carrying its .epb-installed marker; a foreign same-name folder stops the install with exit 1 before any write
 - [Phase 01]: Plugin manifests carry epb.__version__; a parity test fails on any name or version drift across marketplace, Claude and Codex manifests
 - [Phase 01]: plugin/AGENTS.md is proven clean-room by test: no eight-word run shared with the reference report and no honorific-plus-name
+- [Phase 01]: Schema issue pointers are RFC 6901 escaped (~0, ~1), so a fingerprint key like inputs/a.pdf shows as /fingerprints/inputs~1a.pdf; the root is '/' as the plan specifies
+- [Phase 01]: Transaction refuses .epb/tmp/ targets, a second staging of the same path and a direct stage of .epb/state.json (state goes only through set_state), in addition to the plan's path rule
+- [Phase 01]: recover() distrusts a manifest whose entries have a non-NNNN tmp name, a bad sha256 or a final path outside the allow-list (STATE_INVALID), so a tampered journal cannot write into inputs/
+- [Phase 01]: load_state treats schema_version below 1 (or a bool) as damaged STATE_INVALID; only 1 <= version < SCHEMA_VERSION is returned raw for upgrade
+- [Phase 01]: Workbook records require at least one entry in writes (a record exists only after a first write)
+- [Phase 01]: init on an already set-up folder returns data.created = [] with the ALREADY_SET_UP warning and exit 0
 
 ### Pending Todos
 
