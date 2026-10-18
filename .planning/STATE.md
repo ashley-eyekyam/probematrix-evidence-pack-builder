@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-08-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:13:31.819Z"
+stopped_at: Completed 01-09-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:19:42.888Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 9c9f71ce3ce6b9ca44424a3778676849159375d6
+state_head: d9436ae425828633ddd7fda57141c65daae6dcc7
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 9 of 16
+Plan: 10 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P06 | 5 min | 3 tasks | 8 files |
 | Phase 01 P07 | 7min | 0 tasks | 11 files |
 | Phase 01 P08 | 11min | 2 tasks | 11 files |
+| Phase 01 P09 | 7min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,12 @@ Recent decisions affecting current work:
 - [Phase 01]: Google Drive on Linux is detected from the GVFS mount component name (google-drive
 - [Phase 01]: On the human error path the checklist is the error message and the hint is omitted, because What to do next already carries the setup command; under --json the hint is kept
 - [Phase 01]: Git is called with GIT_OPTIONAL_LOCKS=0; a git that cannot be run falls back to the .git walk-up and warns GIT_UNAVAILABLE with 'git could not be run'
+- [Phase 01]: WORKSPACE_EXISTS carries data.fields with the differing flag names (title, slug, prefix, timezone) and the message lists them as --flags
+- [Phase 01]: A re-run with --title compares the stripped, NFC-normalised title, so whitespace or a decomposed form of the same title is not a difference
+- [Phase 01]: validate_timezone also refuses localtime, posixrules and Factory, which ZoneInfo opens but are not IANA zone names
+- [Phase 01]: An explicit --slug that is a Windows reserved name (con, prn, aux, nul, com1-9, lpt1-9) is refused; only derived slugs get the -case suffix
+- [Phase 01]: init on a set-up folder now loads state.json (load_state) and case.yaml before anything else, so damage to either exits 4 STATE_INVALID instead of ALREADY_SET_UP
+- [Phase 01]: The ALREADY_SET_UP re-run also reports data.case with the stored settings, so the skill can show them
 
 ### Pending Todos
 
@@ -130,6 +137,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:13:31.789Z
-Stopped at: Completed 01-08-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:19:42.856Z
+Stopped at: Completed 01-09-PLAN.md (merged from worktree)
 Resume file: None

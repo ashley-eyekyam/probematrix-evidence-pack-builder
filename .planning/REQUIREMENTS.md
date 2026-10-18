@@ -24,7 +24,7 @@
 - [ ] **WS-05**: Archives (`.zip`, plus `.7z` when a `7z` binary exists) and email attachments are registered as child sources with a parent link. Zip-slip paths are refused. (§7.1, PF-11)
 - [ ] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
 - [ ] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
-- [ ] **WS-08**: Every persisted file is validated against its JSON Schema on write. YAML is read with a strict loader that keeps every scalar as text, so values such as `12:30`, `0123` and `no` survive unchanged. (§5 schemas, §20 A7)
+- [x] **WS-08**: Every persisted file is validated against its JSON Schema on write. YAML is read with a strict loader that keeps every scalar as text, so values such as `12:30`, `0123` and `no` survive unchanged. (§5 schemas, §20 A7)
 - [ ] **WS-09**: `INDEX.md` is regenerated on every run with the six sections in order: case header, what to import where (with an "Imported?" checkbox), inputs snapshot, outputs snapshot, open issues, and run history. A section whose producer does not exist yet shows "none yet". (§6.1, PF-04)
 - [ ] **WS-10**: `INDEX.md` shows no personal names. File names that contain names are shown with role-label substitution. (§6.1)
 - [ ] **WS-11**: `.epb/.gitignore` ignores every file that can hold raw text: `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/` and `private/`. `init` warns when the case folder is a git repo that would track `.epb/private/`. (§6, §20 A2)
@@ -340,7 +340,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | WS-05 | Phase 2 | Pending |
 | WS-06 | Phase 1 | Pending |
 | WS-07 | Phase 1 | Pending |
-| WS-08 | Phase 1 | Pending |
+| WS-08 | Phase 1 | Complete |
 | WS-09 | Phase 1 | Pending |
 | WS-10 | Phase 4 | Pending |
 | WS-11 | Phase 1 | Pending |
