@@ -203,3 +203,9 @@ None. The owner's read-through is pending: the plan's Task 3 `<human-check>`, ve
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- All 8 key files exist; commits 8eddd06, 636f434, e74b48a, 00cb8e1, 4eb2f1c, a249622 are on this branch.
+- workspace-contract.md has 5 review-before-sharing mentions (needs at least 4); SKILL.md has 100 lines (limit 150).
+- Full CI-equivalent check: 1275 passed, 4 skipped.
