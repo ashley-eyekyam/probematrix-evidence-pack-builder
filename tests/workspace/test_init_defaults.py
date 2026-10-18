@@ -192,8 +192,10 @@ def test_validate_timezone():
 
 
 def _assert_nothing_written(case_dir):
-    assert not (case_dir / casefile.CASE_FILE).exists()
-    assert not (case_dir / STATE_FILE).exists()
+    """A refused init on an empty folder leaves it empty: no ``.epb``, no lock, nothing."""
+    assert not (case_dir / ".epb").exists(), "a refused init left .epb/ behind"
+    leftovers = sorted(path.name for path in case_dir.iterdir())
+    assert leftovers == [], f"a refused init left {leftovers} behind"
 
 
 def _error(proc):
