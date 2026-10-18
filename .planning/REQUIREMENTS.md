@@ -10,26 +10,26 @@
 
 ### Workspace and state (WS)
 
-- [x] **WS-01**: The user can run `epb init` in any folder to create `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml` (slug, title, ID prefix, timezone, plugin version). (§6)
-- [x] **WS-02**: `epb scan` fingerprints every input:
+- [ ] **WS-01**: The user can run `epb init` in any folder to create `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml` (slug, title, ID prefix, timezone, plugin version). (§6)
+- [ ] **WS-02**: `epb scan` fingerprints every input:
   - It records SHA-256, size, MIME type and mtime for each file, walking `inputs/` recursively.
   - It assigns stable `S001…` IDs.
   - It ignores OS junk files and lists them as ignored. (§7.1)
-- [x] **WS-03**: `scan` detects and reports each change of state:
+- [ ] **WS-03**: `scan` detects and reports each change of state:
   - **New version:** a known path with changed content becomes `S004v2`.
   - **Rename:** a known hash at a new path is treated as a rename.
   - **Duplicate:** identical content at two paths becomes one source with two paths.
   - **Removed:** a source missing from the folder is marked `removed from folder`. (§7.1)
-- [x] **WS-04**: `scan` pairs `<file>.note.md` and `<file>.note.yaml` sidecars with their input, and hashes them as inputs too. (§7.2, research PF-01)
+- [ ] **WS-04**: `scan` pairs `<file>.note.md` and `<file>.note.yaml` sidecars with their input, and hashes them as inputs too. (§7.2, research PF-01)
 - [ ] **WS-05**: Archives (`.zip`, plus `.7z` when a `7z` binary exists) and email attachments are registered as child sources with a parent link. Zip-slip paths are refused. (§7.1, PF-11)
-- [x] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
-- [x] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
-- [x] **WS-08**: Every persisted file is validated against its JSON Schema on write. YAML is read with a strict loader that keeps every scalar as text, so values such as `12:30`, `0123` and `no` survive unchanged. (§5 schemas, §20 A7)
-- [x] **WS-09**: `INDEX.md` is regenerated on every run with the six sections in order: case header, what to import where (with an "Imported?" checkbox), inputs snapshot, outputs snapshot, open issues, and run history. A section whose producer does not exist yet shows "none yet". (§6.1, PF-04)
+- [ ] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
+- [ ] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
+- [ ] **WS-08**: Every persisted file is validated against its JSON Schema on write. YAML is read with a strict loader that keeps every scalar as text, so values such as `12:30`, `0123` and `no` survive unchanged. (§5 schemas, §20 A7)
+- [ ] **WS-09**: `INDEX.md` is regenerated on every run with the six sections in order: case header, what to import where (with an "Imported?" checkbox), inputs snapshot, outputs snapshot, open issues, and run history. A section whose producer does not exist yet shows "none yet". (§6.1, PF-04)
 - [ ] **WS-10**: `INDEX.md` shows no personal names. File names that contain names are shown with role-label substitution. (§6.1)
-- [x] **WS-11**: `.epb/.gitignore` ignores every file that can hold raw text: `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/` and `private/`. `init` warns when the case folder is a git repo that would track `.epb/private/`. (§6, §20 A2)
-- [x] **WS-12**: `init` and `doctor` warn in plain language when the case folder is inside OneDrive, Dropbox, iCloud Drive or Google Drive. (§20 A1)
-- [x] **WS-13**: The `state.json` schema defines the following from Phase 1, so later phases never migrate it: the workbook registry (file, version, draft or imported, fingerprint), the Evidence ID and Tag counters, and chunk status. (PF-07)
+- [ ] **WS-11**: `.epb/.gitignore` ignores every file that can hold raw text: `segments/`, `ledger/`, `inbox/`, `tmp/`, `media/`, `runs/` and `private/`. `init` warns when the case folder is a git repo that would track `.epb/private/`. (§6, §20 A2)
+- [ ] **WS-12**: `init` and `doctor` warn in plain language when the case folder is inside OneDrive, Dropbox, iCloud Drive or Google Drive. (§20 A1)
+- [ ] **WS-13**: The `state.json` schema defines the following from Phase 1, so later phases never migrate it: the workbook registry (file, version, draft or imported, fingerprint), the Evidence ID and Tag counters, and chunk status. (PF-07)
 
 ### Text intake (INT)
 
@@ -155,9 +155,9 @@ Each hard gate blocks the build. (§14)
 
 ### Build and format (BLD)
 
-- [x] **BLD-01**: `formats/probematrix_v2.py` owns the format marker, sheet names, header order, column widths, enums, list separator and the 10-row metadata layout, all transcribed from the importer. `references/evidence-pack-v2.md` documents the format with the date it was checked. (§8.5, §8.4 importer re-check)
-- [x] **BLD-02**: Every cell is written as text, with control characters removed. A cell starting with `=`, `+`, `-` or `@` never becomes a formula, and dates and long IDs never become numbers. (§8.4 re-check item 8)
-- [x] **BLD-03**: The validator is stricter than the importer. It rejects:
+- [ ] **BLD-01**: `formats/probematrix_v2.py` owns the format marker, sheet names, header order, column widths, enums, list separator and the 10-row metadata layout, all transcribed from the importer. `references/evidence-pack-v2.md` documents the format with the date it was checked. (§8.5, §8.4 importer re-check)
+- [ ] **BLD-02**: Every cell is written as text, with control characters removed. A cell starting with `=`, `+`, `-` or `@` never becomes a formula, and dates and long IDs never become numbers. (§8.4 re-check item 8)
+- [ ] **BLD-03**: The validator is stricter than the importer. It rejects:
   - a blank Description or Type
   - non-exact enum values
   - non-string cells
@@ -174,7 +174,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **BLD-05**: Source citations take the form `p.<n>`, `pp.<a>–<b>`, `PDF p.<n>`, `<annex> p.<n>`, `hh:mm:ss–hh:mm:ss`, `sheet <name> rows <a>–<b>`, or `[web snapshot <date>] <url>`. (§8.4, §20 A13)
 - [ ] **BLD-06**: The source documents themselves never become evidence items. (§8.4, DEF-17)
 - [ ] **BLD-07**: `epb build` writes `outputs/evidence-pack-<case>-master.xlsx` from all items while the master is a draft. A run with no new or changed items writes nothing and says so. (§12.1)
-- [x] **BLD-08**: Pack Metadata uses the exact 10-row layout, with Total Evidence Items equal to the number of items in this file. The Attachments Manifest is written with headers only. (§8.4)
+- [ ] **BLD-08**: Pack Metadata uses the exact 10-row layout, with Total Evidence Items equal to the number of items in this file. The Attachments Manifest is written with headers only. (§8.4)
 
 ### Incremental runs (INC)
 
@@ -217,7 +217,7 @@ Each hard gate blocks the build. (§14)
 
 ### Packaging and setup (PKG)
 
-- [x] **PKG-01**: The plugin lives in `plugin/`, with `.claude-plugin/plugin.json`. The repo root holds `marketplace.json` (name `probematrix-evidence-pack-builder`, `source: "./plugin"`). (§5, §20 A4)
+- [ ] **PKG-01**: The plugin lives in `plugin/`, with `.claude-plugin/plugin.json`. The repo root holds `marketplace.json` (name `probematrix-evidence-pack-builder`, `source: "./plugin"`). (§5, §20 A4)
 - [ ] **PKG-02**: Seven skills follow the Agent Skills format, each SKILL.md at most about 150 lines:
   - `evidence-pack` (the router)
   - `evidence-intake`
@@ -228,13 +228,13 @@ Each hard gate blocks the build. (§14)
   - `evidence-web-snapshot`
 
   Shared rules live in `evidence-pack/references/`. (§5, §15.1)
-- [x] **PKG-03**: `AGENTS.md` holds the plugin's host-neutral rules for agents: just culture, roles only, inputs only, facts only, verbatim quotes, and the evidence-bank entry rule. (§5, kickoff §6a)
+- [ ] **PKG-03**: `AGENTS.md` holds the plugin's host-neutral rules for agents: just culture, roles only, inputs only, facts only, verbatim quotes, and the evidence-bank entry rule. (§5, kickoff §6a)
 - [ ] **PKG-04**: The CLI provides every command in §15.2, plus the §20 A12 verbs (`sources set`, `sections tag`, `coverage omit`, `items update/remove`, roster input from a file, and `run` returning `next[]`). Every command accepts `--json`. (§15.2, §20 A12)
-- [x] **PKG-05**: Exit codes are 0 OK, 1 gate failure, 2 usage, 3 missing dependency, and 4 internal or environment error, with a stable error code in the JSON. (§15.2, §20 A11)
-- [x] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
-- [x] **PKG-07**: `epb doctor` reports each tool: found or not, its version, the input types it enables, and install commands for each OS. A missing optional tool never fails a run. (§7.2)
-- [x] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
-- [x] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
+- [ ] **PKG-05**: Exit codes are 0 OK, 1 gate failure, 2 usage, 3 missing dependency, and 4 internal or environment error, with a stable error code in the JSON. (§15.2, §20 A11)
+- [ ] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
+- [ ] **PKG-07**: `epb doctor` reports each tool: found or not, its version, the input types it enables, and install commands for each OS. A missing optional tool never fails a run. (§7.2)
+- [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
+- [ ] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
 - [ ] **PKG-10**: The plugin installs through `/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder` plus `/plugin install` on Claude Code, through Cowork's plugin upload, and on Codex through its supported route. (§15.3, kickoff §11)
 - [ ] **PKG-11**: The repo-root `AGENTS.md` and `CLAUDE.md` are exact copies of each other, holding the developer instructions. They are regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least at every phase transition), and a CI test fails if they differ or exceed 150 lines. They are hand-maintained and concise (aim for 60 lines or fewer, pointers rather than copies); GSD's `generate-claude-md` is never run on them. (§20 A15)
 
@@ -247,14 +247,14 @@ Each hard gate blocks the build. (§14)
   - running first-time setup (`doctor --setup`) (§20 A14)
 - [ ] **DOC-02**: The manual covers everyday use: creating a case folder, adding inputs, asking the agent to build a pack, reading `INDEX.md`, importing the master and deltas into ProbeMatrix, and marking a workbook imported. (§20 A14)
 - [ ] **DOC-03**: The manual has a troubleshooting section that maps every `doctor` message and exit-4 error code to a plain-language fix. (§20 A11, A14)
-- [x] **DOC-04**: The manual explains in plain language what stays local, what the AI host sees, why case folders should not sit in sync folders, and the always-on de-identification. (§20 A1)
-- [x] **DOC-05**: The manual is started in Phase 1 and extended in every phase that adds a tool or user step. Its Windows and macOS sections are marked "not yet tested on this system" until a post-v0.1.0 release tests them. (§20 A9, A14)
+- [ ] **DOC-04**: The manual explains in plain language what stays local, what the AI host sees, why case folders should not sit in sync folders, and the always-on de-identification. (§20 A1)
+- [ ] **DOC-05**: The manual is started in Phase 1 and extended in every phase that adds a tool or user step. Its Windows and macOS sections are marked "not yet tested on this system" until a post-v0.1.0 release tests them. (§20 A9, A14)
 - [ ] **DOC-06**: The shared skill references are written: workspace contract, evidence-pack-v2, evidence types, description quality (with synthetic good and bad pairs), de-identification, assertions and conflicts, conclusions policy, tag vocabulary and citation style. (§5)
 - [ ] **DOC-07**: README, CHANGELOG, CONTRIBUTING and SECURITY are written for v0.1.0. (§5)
 
 ### Testing and release (TST)
 
-- [x] **TST-01**: pytest and ruff run, with no network in tests. Tests for optional tools skip cleanly when the tool is absent. (kickoff §7)
+- [ ] **TST-01**: pytest and ruff run, with no network in tests. Tests for optional tools skip cleanly when the tool is absent. (kickoff §7)
 - [ ] **TST-02**: A synthetic incident fixture generator produces a fully fictional incident with planted traps for every DEF class:
   - a contradiction
   - a typo needing `[sic]`
@@ -271,7 +271,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **TST-04**: Agent evals on the synthetic incident meet these thresholds: verbatim 100%, page accuracy 100%, names leaked 0, conclusions leaked 0. They also report conflicts surfaced and type accuracy, and include the incremental scenario. (§16)
 - [ ] **TST-05**: A regression benchmark on the bundled reference report runs in a scratch, git-ignored folder. It reports the numbers for quotes verifiable, page accuracy, coverage of the DEF-12 findings and conclusion leakage. Nothing from it is committed. (§16, §20 A3)
 - [ ] **TST-06**: GitHub Actions CI runs the core tests and lint on Linux (Python 3.11 and 3.14), plus a media job with ffmpeg, Tesseract and the faster-whisper `tiny` model. (§16, §20 A9)
-- [x] **TST-07**: Tests inject crashes into each transaction step and confirm the run resumes without corrupting state. (§12.5)
+- [ ] **TST-07**: Tests inject crashes into each transaction step and confirm the run resumes without corrupting state. (§12.5)
 - [ ] **TST-08**: v0.1.0 is released with the version tag pushed, after all phases are verified. (kickoff §11)
 
 ## v2 Requirements (deferred)
@@ -333,19 +333,19 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WS-01 | Phase 1 | Complete |
-| WS-02 | Phase 1 | Complete |
-| WS-03 | Phase 1 | Complete |
-| WS-04 | Phase 1 | Complete |
+| WS-01 | Phase 1 | Gaps Found |
+| WS-02 | Phase 1 | Gaps Found |
+| WS-03 | Phase 1 | Gaps Found |
+| WS-04 | Phase 1 | Gaps Found |
 | WS-05 | Phase 2 | Pending |
-| WS-06 | Phase 1 | Complete |
-| WS-07 | Phase 1 | Complete |
-| WS-08 | Phase 1 | Complete |
-| WS-09 | Phase 1 | Complete |
+| WS-06 | Phase 1 | Gaps Found |
+| WS-07 | Phase 1 | Gaps Found |
+| WS-08 | Phase 1 | Gaps Found |
+| WS-09 | Phase 1 | Gaps Found |
 | WS-10 | Phase 4 | Pending |
-| WS-11 | Phase 1 | Complete |
-| WS-12 | Phase 1 | Complete |
-| WS-13 | Phase 1 | Complete |
+| WS-11 | Phase 1 | Gaps Found |
+| WS-12 | Phase 1 | Gaps Found |
+| WS-13 | Phase 1 | Gaps Found |
 | INT-01 | Phase 2 | Pending |
 | INT-02 | Phase 2 | Pending |
 | INT-03 | Phase 2 | Pending |
@@ -426,14 +426,14 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | COV-01 | Phase 5 | Pending |
 | COV-02 | Phase 5 | Pending |
 | COV-03 | Phase 5 | Pending |
-| BLD-01 | Phase 1 | Complete |
-| BLD-02 | Phase 1 | Complete |
-| BLD-03 | Phase 1 | Complete |
+| BLD-01 | Phase 1 | Gaps Found |
+| BLD-02 | Phase 1 | Gaps Found |
+| BLD-03 | Phase 1 | Gaps Found |
 | BLD-04 | Phase 5 | Pending |
 | BLD-05 | Phase 5 | Pending |
 | BLD-06 | Phase 5 | Pending |
 | BLD-07 | Phase 5 | Pending |
-| BLD-08 | Phase 1 | Complete |
+| BLD-08 | Phase 1 | Gaps Found |
 | INC-01 | Phase 6 | Pending |
 | INC-02 | Phase 6 | Pending |
 | INC-03 | Phase 6 | Pending |
@@ -461,31 +461,31 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | WEB-01 | Phase 9 | Pending |
 | WEB-02 | Phase 9 | Pending |
 | WEB-03 | Phase 9 | Pending |
-| PKG-01 | Phase 1 | Complete |
+| PKG-01 | Phase 1 | Gaps Found |
 | PKG-02 | Phase 9 | Pending |
-| PKG-03 | Phase 1 | Complete |
+| PKG-03 | Phase 1 | Gaps Found |
 | PKG-04 | Phase 9 | Pending |
-| PKG-05 | Phase 1 | Complete |
-| PKG-06 | Phase 1 | Complete |
-| PKG-07 | Phase 1 | Complete |
-| PKG-08 | Phase 1 | Complete |
-| PKG-09 | Phase 1 | Complete |
+| PKG-05 | Phase 1 | Gaps Found |
+| PKG-06 | Phase 1 | Gaps Found |
+| PKG-07 | Phase 1 | Gaps Found |
+| PKG-08 | Phase 1 | Gaps Found |
+| PKG-09 | Phase 1 | Gaps Found |
 | PKG-10 | Phase 10 | Pending |
 | PKG-11 | Phase 1 | Pending |
 | DOC-01 | Phase 10 | Pending |
 | DOC-02 | Phase 6 | Pending |
 | DOC-03 | Phase 10 | Pending |
-| DOC-04 | Phase 1 | Complete |
-| DOC-05 | Phase 1 | Complete |
+| DOC-04 | Phase 1 | Gaps Found |
+| DOC-05 | Phase 1 | Gaps Found |
 | DOC-06 | Phase 5 | Pending |
 | DOC-07 | Phase 10 | Pending |
-| TST-01 | Phase 1 | Complete |
+| TST-01 | Phase 1 | Gaps Found |
 | TST-02 | Phase 2 | Pending |
 | TST-03 | Phase 5 | Pending |
 | TST-04 | Phase 10 | Pending |
 | TST-05 | Phase 5 | Pending |
 | TST-06 | Phase 10 | Pending |
-| TST-07 | Phase 1 | Complete |
+| TST-07 | Phase 1 | Gaps Found |
 | TST-08 | Phase 10 | Pending |
 
 **Coverage:**
