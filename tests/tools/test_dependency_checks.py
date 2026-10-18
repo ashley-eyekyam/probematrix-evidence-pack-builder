@@ -2,14 +2,17 @@
 
 import email.message
 import json
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
+import check_dependency_age as age
 import check_licences as lic
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ALLOWLIST = REPO_ROOT / "tools" / "licence-allowlist.json"
+EXCEPTIONS = REPO_ROOT / "plugin" / "security-exceptions.json"
 
 ALLOWED = [
     "MIT",
@@ -257,3 +260,274 @@ def test_unusable_allowlist_is_rejected(tmp_path, content, message):
 def test_main_exits_2_on_unusable_allowlist(tmp_path, capsys):
     assert lic.main(["--config", str(tmp_path / "missing.json")]) == 2
     assert "not found" in capsys.readouterr().err
+
+
+# --- Dependency age (two-week rule) -------------------------------------------------------
+
+NOW = datetime(2026, 10, 18, 12, 0, tzinfo=UTC)
+FOURTEEN_DAYS = timedelta(days=14)
+
+
+def exception_entry(package, version, **changes):
+    entry = {
+        "package": package,
+        "version": version,
+        "advisory": "GHSA-xxxx-yyyy-zzzz",
+        "reason": "Fixes a parser crash on crafted input; the fix is newer than the cutoff.",
+        "reviewed_by": "maintainer",
+        "reviewed_on": "2026-10-17",
+    }
+    entry.update(changes)
+    return entry
+
+
+def write_exceptions(tmp_path, entries, **top):
+    data = {"schema_version": 1, "description": "test", "exceptions": entries}
+    data.update(top)
+    path = tmp_path / "security-exceptions.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return path
+
+
+def test_upload_just_under_14_days_is_a_violation():
+    uploaded = NOW - (FOURTEEN_DAYS - timedelta(hours=1))  # 13 days 23 hours ago
+    report = age.evaluate([("newpkg", "2.0")], {("newpkg", "2.0"): uploaded}, [], NOW)
+    assert [(f.name, f.version) for f in report.violations] == [("newpkg", "2.0")]
+    assert report.violations[0].age_days == 13
+
+
+def test_upload_exactly_14_days_ago_passes():
+    uploaded = NOW - FOURTEEN_DAYS
+    report = age.evaluate([("oldpkg", "1.0")], {("oldpkg", "1.0"): uploaded}, [], NOW)
+    assert report.violations == []
+    assert report.stale == []
+
+
+def test_min_age_days_is_configurable():
+    uploaded = NOW - timedelta(days=3)
+    installed = [("pkg", "1.0")]
+    times = {("pkg", "1.0"): uploaded}
+    assert age.evaluate(installed, times, [], NOW, min_age_days=3).violations == []
+    assert len(age.evaluate(installed, times, [], NOW, min_age_days=4).violations) == 1
+
+
+def test_reviewed_exception_with_exact_version_is_not_a_violation():
+    uploaded = NOW - timedelta(days=2)
+    installed = [("Py_PDF", "6.21.1")]
+    times = {("py-pdf", "6.21.1"): uploaded}
+    report = age.evaluate(installed, times, [exception_entry("py.pdf", "6.21.1")], NOW)
+    assert report.violations == []
+    assert [(f.name, f.version) for f in report.excepted] == [("Py_PDF", "6.21.1")]
+
+
+def test_exception_for_another_version_does_not_cover_the_installed_one():
+    uploaded = NOW - timedelta(days=2)
+    installed = [("pypdf", "6.21.1")]
+    times = {("pypdf", "6.21.1"): uploaded}
+    report = age.evaluate(installed, times, [exception_entry("pypdf", "6.21.0")], NOW)
+    assert [(f.name, f.version) for f in report.violations] == [("pypdf", "6.21.1")]
+
+
+def test_exception_now_old_enough_is_stale_not_a_failure():
+    uploaded = NOW - timedelta(days=20)
+    installed = [("pypdf", "6.21.1")]
+    times = {("pypdf", "6.21.1"): uploaded}
+    report = age.evaluate(installed, times, [exception_entry("pypdf", "6.21.1")], NOW)
+    assert report.violations == []
+    assert [(f.name, f.version) for f in report.stale] == [("pypdf", "6.21.1")]
+    assert "can be removed" in report.stale[0].line("STALE")
+
+
+def test_missing_upload_time_is_a_violation():
+    report = age.evaluate([("localonly", "0.1")], {("localonly", "0.1"): None}, [], NOW)
+    assert [(f.name, f.version) for f in report.violations] == [("localonly", "0.1")]
+    assert report.violations[0].uploaded is None
+    assert "no upload time" in report.violations[0].line("VIOLATION")
+
+
+def test_pip_is_exempt_with_a_documented_reason():
+    assert "26.1" in age.EXEMPT["pip"]
+    report = age.evaluate([("pip", "26.2.1")], {("pip", "26.2.1"): NOW}, [], NOW)
+    assert report.violations == []
+    assert [name for name, _reason in report.exempt] == ["pip"]
+
+
+def test_violations_and_stale_entries_are_sorted_by_normalised_name():
+    new = NOW - timedelta(days=1)
+    old = NOW - timedelta(days=30)
+    installed = [("Zeta", "1"), ("alpha_pkg", "1"), ("Beta", "1"), ("delta", "1"), ("Gamma", "1")]
+    times = {
+        ("zeta", "1"): new,
+        ("alpha-pkg", "1"): new,
+        ("beta", "1"): new,
+        ("delta", "1"): old,
+        ("gamma", "1"): old,
+    }
+    exceptions = [exception_entry("gamma", "1"), exception_entry("delta", "1")]
+    report = age.evaluate(installed, times, exceptions, NOW)
+    assert [f.name for f in report.violations] == ["alpha_pkg", "Beta", "Zeta"]
+    assert [f.name for f in report.stale] == ["delta", "Gamma"]
+
+
+def test_violation_line_format():
+    uploaded = datetime(2026, 10, 15, 9, 30, tzinfo=UTC)
+    report = age.evaluate([("newpkg", "2.0")], {("newpkg", "2.0"): uploaded}, [], NOW)
+    assert report.violations[0].line("VIOLATION") == (
+        "VIOLATION newpkg 2.0: uploaded 2026-10-15, 3 days ago"
+    )
+
+
+def test_normalise_follows_pep_503():
+    assert age.normalise("Foo.Bar__baz-QUX") == "foo-bar-baz-qux"
+
+
+def test_parse_upload_time_takes_the_earliest_file():
+    payload = {
+        "urls": [
+            {"upload_time_iso_8601": "2026-10-09T08:00:00.123456Z"},
+            {"upload_time_iso_8601": "2026-10-08T23:59:59.000001Z"},
+        ]
+    }
+    assert age.parse_upload_time(payload) == datetime(2026, 10, 8, 23, 59, 59, 1, tzinfo=UTC)
+    assert age.parse_upload_time({"urls": []}) is None
+
+
+# --- The exceptions file ------------------------------------------------------------------
+
+
+def test_shipped_exceptions_file_is_empty_and_valid():
+    data = json.loads(EXCEPTIONS.read_text(encoding="utf-8"))
+    assert data["schema_version"] == 1
+    assert data["exceptions"] == []
+    assert "reviewed_by" in data["description"]
+    assert age.load_exceptions(EXCEPTIONS) == []
+
+
+def test_load_exceptions_returns_valid_entries(tmp_path):
+    entry = exception_entry("pypdf", "6.21.1")
+    assert age.load_exceptions(write_exceptions(tmp_path, [entry])) == [entry]
+
+
+@pytest.mark.parametrize("missing", ["package", "version", "advisory", "reason", "reviewed_by"])
+def test_load_exceptions_rejects_a_missing_field(tmp_path, missing):
+    entry = exception_entry("pypdf", "6.21.1")
+    del entry[missing]
+    with pytest.raises(ValueError, match=missing):
+        age.load_exceptions(write_exceptions(tmp_path, [entry]))
+
+
+@pytest.mark.parametrize("field", ["advisory", "reviewed_on"])
+def test_load_exceptions_rejects_an_empty_field(tmp_path, field):
+    entry = exception_entry("pypdf", "6.21.1", **{field: "  "})
+    with pytest.raises(ValueError, match=field):
+        age.load_exceptions(write_exceptions(tmp_path, [entry]))
+
+
+def test_load_exceptions_rejects_a_bad_review_date(tmp_path):
+    entry = exception_entry("pypdf", "6.21.1", reviewed_on="17/10/2026")
+    with pytest.raises(ValueError, match="reviewed_on"):
+        age.load_exceptions(write_exceptions(tmp_path, [entry]))
+
+
+def test_load_exceptions_rejects_a_missing_file(tmp_path):
+    with pytest.raises(ValueError, match="not found"):
+        age.load_exceptions(tmp_path / "absent.json")
+
+
+def test_load_exceptions_rejects_invalid_json(tmp_path):
+    path = tmp_path / "bad.json"
+    path.write_text("{oops", encoding="utf-8")
+    with pytest.raises(ValueError, match="not valid JSON"):
+        age.load_exceptions(path)
+
+
+def test_load_exceptions_rejects_a_wrong_schema_version(tmp_path):
+    with pytest.raises(ValueError, match="schema_version"):
+        age.load_exceptions(write_exceptions(tmp_path, [], schema_version=2))
+
+
+# --- The command line ---------------------------------------------------------------------
+
+
+@pytest.fixture
+def offline_pypi(monkeypatch):
+    """Canned upload times instead of PyPI; any lookup outside the table fails loudly."""
+    table = {}
+
+    def fetch(name, version, timeout=20.0):
+        return table[(age.normalise(name), version)]
+
+    monkeypatch.setattr(age, "fetch_upload_time", fetch)
+    return table
+
+
+def test_pins_prints_one_line_per_exception_without_network(tmp_path, capsys, monkeypatch):
+    def no_fetch(*args, **kwargs):
+        raise AssertionError("--pins must not contact PyPI")
+
+    monkeypatch.setattr(age, "fetch_upload_time", no_fetch)
+    path = write_exceptions(
+        tmp_path, [exception_entry("Zeta", "2.0"), exception_entry("alpha", "1.5")]
+    )
+    assert age.main(["--pins", "--exceptions", str(path)]) == 0
+    assert capsys.readouterr().out == "alpha==1.5\nZeta==2.0\n"
+
+
+def test_pins_with_the_shipped_empty_file_prints_nothing(capsys):
+    assert age.main(["--pins"]) == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_main_clean_run_with_empty_exceptions_exits_0(tmp_path, capsys, monkeypatch, offline_pypi):
+    monkeypatch.setattr(age, "installed_distributions", lambda: [("oldpkg", "1.0")])
+    offline_pypi[("oldpkg", "1.0")] = datetime.now(UTC) - timedelta(days=100)
+    assert age.main(["--exceptions", str(write_exceptions(tmp_path, []))]) == 0
+    assert "VIOLATION" not in capsys.readouterr().out
+
+
+def test_main_reports_violations_and_stale_entries(tmp_path, capsys, monkeypatch, offline_pypi):
+    monkeypatch.setattr(
+        age, "installed_distributions", lambda: [("newpkg", "2.0"), ("fixed", "1.1")]
+    )
+    offline_pypi[("newpkg", "2.0")] = datetime.now(UTC) - timedelta(days=1)
+    offline_pypi[("fixed", "1.1")] = datetime.now(UTC) - timedelta(days=40)
+    path = write_exceptions(tmp_path, [exception_entry("fixed", "1.1")])
+    assert age.main(["--exceptions", str(path)]) == 1
+    lines = capsys.readouterr().out.splitlines()
+    assert any(line.startswith("VIOLATION newpkg 2.0: uploaded ") for line in lines)
+    assert any(line.startswith("STALE fixed 1.1: ") for line in lines)
+
+
+def test_main_stale_only_does_not_fail(tmp_path, capsys, monkeypatch, offline_pypi):
+    monkeypatch.setattr(age, "installed_distributions", lambda: [("fixed", "1.1")])
+    offline_pypi[("fixed", "1.1")] = datetime.now(UTC) - timedelta(days=40)
+    path = write_exceptions(tmp_path, [exception_entry("fixed", "1.1")])
+    assert age.main(["--exceptions", str(path)]) == 0
+    assert "STALE fixed 1.1" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("content", [None, "{oops"])
+def test_main_exits_2_on_unusable_exceptions_file(tmp_path, capsys, content):
+    path = tmp_path / "exceptions.json"
+    if content is not None:
+        path.write_text(content, encoding="utf-8")
+    assert age.main(["--exceptions", str(path)]) == 2
+    assert age.main(["--pins", "--exceptions", str(path)]) == 2
+    assert "security exceptions" in capsys.readouterr().err
+
+
+def test_main_exits_2_when_pypi_cannot_be_reached(tmp_path, capsys, monkeypatch):
+    def unreachable(name, version, timeout=20.0):
+        raise age.PyPIUnavailable("connection refused")
+
+    monkeypatch.setattr(age, "fetch_upload_time", unreachable)
+    monkeypatch.setattr(age, "installed_distributions", lambda: [("pkg", "1.0")])
+    assert age.main(["--exceptions", str(write_exceptions(tmp_path, []))]) == 2
+    assert "PyPI" in capsys.readouterr().err
+
+
+def test_fetch_upload_time_goes_through_the_refused_socket_layer():
+    # The autouse guard in tests/conftest.py refuses the connection, so pytest never
+    # reaches PyPI even if a test forgets to stub the lookup.
+    with pytest.raises(RuntimeError, match="network access is not allowed in tests"):
+        age.fetch_upload_time("pypdf", "6.19.0")
