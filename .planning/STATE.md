@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-10-18T09:53:18.759Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-10-18T10:00:35.135Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: ce1358ef5bf9c0125ca0b885076381bba73564de
+state_head: 4d6b739d4ffa904292e07582cbdb08da1c1082ab
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 6 of 16
+Plan: 7 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P03 | 8 min | 3 tasks | 10 files |
 | Phase 01 P04 | 10 min | 3 tasks | 10 files |
 | Phase 01 P05 | 7 min | 3 tasks | 9 files |
+| Phase 01 P06 | 5 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Licence check: a License field counts only as a known alias or a parseable SPDX expression without placeholder ids; free text falls through to classifiers
 - [Phase 01]: Dependency age: any PyPI lookup still failing after one retry exits 2 (age unknown); a 404 (not on PyPI) is a violation
 - [Phase 01]: TDD RED for a not-yet-existing tool commits an inert interface skeleton so RED fails on assertions, not on import
+- [Phase 01]: Codex installer replaces only folders carrying its .epb-installed marker; a foreign same-name folder stops the install with exit 1 before any write
+- [Phase 01]: Plugin manifests carry epb.__version__; a parity test fails on any name or version drift across marketplace, Claude and Codex manifests
+- [Phase 01]: plugin/AGENTS.md is proven clean-room by test: no eight-word run shared with the reference report and no honorific-plus-name
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T09:53:18.733Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-10-18T10:00:35.107Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
