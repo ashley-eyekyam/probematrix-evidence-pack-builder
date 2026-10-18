@@ -11,16 +11,16 @@
 ### Workspace and state (WS)
 
 - [x] **WS-01**: The user can run `epb init` in any folder to create `inputs/`, `outputs/`, `INDEX.md` and `.epb/` with `case.yaml` (slug, title, ID prefix, timezone, plugin version). (§6)
-- [ ] **WS-02**: `epb scan` fingerprints every input:
+- [x] **WS-02**: `epb scan` fingerprints every input:
   - It records SHA-256, size, MIME type and mtime for each file, walking `inputs/` recursively.
   - It assigns stable `S001…` IDs.
   - It ignores OS junk files and lists them as ignored. (§7.1)
-- [ ] **WS-03**: `scan` detects and reports each change of state:
+- [x] **WS-03**: `scan` detects and reports each change of state:
   - **New version:** a known path with changed content becomes `S004v2`.
   - **Rename:** a known hash at a new path is treated as a rename.
   - **Duplicate:** identical content at two paths becomes one source with two paths.
   - **Removed:** a source missing from the folder is marked `removed from folder`. (§7.1)
-- [ ] **WS-04**: `scan` pairs `<file>.note.md` and `<file>.note.yaml` sidecars with their input, and hashes them as inputs too. (§7.2, research PF-01)
+- [x] **WS-04**: `scan` pairs `<file>.note.md` and `<file>.note.yaml` sidecars with their input, and hashes them as inputs too. (§7.2, research PF-01)
 - [ ] **WS-05**: Archives (`.zip`, plus `.7z` when a `7z` binary exists) and email attachments are registered as child sources with a parent link. Zip-slip paths are refused. (§7.1, PF-11)
 - [x] **WS-06**: All writes to `.epb/` are atomic (temp file plus replace, with a retry on Windows). They are grouped in journalled transactions, with `state.json` written last. A crash at any point resumes cleanly. (§12.5, PF-06)
 - [x] **WS-07**: A lock prevents two mutating runs at once. Mutating commands wait (default 60 s) before giving up. Read-only commands take no lock. (§12.5)
@@ -271,7 +271,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **TST-04**: Agent evals on the synthetic incident meet these thresholds: verbatim 100%, page accuracy 100%, names leaked 0, conclusions leaked 0. They also report conflicts surfaced and type accuracy, and include the incremental scenario. (§16)
 - [ ] **TST-05**: A regression benchmark on the bundled reference report runs in a scratch, git-ignored folder. It reports the numbers for quotes verifiable, page accuracy, coverage of the DEF-12 findings and conclusion leakage. Nothing from it is committed. (§16, §20 A3)
 - [ ] **TST-06**: GitHub Actions CI runs the core tests and lint on Linux (Python 3.11 and 3.14), plus a media job with ffmpeg, Tesseract and the faster-whisper `tiny` model. (§16, §20 A9)
-- [ ] **TST-07**: Tests inject crashes into each transaction step and confirm the run resumes without corrupting state. (§12.5)
+- [x] **TST-07**: Tests inject crashes into each transaction step and confirm the run resumes without corrupting state. (§12.5)
 - [ ] **TST-08**: v0.1.0 is released with the version tag pushed, after all phases are verified. (kickoff §11)
 
 ## v2 Requirements (deferred)
@@ -334,9 +334,9 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | WS-01 | Phase 1 | Complete |
-| WS-02 | Phase 1 | Pending |
-| WS-03 | Phase 1 | Pending |
-| WS-04 | Phase 1 | Pending |
+| WS-02 | Phase 1 | Complete |
+| WS-03 | Phase 1 | Complete |
+| WS-04 | Phase 1 | Complete |
 | WS-05 | Phase 2 | Pending |
 | WS-06 | Phase 1 | Complete |
 | WS-07 | Phase 1 | Complete |
@@ -485,7 +485,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | TST-04 | Phase 10 | Pending |
 | TST-05 | Phase 5 | Pending |
 | TST-06 | Phase 10 | Pending |
-| TST-07 | Phase 1 | Pending |
+| TST-07 | Phase 1 | Complete |
 | TST-08 | Phase 10 | Pending |
 
 **Coverage:**

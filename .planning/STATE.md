@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-13-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:53:14.863Z"
+stopped_at: Completed 01-14-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T11:08:11.550Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 33cdf7d29125d12c50cf932dc33b4b9d0cf1955a
+state_head: 0541ccbcefa0e227880dc5f0c1cbbcf553dc7c83
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 14 of 16
+Plan: 15 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P11 | 10min | 3 tasks | 13 files |
 | Phase 01 P12 | 9min | 3 tasks | 10 files |
 | Phase 01 P13 | 13min | 3 tasks | 1 files |
+| Phase 01 P14 | 11min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,12 @@ Recent decisions affecting current work:
 - [Phase 01]: ODF is recognised from the stored 'mimetype' member in the first local header; the value is accepted only if it matches application/vnd.oasis.opendocument.<x>, else the file is plain ZIP
 - [Phase 01]: Source mime fields are pattern-checked (lower-case type/subtype, underscore allowed), so text from a hostile file can never reach a record unvalidated
 - [Phase 01]: INPUT_REMOVED is warned for each source removed from the folder; LINK_IGNORED for each link; MIME_MISMATCH in plain words naming both types
+- [Phase 01]: Two files whose names differ only in Unicode normalisation (one NFC key) stop the scan with BAD_ARGUMENT (exit 2) and change nothing, rather than silently keeping one of them; the message asks the user to rename one
+- [Phase 01]: Pairing reflects the folder now
+- [Phase 01]: A source_kind other than null or sidecar (set by a later phase) is never overwritten by pairing; a sidecar renamed to an ordinary name goes back to null
+- [Phase 01]: When one note's content sits at several sidecar paths, every target lists it and sidecar_of is the target of its first path in sorted order; run and envelope sidecars hold one {src_id, target} entry per pair, so run.schema.json needed no widening
+- [Phase 01]: SIDECAR_ORPHAN is warned on every scan while the orphan exists (like LINK_IGNORED); INPUT_REMOVED only on the scan that marks the source removed
+- [Phase 01]: When a removed source's path still exists but holds other content (content wins), the change line and INPUT_REMOVED say the earlier content is gone rather than that the file is gone
 
 ### Pending Todos
 
@@ -169,6 +176,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:53:14.828Z
-Stopped at: Completed 01-13-PLAN.md (merged from worktree)
+Last session: 2026-10-18T11:08:11.515Z
+Stopped at: Completed 01-14-PLAN.md (merged from worktree)
 Resume file: None
