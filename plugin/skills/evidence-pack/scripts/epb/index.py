@@ -216,7 +216,7 @@ def _tag_range(write) -> str:
 def render_import_line(workbook) -> str:
     """The task-list line the user ticks once a workbook is imported into ProbeMatrix."""
     mark = "x" if workbook.get("status") == "imported" else " "
-    return f"- [{mark}] Imported: {workbook['file']}"
+    return f"- [{mark}] Imported: {_inline(workbook['file'])}"
 
 
 # --- the six providers ------------------------------------------------------------------------
@@ -224,27 +224,31 @@ def render_import_line(workbook) -> str:
 
 def case_header(inputs: IndexInputs) -> str:
     case, state = inputs.case, inputs.state
-    prefix = case.get("id_prefix", "")
+    prefix = _inline(case.get("id_prefix", ""))
     runs = sorted(inputs.runs, key=lambda run: _run_number(run.get("run")))
     if runs:
         last = runs[-1]
         last_run = (
-            f"Run {last.get('run')} · {_when(last.get('finished_at'))} · {last.get('command')}"
+            f"Run {_inline(last.get('run'))} · {_when(last.get('finished_at'))} · "
+            f"{_inline(last.get('command'))}"
         )
     else:
         last_run = NONE_YET
     workbooks = state.get("workbooks") or []
     if workbooks:
         latest = workbooks[-1]
-        pack = f"{latest.get('number')} ({latest.get('file')}, {_workbook_status(latest)})"
+        pack = (
+            f"{_inline(latest.get('number'))} ({_inline(latest.get('file'))}, "
+            f"{_inline(_workbook_status(latest))})"
+        )
     else:
         pack = NONE_YET
     lines = [
-        f"- Title: {case.get('title', '')}",
-        f"- Slug: {case.get('slug', '')}",
+        f"- Title: {_inline(case.get('title', ''))}",
+        f"- Slug: {_inline(case.get('slug', ''))}",
         f"- ID prefix: {prefix} (evidence IDs look like EVD-{prefix}-001)",
-        f"- Timezone: {case.get('timezone', '')}",
-        f"- Plugin version: {state.get('plugin_version', '')}",
+        f"- Timezone: {_inline(case.get('timezone', ''))}",
+        f"- Plugin version: {_inline(state.get('plugin_version', ''))}",
         f"- Last run: {last_run}",
         f"- Current pack version: {pack}",
     ]
@@ -372,8 +376,8 @@ def run_history(inputs: IndexInputs) -> str:
     lines = []
     for run in sorted(inputs.runs, key=lambda item: _run_number(item.get("run"))):
         lines.append(
-            f"- Run {run.get('run')} · {_when(run.get('finished_at'))} · "
-            f"{run.get('command')} · {run.get('summary', '')}"
+            f"- Run {_inline(run.get('run'))} · {_when(run.get('finished_at'))} · "
+            f"{_inline(run.get('command'))} · {_inline(run.get('summary', ''))}"
         )
     return "\n".join(lines)
 
@@ -391,7 +395,7 @@ SECTION_TITLES = tuple(title for title, _ in PROVIDERS)
 
 def render_index(inputs: IndexInputs) -> str:
     """The full text of ``INDEX.md``."""
-    lines = [f"# {inputs.case.get('title', '')}", "", NOTE]
+    lines = [f"# {_inline(inputs.case.get('title', ''))}", "", NOTE]
     for title, provider in PROVIDERS:
         body = provider(inputs).strip("\n") or NONE_YET
         lines.extend(["", f"## {title}", "", body])
