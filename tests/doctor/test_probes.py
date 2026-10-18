@@ -389,7 +389,8 @@ def test_render_ready_lines():
     assert (
         "- 7-Zip — ready: .7z archives (support arrives in a later version of this plugin)" in text
     )
-    assert "/home/tester" not in text
+    # Folders are shown with ~; commands keep absolute paths so they can be copied.
+    assert "/home/tester" not in text.split("Optional, not installed", 1)[0]
 
 
 def test_render_optional_line_uses_this_os_only():
@@ -412,6 +413,23 @@ def test_render_verbose_lists_all_three_oses_and_versions():
     assert "3.12.4" in text
     assert "26.00" in text
     assert "0.0.9" in text
+
+
+def test_render_extra_install_command_only_when_verbose():
+    short = report.render_human(_report())
+    assert "- email extra — would enable Outlook .msg emails" in short
+    assert "Licence: GPL-3.0." in short
+    assert "ask the agent to install the email extra" in short
+    assert "pip install" not in short
+    assert "-m pip install --uploaded-prior-to P14D -r /p/requirements-email.txt" in (
+        report.render_human(_report(), verbose=True)
+    )
+
+
+def test_command_text_quotes_parts_with_spaces():
+    assert report.command_text(["/a b/python", "/p/epb.py", "doctor"]) == (
+        '"/a b/python" /p/epb.py doctor'
+    )
 
 
 def test_render_reads_os_from_report_not_from_this_machine():
