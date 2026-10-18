@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-12-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:47:21.836Z"
+stopped_at: Completed 01-13-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:53:14.863Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: c8b443a013ebbfa6cd9b5fbe38fc5afdbfe895bd
+state_head: 33cdf7d29125d12c50cf932dc33b4b9d0cf1955a
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 13 of 16
+Plan: 14 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P10 | 7min | 2 tasks | 7 files |
 | Phase 01 P11 | 10min | 3 tasks | 13 files |
 | Phase 01 P12 | 9min | 3 tasks | 10 files |
+| Phase 01 P13 | 13min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,14 @@ Recent decisions affecting current work:
 - [Phase 01]: The upgrade reads case.yaml and source records raw (no schema check) because they follow the older version's schemas; the upgraded versions are validated when staged
 - [Phase 01]: The upgrade also stamps state.plugin_version with the running plugin and records the run summary 'Case folder upgraded from workspace version <a> to <b>.'
 - [Phase 01]: LOCK_TIMEOUT data is {lock
+- [Phase 01]: classify takes keyword arguments run_id (the number the scan's run would get) and source_counter (state counters.source), so IDs come from the counter and are never reused even past deleted records
+- [Phase 01]: A touched file whose content is unchanged keeps its previous fingerprint (mtime included), so touching a file is not a change and creates no run
+- [Phase 01]: A removed source's last known paths (its current versions entry) count as 'had this path' for the new-version rule, so a file that reappears with new content becomes S00Nv2
+- [Phase 01]: renamed pairs the source's vanished paths with its new paths in sorted order; any extra new paths are reported as duplicates
+- [Phase 01]: AMBIGUOUS_FAMILIES also maps MP4 content to .mov and .m4a, and a container type (ZIP, OLE2, MP4, Matroska, Ogg) never mismatches a name outside the extension table (.epub, .3gp, .opus)
+- [Phase 01]: ODF is recognised from the stored 'mimetype' member in the first local header; the value is accepted only if it matches application/vnd.oasis.opendocument.<x>, else the file is plain ZIP
+- [Phase 01]: Source mime fields are pattern-checked (lower-case type/subtype, underscore allowed), so text from a hostile file can never reach a record unvalidated
+- [Phase 01]: INPUT_REMOVED is warned for each source removed from the folder; LINK_IGNORED for each link; MIME_MISMATCH in plain words naming both types
 
 ### Pending Todos
 
@@ -160,6 +169,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:47:21.801Z
-Stopped at: Completed 01-12-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:53:14.828Z
+Stopped at: Completed 01-13-PLAN.md (merged from worktree)
 Resume file: None
