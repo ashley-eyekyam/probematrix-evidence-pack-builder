@@ -11,12 +11,19 @@ sorted by sheet order, row, column and code, so two runs over the same input lis
 identically.
 """
 
+import json
+import posixpath
 import re
+import zipfile
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
+from xml.etree.ElementTree import ParseError
 
 import openpyxl
+from defusedxml import DefusedXmlException
+from defusedxml import ElementTree as SafeET
 from openpyxl.utils import get_column_letter
 
 from epb.formats import probematrix_v2 as fmt
@@ -88,11 +95,60 @@ def _is_blank(value) -> bool:
 # ---------------------------------------------------------------------------
 
 
+_BAD_CHAR = re.compile("[\ufffe\uffff\ud800-\udfff]")
+_DATE = re.compile(r"^\d{4}(-\d{2}(-\d{2})?)?$")
+_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?$")
+_PAIRS = {")": "(", "]": "[", "}": "{"}
+
+
+def _where(cell: str, column: str | None) -> str:
+    return f"{column} ({cell})" if column else cell
+
+
+def _text_findings(text: str, sheet: str | None, cell: str, column: str | None) -> list[Finding]:
+    """Length and character rules for one piece of cell text."""
+    out: list[Finding] = []
+    where = _where(cell, column)
+    if len(text) > fmt.MAX_CELL_CHARS:
+        out.append(
+            Finding(
+                "CELL_TOO_LONG",
+                sheet,
+                cell,
+                column,
+                f"{where} has {len(text)} characters; a workbook cell holds at most "
+                f"{fmt.MAX_CELL_CHARS}.",
+            )
+        )
+    elif len(text) == fmt.MAX_CELL_CHARS:
+        out.append(
+            Finding(
+                "CELL_PROBABLY_TRUNCATED",
+                sheet,
+                cell,
+                column,
+                f"{where} has exactly {fmt.MAX_CELL_CHARS} characters, the most a cell can "
+                "hold, so its text was probably cut short.",
+            )
+        )
+    if _BAD_CHAR.search(text):
+        out.append(
+            Finding(
+                "CELL_BAD_CHAR",
+                sheet,
+                cell,
+                column,
+                f"{where} contains a character a workbook cannot hold (U+FFFE, U+FFFF or a "
+                "lone surrogate).",
+            )
+        )
+    return out
+
+
 def _cell_findings(value, sheet: str, cell: str, column: str | None) -> list[Finding]:
     """Rules that apply to every cell on every sheet."""
     if value is None:
         return []
-    where = f"{column} ({cell})" if column else cell
     if not isinstance(value, str):
         return [
             Finding(
@@ -100,10 +156,11 @@ def _cell_findings(value, sheet: str, cell: str, column: str | None) -> list[Fin
                 sheet,
                 cell,
                 column,
-                f"{where} holds a {type(value).__name__} value; every cell must be text.",
+                f"{_where(cell, column)} holds a {type(value).__name__} value; every cell "
+                "must be text.",
             )
         ]
-    return []
+    return _text_findings(value, sheet, cell, column)
 
 
 def _exact_enum(value, allowed: tuple, code: str, sheet, cell, column, *, blank_ok: bool):
@@ -111,7 +168,13 @@ def _exact_enum(value, allowed: tuple, code: str, sheet, cell, column, *, blank_
         if blank_ok:
             return []
         return [
-            Finding(code, sheet, cell, column, f"{column} ({cell}) is blank; use one of {allowed}.")
+            Finding(
+                code,
+                sheet,
+                cell,
+                column,
+                f"{column} ({cell}) is blank; it must be exactly one of {', '.join(allowed)}.",
+            )
         ]
     if not isinstance(value, str) or value in allowed:
         return []
@@ -158,7 +221,141 @@ def _row_findings(row: Mapping, row_number: int, columns: Mapping[str, int]) -> 
         out += _exact_enum(
             row.get(header), allowed, "ENUM_INVALID", sheet, ref(header), header, blank_ok=False
         )
+    for header, allowed, blank_ok in (
+        ("QA Status", fmt.QA_STATUSES, True),
+        ("Retention Category", fmt.RETENTION_CATEGORIES, True),
+        ("Integrity Verified", fmt.INTEGRITY_VALUES, False),
+    ):
+        out += _exact_enum(
+            row.get(header), allowed, "ENUM_INVALID", sheet, ref(header), header, blank_ok=blank_ok
+        )
+
+    date = row.get("Collection Date")
+    if isinstance(date, str) and date != "" and not _DATE.match(date):
+        cell = ref("Collection Date")
+        out.append(
+            Finding(
+                "DATE_PRECISION",
+                sheet,
+                cell,
+                "Collection Date",
+                f"Collection Date ({cell}) is {date!r}; write YYYY, YYYY-MM or YYYY-MM-DD, "
+                "or leave it blank.",
+            )
+        )
+
+    header = "Chain of Custody (JSON)"
+    out += _custody_findings(row.get(header), sheet, ref(header), header)
+
+    for header in fmt.LIST_COLUMNS:
+        value = row.get(header)
+        if isinstance(value, str):
+            out += _list_findings(value, sheet, ref(header), header)
     return out
+
+
+def _custody_findings(value, sheet: str, cell: str, column: str) -> list[Finding]:
+    """Chain of Custody must be a JSON array of ChainOfCustodyEntry objects."""
+    if value is not None and not isinstance(value, str):
+        return []  # CELL_NOT_TEXT already covers it
+    where = _where(cell, column)
+
+    def bad_json(reason: str) -> list[Finding]:
+        return [Finding("CUSTODY_JSON", sheet, cell, column, f"{where} {reason}")]
+
+    if _is_blank(value):
+        return bad_json("is blank; write a JSON array, [] when there is no custody record.")
+    try:
+        entries = json.loads(value)
+    except ValueError:
+        return bad_json("is not valid JSON.")
+    if not isinstance(entries, list) or not all(isinstance(e, dict) for e in entries):
+        return bad_json("must be a JSON array of objects.")
+
+    problems: list[str] = []
+    for number, entry in enumerate(entries, start=1):
+        for key in fmt.CUSTODY_REQUIRED_KEYS:
+            if key not in entry:
+                problems.append(f"entry {number}: {key} is missing")
+            elif not isinstance(entry[key], str) or entry[key].strip() == "":
+                problems.append(f"entry {number}: {key} must be non-empty text")
+        timestamp = entry.get("timestamp")
+        if isinstance(timestamp, str) and timestamp.strip() and not _iso_datetime(timestamp):
+            problems.append(f"entry {number}: timestamp {timestamp!r} is not an ISO 8601 date-time")
+        for key, item in entry.items():
+            if key in fmt.CUSTODY_REQUIRED_KEYS:
+                continue
+            expected = fmt.CUSTODY_OPTIONAL_KEYS.get(key)
+            if expected is None:
+                problems.append(f"entry {number}: {key} is not a ChainOfCustodyEntry key")
+            elif type(item) is not expected:
+                kind = "true or false" if expected is bool else "text"
+                problems.append(f"entry {number}: {key} must be {kind}")
+            elif key == "condition_on_receipt" and item not in fmt.CUSTODY_CONDITIONS:
+                problems.append(
+                    f"entry {number}: condition_on_receipt {item!r} must be one of "
+                    f"{', '.join(fmt.CUSTODY_CONDITIONS)}"
+                )
+            elif key == "action_type" and item not in fmt.CUSTODY_ACTIONS:
+                problems.append(
+                    f"entry {number}: action_type {item!r} must be one of "
+                    f"{', '.join(fmt.CUSTODY_ACTIONS)}"
+                )
+    if not problems:
+        return []
+    return [Finding("CUSTODY_ENTRY", sheet, cell, column, f"{where}: " + "; ".join(problems) + ".")]
+
+
+def _iso_datetime(text: str) -> bool:
+    if not _TIMESTAMP.match(text):
+        return False
+    try:
+        datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
+
+
+def _balanced(text: str) -> bool:
+    stack: list[str] = []
+    for ch in text:
+        if ch in "([{":
+            stack.append(ch)
+        elif ch in _PAIRS and (not stack or stack.pop() != _PAIRS[ch]):
+            return False
+    return not stack
+
+
+def _list_findings(text: str, sheet: str, cell: str, column: str) -> list[Finding]:
+    """DEF-14 structural check: the importer's comma split must give the intended entries."""
+    if text == "":
+        return []
+    where = _where(cell, column)
+    problems: list[tuple[str, str]] = []
+    if text != text.strip():
+        problems.append(("LIST_CELL_WHITESPACE", "starts or ends with whitespace"))
+    if ";" in text:
+        problems.append(
+            ("LIST_SEMICOLON", "contains ';', which ProbeMatrix keeps inside a single entry")
+        )
+    raw = text.split(",")
+    if any(not part.startswith(" ") or part.startswith("  ") for part in raw[1:]):
+        problems.append(
+            ("LIST_SEPARATOR", f"must separate entries with exactly {fmt.LIST_SEPARATOR!r}")
+        )
+    fragments = [part.strip() for part in raw]  # the importer's split and trim
+    if any(fragment == "" for fragment in fragments):
+        problems.append(("LIST_EMPTY_FRAGMENT", "has an empty entry"))
+    if any(not _balanced(fragment) for fragment in fragments):
+        problems.append(
+            (
+                "LIST_FRAGMENT_UNBALANCED",
+                "has an entry with unbalanced brackets, so a comma inside one entry splits it",
+            )
+        )
+    if len(set(fragments)) != len(fragments):
+        problems.append(("LIST_DUPLICATE", "repeats an entry"))
+    return [Finding(code, sheet, cell, column, f"{where} {reason}.") for code, reason in problems]
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +379,17 @@ def validate_rows(metadata, rows) -> list[Finding]:
     for row_number, value in meta_values:
         label = fmt.METADATA_LABELS[row_number - 1]
         findings += _cell_findings(value, fmt.SHEET_METADATA, f"B{row_number}", label)
+    if metadata.total_attachments != "0":
+        findings.append(
+            Finding(
+                "METADATA_ATTACHMENTS",
+                fmt.SHEET_METADATA,
+                "B6",
+                fmt.METADATA_LABELS[5],
+                f"Total Attachments is {metadata.total_attachments!r}; packs carry no "
+                "attachments, so it must be '0'.",
+            )
+        )
 
     columns = {header: index + 1 for index, header in enumerate(fmt.EVIDENCE_HEADERS)}
     for index, row in enumerate(rows):
@@ -393,23 +601,126 @@ def _check_attachments(grid: list[tuple]) -> list[Finding]:
     return out
 
 
+_MAIN = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+_DOC_REL = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+_PKG_REL = "{http://schemas.openxmlformats.org/package/2006/relationships}"
+_TEXT_TYPES = frozenset({"inlineStr", "s", "str"})
+
+
+class _Unreadable(Exception):
+    """The file is not a readable workbook."""
+
+
+def _part_name(target: str) -> str:
+    if target.startswith("/"):
+        return target.lstrip("/")
+    return posixpath.normpath(posixpath.join("xl", target))
+
+
+def _rich_text(element) -> str:
+    """Text of a shared-string item or inline string: its <t>, or its runs' <t>s."""
+    pieces = [element.find(f"{_MAIN}t")] + element.findall(f"{_MAIN}r/{_MAIN}t")
+    return "".join(piece.text or "" for piece in pieces if piece is not None)
+
+
+def _raw_findings(path: Path) -> list[Finding]:
+    """Scan the sheet XML itself: no formulas, only text cells, text length limits."""
+    out: list[Finding] = []
+    try:
+        with zipfile.ZipFile(path) as archive:
+
+            def parse(part: str):
+                return SafeET.fromstring(archive.read(part))
+
+            workbook = parse("xl/workbook.xml")
+            rels = parse("xl/_rels/workbook.xml.rels")
+            targets = {
+                rel.get("Id"): (rel.get("Type", ""), _part_name(rel.get("Target", "")))
+                for rel in rels.iter(f"{_PKG_REL}Relationship")
+            }
+            shared_parts = [
+                part for kind, part in targets.values() if kind.endswith("/sharedStrings")
+            ]
+            shared: list[str] = []
+            if shared_parts:
+                shared = [_rich_text(si) for si in parse(shared_parts[0]).iter(f"{_MAIN}si")]
+
+            for sheet in workbook.iter(f"{_MAIN}sheet"):
+                name = sheet.get("name")
+                root = parse(targets[sheet.get(f"{_DOC_REL}id")][1])
+                for cell in root.iter(f"{_MAIN}c"):
+                    ref = cell.get("r")
+                    kind = cell.get("t")
+                    value = cell.find(f"{_MAIN}v")
+                    if cell.find(f"{_MAIN}f") is not None:
+                        out.append(
+                            Finding(
+                                "CELL_FORMULA",
+                                name,
+                                ref,
+                                None,
+                                f"{ref} is a formula; every cell must be plain text.",
+                            )
+                        )
+                        continue
+                    if kind not in _TEXT_TYPES:
+                        if kind is None and value is None:
+                            continue  # a styled empty cell
+                        out.append(
+                            Finding(
+                                "CELL_NOT_TEXT",
+                                name,
+                                ref,
+                                None,
+                                f"{ref} is stored as type {kind or 'n'!r}, not text.",
+                            )
+                        )
+                        continue
+                    if kind == "inlineStr":
+                        inline = cell.find(f"{_MAIN}is")
+                        text = _rich_text(inline) if inline is not None else ""
+                    elif kind == "s":
+                        text = shared[int(value.text)] if value is not None else ""
+                    else:
+                        text = (value.text or "") if value is not None else ""
+                    out += _text_findings(text, name, ref, None)
+    except (
+        zipfile.BadZipFile,
+        KeyError,
+        IndexError,
+        ValueError,
+        ParseError,
+        DefusedXmlException,
+    ) as exc:
+        raise _Unreadable(type(exc).__name__) from exc
+    return out
+
+
+def _unreadable(reason: str) -> list[Finding]:
+    return [
+        Finding(
+            "SHEETS_INVALID",
+            None,
+            None,
+            None,
+            f"The file could not be read as a workbook ({reason}).",
+        )
+    ]
+
+
 def validate_workbook(path) -> list[Finding]:
     """Re-read a saved workbook from disk and return every finding."""
     path = Path(path)
+    try:
+        raw = _raw_findings(path)
+    except _Unreadable as exc:
+        return _unreadable(str(exc))
     findings: list[Finding] = []
     with open(path, "rb") as handle:
         try:
             wb = openpyxl.load_workbook(handle, read_only=True, data_only=False)
         except Exception as exc:  # any unreadable workbook is a structural failure
-            return [
-                Finding(
-                    "SHEETS_INVALID",
-                    None,
-                    None,
-                    None,
-                    f"The file could not be read as a workbook: {type(exc).__name__}.",
-                )
-            ]
+            return _unreadable(type(exc).__name__)
         try:
             names = list(wb.sheetnames)
             if names != list(fmt.SHEET_ORDER):
@@ -423,7 +734,10 @@ def validate_workbook(path) -> list[Finding]:
                         f"{list(fmt.SHEET_ORDER)} in that order.",
                     )
                 )
-            grids = {name: _sheet_grid(wb[name]) for name in names if name in fmt.SHEET_ORDER}
+            try:
+                grids = {name: _sheet_grid(wb[name]) for name in names if name in fmt.SHEET_ORDER}
+            except Exception as exc:  # read-only sheets parse lazily
+                return _unreadable(type(exc).__name__)
         finally:
             wb.close()
 
@@ -435,4 +749,5 @@ def validate_workbook(path) -> list[Finding]:
         findings += _check_evidence(evidence)
     if fmt.SHEET_ATTACHMENTS in grids:
         findings += _check_attachments(grids[fmt.SHEET_ATTACHMENTS])
-    return _finish(findings)
+    # Value-pass findings come first, so the deduplicated finding keeps its column name.
+    return _finish(findings + raw)
