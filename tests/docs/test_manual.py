@@ -11,10 +11,21 @@ import re
 from pathlib import Path
 
 import pytest
-from epb.doctor import probes, report, tools
+from epb.doctor import probes, report, syncfolders, tools
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MANUAL = REPO_ROOT / "docs" / "USER-MANUAL.md"
+
+CHAPTERS = [
+    "1. What this plugin does",
+    "2. What stays on your computer",
+    "3. Install Python",
+    "4. Add the plugin to Claude Code",
+    "5. First-time setup",
+    "6. Your first case folder",
+    "7. Where the private environment lives",
+]
+UNTESTED = "not yet tested on this system"
 
 # A made-up Linux computer: a home folder that names no real person, Python 3.12.3, a current
 # private environment, every core package installed, 7-Zip and git found, nothing else.
@@ -128,3 +139,142 @@ def test_golden_block_reader_rejects_a_changed_block():
     text = manual_text().replace("Private environment — ready", "Private environment — fine")
     with pytest.raises(AssertionError):
         assert golden_block("doctor", text) == report.render_human(FAKE_REPORT)
+
+
+# --- structure and content of the first edition (DOC-04, DOC-05, D-03) --------------------
+
+
+def _without_fences(text):
+    """The manual with every fenced block blanked, so quoted output is never read as a
+    heading."""
+    return re.sub(r"^```.*?^```$", "", text, flags=re.DOTALL | re.MULTILINE)
+
+
+def _sections(text, level):
+    """``(title, body)`` for each heading of ``level`` (2 for ``##``) in ``text``."""
+    marker = "#" * level
+    parts = re.split(rf"^{marker} (.+)$", text, flags=re.MULTILINE)
+    return list(zip(parts[1::2], parts[2::2], strict=True))
+
+
+def chapters():
+    return dict(_sections(_without_fences(manual_text()), 2))
+
+
+def chapter(title):
+    return chapters()[title]
+
+
+def test_chapters_appear_in_the_doc05_order():
+    assert list(chapters()) == CHAPTERS
+
+
+@pytest.mark.parametrize(
+    "term",
+    [
+        "AI host",
+        "model provider",
+        "OneDrive",
+        "Dropbox",
+        "iCloud Drive",
+        "Google Drive",
+        ".epb/private",
+        "de-identification",
+    ],
+)
+def test_privacy_chapter_names_what_leaves_and_why(term):
+    assert term in chapter("2. What stays on your computer")
+
+
+def test_manual_never_claims_that_nothing_leaves_the_computer():
+    text = manual_text().lower()
+    for claim in ("nothing leaves", "nothing is sent", "never leaves", "fully offline"):
+        assert claim not in text, claim
+
+
+def test_privacy_chapter_quotes_the_real_sync_folder_warning():
+    warning = syncfolders.warning_for(syncfolders.SyncHit("OneDrive", None, "settings"))
+    body = chapter("2. What stays on your computer")
+    assert warning["message"] in body
+    assert warning["hint"] in body
+
+
+def _first_line(body):
+    return next(line for line in body.splitlines() if line.strip())
+
+
+@pytest.mark.parametrize("title", ["3. Install Python", "7. Where the private environment lives"])
+def test_windows_and_macos_sections_each_carry_their_own_untested_line(title):
+    sections = dict(_sections(chapter(title), 3))
+    assert {"Linux", "Windows", "macOS"} <= set(sections)
+    assert UNTESTED in _first_line(sections["Windows"])
+    assert UNTESTED in _first_line(sections["macOS"])
+    assert UNTESTED not in sections["Linux"]
+
+
+def test_install_python_gives_the_check_and_install_commands():
+    body = chapter("3. Install Python")
+    for text in (
+        "python3 --version",
+        "sudo apt install python3 python3-venv",
+        "py -3 --version",
+        "Add python.exe to PATH",
+        "python.org",
+        "3.11",
+    ):
+        assert text in body, text
+
+
+def test_add_plugin_chapter_gives_both_commands():
+    body = chapter("4. Add the plugin to Claude Code")
+    assert "/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder" in body
+    assert (
+        "/plugin install probematrix-evidence-pack-builder@probematrix-evidence-pack-builder"
+        in body
+    )
+
+
+def test_codex_note_is_marked_untested():
+    sections = dict(_sections(chapter("4. Add the plugin to Claude Code"), 3))
+    codex = next(body for title, body in sections.items() if "Codex" in title)
+    assert UNTESTED in _first_line(codex)
+    assert "codex plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder" in codex
+    assert "python3 tools/install-codex.py" in codex
+
+
+def test_first_case_folder_chapter_walks_through_init_scan_and_index():
+    body = chapter("6. Your first case folder")
+    for text in ("inputs/", ".note.md", "INDEX.md", "none yet", "waiting for conversion"):
+        assert text in body, text
+
+
+def test_first_case_folder_chapter_names_the_six_index_sections():
+    from epb.index import SECTION_TITLES
+
+    body = chapter("6. Your first case folder")
+    for title in SECTION_TITLES:
+        assert title in body, title
+
+
+def test_environment_chapter_names_the_three_folders():
+    body = chapter("7. Where the private environment lives")
+    for path in (
+        "~/.local/share/probematrix-epb/",
+        "%LOCALAPPDATA%\\probematrix-epb\\",
+        "~/Library/Application Support/probematrix-epb/",
+        "envs",
+    ):
+        assert path in body, path
+
+
+def test_chapter_one_says_once_which_stages_later_editions_add():
+    body = chapter("1. What this plugin does")
+    assert "later editions" in body
+    assert manual_text().count("later editions") == 1
+
+
+def test_no_heading_is_a_placeholder():
+    headings = re.findall(r"^#+ (.+)$", _without_fences(manual_text()), flags=re.MULTILINE)
+    for heading in headings:
+        for word in ("todo", "tbd", "coming soon"):
+            assert word not in heading.lower(), heading
