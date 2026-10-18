@@ -277,6 +277,43 @@ def test_title_without_ascii_letters_needs_a_prefix(run_epb, case_dir):
     assert casefile.load_case(case_dir)["title"] == "श्री"
 
 
+def _tree(folder):
+    """Every path under ``folder``, relative and in POSIX form, mapped to its bytes (``None``
+    for a folder), so a comparison catches any created, removed or changed file or folder."""
+    return {
+        path.relative_to(folder).as_posix(): None if path.is_dir() else path.read_bytes()
+        for path in sorted(folder.rglob("*"))
+    }
+
+
+def test_refused_init_leaves_a_populated_folder_unchanged(run_epb, case_dir):
+    (case_dir / "notes.txt").write_bytes(b"Synthetic notes: pump P-1 tripped at 09:14.\n")
+    (case_dir / "inputs").mkdir()
+    (case_dir / "inputs" / "report.txt").write_bytes(b"Synthetic report \xe2\x80\x93 draft one.\n")
+    before = _tree(case_dir)
+
+    proc = run_epb(["init", "--timezone", "UTC", "--json"], cwd=case_dir)
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert _error(proc)["code"] == "BAD_ARGUMENT"
+    assert not (case_dir / ".epb").exists(), "a refused init left .epb/ behind"
+    assert _tree(case_dir) == before
+
+
+def test_refused_init_twice_then_valid_init_sets_up_the_folder(run_epb, case_dir):
+    for _ in range(2):
+        proc = run_epb(["init", "--timezone", "UTC", "--json"], cwd=case_dir)
+        assert proc.returncode == 2, proc.stdout + proc.stderr
+        assert _error(proc)["code"] == "BAD_ARGUMENT"
+        _assert_nothing_written(case_dir)
+
+    proc = run_epb(["init", *FULL_FLAGS, "--json"], cwd=case_dir)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    for folder in ("inputs", "outputs"):
+        assert (case_dir / folder).is_dir()
+    for rel in ("INDEX.md", casefile.CASE_FILE, STATE_FILE):
+        assert (case_dir / rel).is_file()
+
+
 # --- defaults and encoding (WS-01 encoding edge) -----------------------------------------
 
 
