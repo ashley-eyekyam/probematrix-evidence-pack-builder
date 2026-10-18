@@ -195,6 +195,100 @@ def _summary(plan) -> str:
     return "Scanned inputs/: " + (", ".join(parts) if parts else "no changes") + "."
 
 
+def _paths_text(paths) -> str:
+    return ", ".join(sorted(paths))
+
+
+def _change_lines(plan) -> list:
+    """One plain-language line per change, in a fixed order: new versions, new inputs,
+    renames, copies, moves, restores, removals. Each line starts with the source's ID as the
+    user sees it (``S004`` or ``S004v2``) and one of its paths."""
+    from epb.index import display_id
+
+    by_id = {record["src_id"]: record for record in plan.sources}
+    moved_to = {(entry["to_src"], entry["path"]): entry["from_src"] for entry in plan.moved}
+    reported = set()  # (src_id, path) pairs already explained by a line
+    lines = []
+
+    def line(src_id, path, text):
+        reported.add((src_id, path))
+        lines.append(f"{display_id(by_id[src_id])} {path}: {text}")
+
+    for entry in plan.new_versions:
+        record = by_id[entry["src_id"]]
+        previous = [v for v in record["versions"] if v["version"] < entry["version"]]
+        since = f" since run {previous[-1]['seen_run']}" if previous else ""
+        for path in record["paths"]:
+            line(entry["src_id"], path, f"new version (the file changed{since})")
+    for src_id in plan.new:
+        for path in by_id[src_id]["paths"]:
+            before = moved_to.get((src_id, path))
+            if before is not None:
+                line(
+                    src_id,
+                    path,
+                    f"new input; it was a copy of {display_id(by_id[before])}, "
+                    "and the copies now differ",
+                )
+            else:
+                line(src_id, path, "new input")
+    for entry in plan.renamed:
+        line(entry["src_id"], entry["from"], f"renamed to {entry['to']}")
+        reported.add((entry["src_id"], entry["to"]))
+    for entry in plan.duplicates:
+        src_id, path = entry["src_id"], entry["path"]
+        before = moved_to.get((src_id, path))
+        others = [rel for rel in by_id[src_id]["paths"] if rel != path]
+        if before is not None:
+            line(
+                src_id,
+                path,
+                f"now holds the same content as {_paths_text(others) or display_id(by_id[src_id])}"
+                f", so it moved from {display_id(by_id[before])} to {display_id(by_id[src_id])}",
+            )
+        else:
+            line(src_id, path, f"another copy of {_paths_text(others)}")
+    for entry in plan.moved:
+        if (entry["to_src"], entry["path"]) not in reported:
+            line(
+                entry["to_src"],
+                entry["path"],
+                f"moved from {display_id(by_id[entry['from_src']])}",
+            )
+    for src_id in plan.restored:
+        for path in by_id[src_id]["paths"]:
+            line(src_id, path, "back in the folder")
+    for src_id in plan.removed:
+        last = _last_paths(by_id[src_id])
+        holders = _now_held_by(plan, last)
+        if holders:
+            line(
+                src_id,
+                _paths_text(last),
+                "its content is no longer in the folder (the path now holds "
+                f"{', '.join(display_id(by_id[other]) for other in holders)}); "
+                "its record is kept",
+            )
+        else:
+            line(src_id, _paths_text(last), "removed from the folder; its record is kept")
+    return lines
+
+
+def _now_held_by(plan, paths) -> list:
+    """The sources that hold any of ``paths`` after this scan, sorted by number."""
+    from epb.sources.classify import src_number
+
+    owners = {plan.fingerprints[rel]["src_id"] for rel in paths if rel in plan.fingerprints}
+    return sorted(owners, key=src_number)
+
+
+def _last_paths(record) -> list:
+    for version in record["versions"]:
+        if version["version"] == record["current_version"]:
+            return list(version["paths"])
+    return list(record["versions"][-1]["paths"])
+
+
 def _scan_record(plan, walk) -> dict:
     return {
         "new": list(plan.new),
@@ -253,10 +347,17 @@ def _warn_changes(plan, ctx) -> None:
             "Nothing is needed if the content is right; rename the file if you prefer.",
         )
     for src_id in plan.removed:
-        last = by_id[src_id]["versions"][-1]["paths"]
+        last = _last_paths(by_id[src_id])
+        if _now_held_by(plan, last):
+            text = (
+                f"The content {src_id} had at {_paths_text(last)} is no longer anywhere in "
+                "inputs/ (the file now holds different content)."
+            )
+        else:
+            text = f"{_paths_text(last)} {'is' if len(last) == 1 else 'are'} no longer in inputs/."
         ctx.warn(
             "INPUT_REMOVED",
-            f"{src_id} ({', '.join(last)}) is no longer in the inputs folder. Its record is kept.",
+            f"{text} Its record is kept, and anything already built from it stays.",
             "Put the file back if it was removed by mistake; otherwise nothing is needed.",
         )
 
@@ -327,7 +428,11 @@ def run_scan(session, ctx):
     )
     transaction.set_state(state)
     transaction.commit()
-    return Result(
-        data=_data(plan, walk, run_id, True),
-        message=f"{summary}\nRun {run_id}. See INDEX.md in the case folder for the full list.",
+    message = "\n".join(
+        [
+            summary,
+            *_change_lines(plan),
+            f"Run {run_id}. See INDEX.md in the case folder for the full list.",
+        ]
     )
+    return Result(data=_data(plan, walk, run_id, True), message=message)
