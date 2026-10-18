@@ -49,6 +49,7 @@ Warning codes (never change the exit code)
     INPUT_REMOVED            A previously scanned input file is no longer there.
     SIDECAR_ORPHAN           A sidecar file has no matching input file.
     LINK_IGNORED             A symbolic link in inputs/ was not followed.
+    BAD_NAME_IGNORED         A file or folder in inputs/ whose name is not valid text was skipped.
 """
 
 EXIT_OK = 0
@@ -95,6 +96,7 @@ WARNING_CODES: frozenset[str] = frozenset(
         "INPUT_REMOVED",
         "SIDECAR_ORPHAN",
         "LINK_IGNORED",
+        "BAD_NAME_IGNORED",
     }
 )
 

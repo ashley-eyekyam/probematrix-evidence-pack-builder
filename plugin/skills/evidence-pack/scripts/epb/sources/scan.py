@@ -172,7 +172,7 @@ def walk_inputs(case_root) -> WalkResult:
         return result
 
     def fail(error):
-        rel = rel_key(case_root, error.filename) if error.filename else INPUTS_DIR
+        rel = display_path(rel_key(case_root, error.filename)) if error.filename else INPUTS_DIR
         raise _unreadable(rel, error)
 
     seen = set()  # NFC keys already used; two spellings of one name cannot both be kept
@@ -180,7 +180,11 @@ def walk_inputs(case_root) -> WalkResult:
         kept = []
         for name in sorted(dirnames):
             path = Path(folder) / name
-            if _is_link(path):
+            if not name_is_text(name):
+                # Pruned: nothing inside a folder named like this is opened or registered.
+                skipped = Ignored(display_path(rel_key(case_root, path)) + "/", BAD_NAME)
+                result.ignored.append(skipped)
+            elif _is_link(path):
                 result.ignored.append(Ignored(rel_key(case_root, path), "link"))
             else:
                 kept.append(name)
@@ -383,9 +387,29 @@ def _data(plan, walk, pairing, run_id, changed) -> dict:
     }
 
 
+_BAD_NAME_ORIGIN = (
+    "Names like this can come from a ZIP file made on an older Windows computer or from an old "
+    "shared drive."
+)
+
+
 def _warn_ignored(walk, ctx) -> None:
     for item in walk.ignored:
-        if item.reason == "link":
+        if item.reason == BAD_NAME and item.rel.endswith("/"):
+            ctx.warn(
+                "BAD_NAME_IGNORED",
+                f"The folder {item.rel} and everything in it were skipped because the folder's "
+                "name is not valid text.",
+                f"Rename the folder to a plain name, then scan again. {_BAD_NAME_ORIGIN}",
+            )
+        elif item.reason == BAD_NAME:
+            ctx.warn(
+                "BAD_NAME_IGNORED",
+                f"{item.rel} was skipped because its name is not valid text, so the plugin "
+                "cannot record it.",
+                f"Rename it to a plain name, then scan again. {_BAD_NAME_ORIGIN}",
+            )
+        elif item.reason == "link":
             ctx.warn(
                 "LINK_IGNORED",
                 f"{item.rel} is a link (a shortcut to somewhere else), so it was not followed.",
