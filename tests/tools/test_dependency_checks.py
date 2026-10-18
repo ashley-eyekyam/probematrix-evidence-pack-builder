@@ -2,6 +2,7 @@
 
 import email.message
 import json
+import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -260,6 +261,76 @@ def test_unusable_allowlist_is_rejected(tmp_path, content, message):
 def test_main_exits_2_on_unusable_allowlist(tmp_path, capsys):
     assert lic.main(["--config", str(tmp_path / "missing.json")]) == 2
     assert "not found" in capsys.readouterr().err
+
+
+# --- The runner's preinstalled setuptools (gap 1, GitHub run 39141925712) ----------------
+
+# The GitHub Python 3.11 toolcache preinstalls setuptools 79.0.1 with no License-Expression,
+# no License field and no licence classifier: fake_dist with no licence arguments matches it.
+RUNNER_SETUPTOOLS = ("setuptools", "79.0.1")
+REQUIREMENT_NAME = re.compile(r"[A-Za-z0-9._-]+")
+
+
+def test_main_passes_runner_setuptools_with_the_shipped_allowlist(capsys, monkeypatch):
+    dists = [fake_dist(*RUNNER_SETUPTOOLS)]
+    monkeypatch.setattr(lic.importlib.metadata, "distributions", lambda: dists)
+    assert lic.main([]) == 0
+    assert "Licence check passed: all 1 installed distributions are allowed." in (
+        capsys.readouterr().out
+    )
+
+
+def test_main_reports_runner_setuptools_without_the_override(tmp_path, capsys, monkeypatch):
+    data = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
+    data["overrides"].pop("setuptools", None)
+    copy = tmp_path / "allow-without-setuptools.json"
+    copy.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    dists = [fake_dist(*RUNNER_SETUPTOOLS)]
+    monkeypatch.setattr(lic.importlib.metadata, "distributions", lambda: dists)
+    assert lic.main(["--config", str(copy)]) == 1
+    out = capsys.readouterr().out
+    assert (
+        "VIOLATION setuptools 79.0.1: licence unknown (no usable licence metadata; from none)"
+        in out
+    )
+    assert "1 of 1 distributions failed the licence check." in out
+
+
+def test_setuptools_override_is_reviewed(config):
+    entry = config["overrides"]["setuptools"]
+    assert entry["licence"] == "MIT"
+    assert entry["reviewed_on"] == "2026-10-18"
+    assert "toolcache" in entry["reason"]
+    assert "79.0.1" in entry["reason"]
+    assert "not a project dependency" in entry["reason"].lower()
+
+
+def test_runner_setuptools_has_the_reviewed_licence(config):
+    dist = fake_dist(*RUNNER_SETUPTOOLS)
+    assert lic.licence_of(dist, config) == ("MIT", "reviewed override")
+    assert lic.check_distributions([dist], config) == []
+
+
+def test_overrides_are_exactly_the_reviewed_set(config):
+    # Adding or removing an override is a licence review: change this list with it.
+    assert sorted(config["overrides"]) == ["pypdfium2", "setuptools"]
+
+
+def test_setuptools_is_not_a_project_dependency():
+    # The override's reason says setuptools is only a runner bootstrap tool. If a
+    # requirements file ever names it, that reason is false and needs a fresh review.
+    files = sorted(REPO_ROOT.glob("requirements*.txt")) + sorted(
+        (REPO_ROOT / "plugin").glob("requirements*.txt")
+    )
+    assert len(files) >= 4, [path.name for path in files]
+    for path in files:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            text = line.strip()
+            if not text or text.startswith(("#", "-")):
+                continue
+            match = REQUIREMENT_NAME.match(text)
+            assert match is not None, f"{path.name}: unreadable requirement {line!r}"
+            assert lic.normalise(match.group(0)) != "setuptools", f"{path.name}: {line!r}"
 
 
 # --- Dependency age (two-week rule) -------------------------------------------------------
