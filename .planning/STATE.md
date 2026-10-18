@@ -4,17 +4,17 @@ milestone: v0.1.0
 milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
-status: executing
-stopped_at: Completed 01-15-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T11:19:05.664Z"
+status: verifying
+stopped_at: Completed 01-16-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T11:20:06.539Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 60dbdff739317b31192c4fa63d37e5046c1c4899
+state_head: 92759c1436f7e9b343d663e8ad1ee48612cba12e
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 
 Phase: 01 (Foundations) — EXECUTING
 Plan: 16 of 16
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-18 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P13 | 13min | 3 tasks | 1 files |
 | Phase 01 P14 | 11min | 3 tasks | 10 files |
 | Phase 01 P15 | 6min | 2 tasks | 7 files |
+| Phase 01 P16 | 7min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,10 @@ Recent decisions affecting current work:
 - [Phase 01]: The Codex install test checks the same file list as the Claude one (schemas, AGENTS.md, requirement files), not only SKILL.md, since the Codex cache was observed to hold them all
 - [Phase 01]: SKILL.md tells the agent to always pass --timezone to init (01-09 carry-over
 - [Phase 01]: The workspace contract states content wins and that restoring an older version counts as new content, in one sentence each (01-13 carry-over)
+- [Phase 01]: The manual is a single file, docs/USER-MANUAL.md (plan's location decision); chapters are '## N. Title' so the order is testable
+- [Phase 01]: The fake golden report uses a neutral home folder (/home/investigator) and env version 0.1.0, so the quoted path reads ~/.local/share/probematrix-epb/envs/0.1.0
+- [Phase 01]: Chapter 2 also quotes the real SYNC_FOLDER message and hint for OneDrive, checked against syncfolders.warning_for by a test
+- [Phase 01]: Chapter 2 states that excerpts can contain names and that the provider's handling is governed by the user's agreement with it, not by the plugin (flagged assumption DOC-04)
 
 ### Pending Todos
 
@@ -181,6 +186,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T11:19:05.628Z
-Stopped at: Completed 01-15-PLAN.md (merged from worktree)
+Last session: 2026-10-18T11:20:06.504Z
+Stopped at: Completed 01-16-PLAN.md (merged from worktree)
 Resume file: None

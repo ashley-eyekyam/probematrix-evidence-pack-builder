@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Owner smoke import: the owner imports the synthetic edge-case workbook into a ProbeMatrix test incident. The workbook contains a Description beginning with `=`, a `0` value, a long numeric ID, a `YYYY-MM` date, multi-entry Tags and Linked Equipment, and every QA Status value. The owner reports that every value shows exactly as written, that nothing became a formula, a number or a blank, and that list entries split into the expected separate entries.
   5. On Linux, the plugin installs into Claude Code from this repo's marketplace (`source: "./plugin"`). `epb doctor --setup`, launched through the standard-library-only `epb.py`, finds Python 3.11+, builds the private environment, installs the core packages and reports in plain language what is ready and what is optional. `epb doctor` lists every tool with its version, the input types it enables and per-OS install commands. `AGENTS.md` is in `plugin/`. Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green. The first edition of the user manual covers installing Python, adding the plugin to Claude Code, first-time setup and the plain-language privacy statement, with the Windows and macOS sections marked "not yet tested on this system". The repo-root `AGENTS.md` and `CLAUDE.md` are identical and concise (150 lines at most), and a CI test fails otherwise (PKG-11).
 
-**Plans**: 15/16 plans executed in 8 waves
+**Plans**: 16/16 plans executed in 8 waves
 
 Plans:
 **Wave 1**
@@ -74,7 +74,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [x] 01-15-PLAN.md — Router skill, references and host install checks (wave 8)
-- [ ] 01-16-PLAN.md — User manual first edition, mirrored instructions refresh, CI check (wave 8)
+- [x] 01-16-PLAN.md — User manual first edition, mirrored instructions refresh, CI check (wave 8)
 
 **UAT**: `/gsd-verify-work 1` with numbered step-by-step procedures (kickoff §8): prerequisites, exact commands, fixture paths, and the exact pass/fail strings to look for. It includes the owner's smoke-import procedure: the exact workbook path, a new ProbeMatrix test incident, and a checklist comparing each edge-case value as written with how it is shown after import. The agent never claims the import worked; the owner reports it.
 **Defects addressed**: DEF-14 (structural list-fragment check only; the authoritative comma gate lands in Phases 4–5)
@@ -295,7 +295,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations | 15/16 | In Progress | - |
+| 1. Foundations | 16/16 | In Progress | - |
 | 2. Text intake + quote verifier | 0/TBD | Not started | - |
 | 3. Extraction + claim ledger | 0/TBD | Not started | - |
 | 4. Reconcile | 0/TBD | Not started | - |
