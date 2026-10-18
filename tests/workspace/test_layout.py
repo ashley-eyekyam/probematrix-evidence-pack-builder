@@ -55,6 +55,7 @@ CREATED = [
     ".epb/.gitignore",
     ".epb/.gitattributes",
     ".epb/private/.gitignore",
+    ".epb/runs/001/run.json",
     "INDEX.md",
     STATE_FILE,
 ]

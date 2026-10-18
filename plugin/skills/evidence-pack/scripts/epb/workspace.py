@@ -123,3 +123,21 @@ def create_layout(case_root) -> None:
     case_root = Path(case_root)
     for rel in (*CASE_DIRS, *EPB_DIRS):
         (case_root / rel).mkdir(parents=True, exist_ok=True)
+
+
+def find_workspace(case_dir):
+    raise NotImplementedError
+
+
+def load_sources(case_root):
+    raise NotImplementedError
+
+
+def open_read_only(case_root, ctx):
+    raise NotImplementedError
+
+
+@contextmanager
+def open_for_mutation(case_root, ctx, command):
+    raise NotImplementedError
+    yield

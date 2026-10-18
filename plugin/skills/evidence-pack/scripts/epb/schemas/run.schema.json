@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epb:run",
+  "title": "epb run record (inert skeleton for TDD RED)",
+  "type": "object",
+  "additionalProperties": false
+}
