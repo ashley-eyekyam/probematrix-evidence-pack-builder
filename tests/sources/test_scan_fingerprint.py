@@ -5,7 +5,10 @@ Every fixture is synthetic. Each test checks that the scan left ``inputs/`` exac
 
 import hashlib
 import json
+import os
+import unicodedata
 
+import pytest
 from epb import schema
 from epb.state import STATE_FILE
 
@@ -159,3 +162,184 @@ def test_index_lists_both_inputs_as_waiting(run_epb, case_dir):
     assert "inputs/a/report.pdf" in rows[0] and PENDING in rows[0]
     assert "inputs/notes.txt" in rows[1] and PENDING in rows[1]
     assert "Run 002" in text.split("## 6. Run history", 1)[1]
+
+
+# --- junk, links and special files ------------------------------------------------------------
+
+JUNK = (
+    ".DS_Store",
+    "Thumbs.db",
+    "THUMBS.DB",
+    "desktop.ini",
+    "~$draft.docx",
+    "._photo.jpg",
+    ".~lock.report.odt#",
+    "cache.tmp",
+)
+POSIX_ONLY = pytest.mark.skipif(os.name == "nt", reason="links and FIFOs are POSIX-only here")
+
+
+def test_junk_is_listed_and_never_registered(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    _put(case_dir, "inputs/notes.txt", NOTES_BYTES)
+    for name in JUNK:
+        _put(case_dir, f"inputs/sub/{name}", b"synthetic junk " + name.encode())
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["_exit"] == 0, envelope
+    ignored = {item["path"]: item["reason"] for item in envelope["data"]["ignored"]}
+    assert ignored == {f"inputs/sub/{name}": "junk" for name in JUNK}
+    assert envelope["data"]["new"] == ["S001"]
+    assert sorted(_state(case_dir)["fingerprints"]) == ["inputs/notes.txt"]
+    assert sorted(path.name for path in (case_dir / ".epb" / "sources").iterdir()) == ["S001.json"]
+
+
+@POSIX_ONLY
+def test_links_and_fifos_are_ignored_and_never_opened(run_epb, case_dir, tmp_path):
+    _init(run_epb, case_dir)
+    outside = tmp_path / "outside"
+    (outside / "folder").mkdir(parents=True)
+    (outside / "secret.txt").write_bytes(b"synthetic file outside the case folder")
+    (outside / "folder" / "inner.txt").write_bytes(b"synthetic file in a linked folder")
+    _put(case_dir, "inputs/notes.txt", NOTES_BYTES)
+    os.symlink(outside / "secret.txt", case_dir / "inputs" / "file-link.txt")
+    os.symlink(outside / "folder", case_dir / "inputs" / "folder-link")
+    os.mkfifo(case_dir / "inputs" / "pipe")
+
+    proc = run_epb(["scan", "--json"], cwd=case_dir, timeout=60)  # opening the FIFO would hang
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    envelope = json.loads(proc.stdout)
+    ignored = {item["path"]: item["reason"] for item in envelope["data"]["ignored"]}
+    assert ignored == {
+        "inputs/file-link.txt": "link",
+        "inputs/folder-link": "link",
+        "inputs/pipe": "special",
+    }
+    codes = [item["code"] for item in envelope["warnings"]]
+    assert codes.count("LINK_IGNORED") == 2
+    assert envelope["data"]["new"] == ["S001"]
+    assert sorted(_state(case_dir)["fingerprints"]) == ["inputs/notes.txt"]
+    secret = hashlib.sha256(b"synthetic file outside the case folder").hexdigest()
+    assert secret not in (case_dir / STATE_FILE).read_text(encoding="utf-8")
+
+
+# --- empty inputs, empty files, identical files, unchanged rescans ----------------------------
+
+NO_FILES = "No files found in inputs/. Put evidence files there, then scan again."
+NO_CHANGES = "No changes since the last scan."
+
+
+def _case_snapshot(case_dir):
+    return _snapshot(case_dir)
+
+
+@pytest.mark.parametrize("missing", [False, True], ids=["empty-inputs", "no-inputs-folder"])
+def test_empty_inputs_writes_nothing(run_epb, case_dir, missing):
+    _init(run_epb, case_dir)
+    if missing:
+        (case_dir / "inputs").rmdir()
+    before = _case_snapshot(case_dir)
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["_exit"] == 0, envelope
+    assert envelope["data"]["changed"] is False
+    assert envelope["data"]["run"] is None
+    assert _case_snapshot(case_dir) == before
+    human = run_epb(["scan"], cwd=case_dir)
+    assert human.returncode == 0, human.stderr
+    assert NO_FILES in human.stdout
+    assert _case_snapshot(case_dir) == before
+
+
+def test_zero_byte_file_gets_the_empty_hash(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    _put(case_dir, "inputs/empty.txt", b"")
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["_exit"] == 0, envelope
+    version = _record(case_dir, "S001")["versions"][0]
+    assert version["sha256"] == ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+    assert version["size"] == 0
+
+
+def test_identical_new_files_are_one_source_with_two_paths(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    _put(case_dir, "inputs/z-copy.txt", NOTES_BYTES)
+    _put(case_dir, "inputs/a/original.txt", NOTES_BYTES)
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["data"]["new"] == ["S001"]
+    record = _record(case_dir, "S001")
+    assert record["paths"] == ["inputs/a/original.txt", "inputs/z-copy.txt"]
+    assert record["versions"][0]["paths"] == record["paths"]
+    assert _state(case_dir)["counters"]["source"] == 1
+
+
+def test_new_ids_follow_nfc_code_point_order(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    nfd = unicodedata.normalize("NFD", "inputs/été.txt")
+    _put(case_dir, nfd, b"synthetic summer notes")
+    _put(case_dir, "inputs/a.txt", b"synthetic lower a")
+    _put(case_dir, "inputs/B.txt", b"synthetic upper B")
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["data"]["new"] == ["S001", "S002", "S003"]
+    assert _record(case_dir, "S001")["paths"] == ["inputs/B.txt"]
+    assert _record(case_dir, "S002")["paths"] == ["inputs/a.txt"]
+    assert _record(case_dir, "S003")["paths"] == [unicodedata.normalize("NFC", nfd)]
+
+
+def test_unchanged_rescan_writes_nothing(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    _put(case_dir, "inputs/a/report.pdf", PDF_BYTES)
+    _put(case_dir, "inputs/notes.txt", NOTES_BYTES)
+    _put(case_dir, "inputs/.DS_Store", b"synthetic junk")
+    first = _scan(run_epb, case_dir)
+    assert first["data"]["run"] == "002"
+    before = _case_snapshot(case_dir)
+    again = _scan(run_epb, case_dir)
+    assert again["_exit"] == 0, again
+    assert again["data"]["changed"] is False
+    assert again["data"]["run"] is None
+    assert again["data"]["sources_total"] == 2
+    assert _case_snapshot(case_dir) == before
+    human = run_epb(["scan"], cwd=case_dir)
+    assert human.returncode == 0, human.stderr
+    assert NO_CHANGES in human.stdout
+    assert _case_snapshot(case_dir) == before
+    assert sorted(path.name for path in (case_dir / ".epb" / "runs").iterdir()) == ["001", "002"]
+
+
+# --- archives and the expander seam (PF-11, D-14) ---------------------------------------------
+
+
+def test_7z_is_an_ordinary_pending_source(run_epb, case_dir):
+    _init(run_epb, case_dir)
+    _put(case_dir, "inputs/bundle.7z", b"7z\xbc\xaf\x27\x1c\x00\x04synthetic archive bytes")
+    envelope = _scan(run_epb, case_dir)
+    assert envelope["data"]["new"] == ["S001"]
+    record = _record(case_dir, "S001")
+    assert record["status"] == "pending"
+    assert record["parents"] == []
+    assert record["versions"][0]["mime"] == "application/x-7z-compressed"
+    assert sorted(path.name for path in (case_dir / ".epb" / "sources").iterdir()) == ["S001.json"]
+
+
+def test_expander_registry_is_empty_in_phase_1():
+    from epb.sources import expanders
+
+    assert expanders.REGISTRY == []
+    assert expanders.expanders_for("application/x-7z-compressed") == []
+    assert expanders.expanders_for("application/zip") == []
+
+
+def test_registered_expander_is_found_by_mime(monkeypatch):
+    from epb.sources import expanders
+
+    class Fake:
+        name = "fake"
+        mime_types = ("application/x-fake",)
+
+        def expand(self, path, src_id, workdir):
+            return []
+
+    monkeypatch.setattr(expanders, "REGISTRY", [])
+    fake = Fake()
+    expanders.register(fake)
+    assert expanders.expanders_for("application/x-fake") == [fake]
+    assert expanders.expanders_for("application/pdf") == []
