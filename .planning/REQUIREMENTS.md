@@ -231,9 +231,9 @@ Each hard gate blocks the build. (§14)
 - [ ] **PKG-03**: `AGENTS.md` holds the plugin's host-neutral rules for agents: just culture, roles only, inputs only, facts only, verbatim quotes, and the evidence-bank entry rule. (§5, kickoff §6a)
 - [ ] **PKG-04**: The CLI provides every command in §15.2, plus the §20 A12 verbs (`sources set`, `sections tag`, `coverage omit`, `items update/remove`, roster input from a file, and `run` returning `next[]`). Every command accepts `--json`. (§15.2, §20 A12)
 - [x] **PKG-05**: Exit codes are 0 OK, 1 gate failure, 2 usage, 3 missing dependency, and 4 internal or environment error, with a stable error code in the JSON. (§15.2, §20 A11)
-- [ ] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
+- [x] **PKG-06**: `epb.py` is a standard-library-only launcher. `epb doctor --setup` finds a suitable Python 3.11+, creates a private environment in the plugin's per-user data folder, installs the core packages, and reports what is ready and what is optional in plain language. Skills launch the CLI from that environment. (§20 A8)
 - [x] **PKG-07**: `epb doctor` reports each tool: found or not, its version, the input types it enables, and install commands for each OS. A missing optional tool never fails a run. (§7.2)
-- [ ] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
+- [x] **PKG-08**: Core dependencies are permissively licensed, with minimum versions pinned, including `jsonschema`, `lxml>=6.1.0`, `defusedxml`, `charset-normalizer`, `pdfplumber>=0.11.9`, `Pillow>=12.3.0` and `pypdf>=6.19.0`, and `tzdata` on Windows only (D-20). GPL extras are kept in separate optional requirements files and their licences are documented. (§18, §20 A6–A7)
 - [x] **PKG-09**: CI checks dependency age (the two-week rule) against a reviewed security-exception list, and licences against an allow-list. (§20 A6)
 - [ ] **PKG-10**: The plugin installs through `/plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder` plus `/plugin install` on Claude Code, through Cowork's plugin upload, and on Codex through its supported route. (§15.3, kickoff §11)
 - [ ] **PKG-11**: The repo-root `AGENTS.md` and `CLAUDE.md` are exact copies of each other, holding the developer instructions. They are regenerated and re-copied whenever project context, roadmap, stack or workflow rules change (at least at every phase transition), and a CI test fails if they differ or exceed 150 lines. They are hand-maintained and concise (aim for 60 lines or fewer, pointers rather than copies); GSD's `generate-claude-md` is never run on them. (§20 A15)
@@ -466,9 +466,9 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | PKG-03 | Phase 1 | Pending |
 | PKG-04 | Phase 9 | Pending |
 | PKG-05 | Phase 1 | Complete |
-| PKG-06 | Phase 1 | Pending |
+| PKG-06 | Phase 1 | Complete |
 | PKG-07 | Phase 1 | Complete |
-| PKG-08 | Phase 1 | Pending |
+| PKG-08 | Phase 1 | Complete |
 | PKG-09 | Phase 1 | Complete |
 | PKG-10 | Phase 10 | Pending |
 | PKG-11 | Phase 1 | Pending |

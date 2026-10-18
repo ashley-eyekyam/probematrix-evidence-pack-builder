@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-09-PLAN.md (merged from worktree)
-last_updated: "2026-10-18T10:19:42.888Z"
+stopped_at: Completed 01-10-PLAN.md (merged from worktree)
+last_updated: "2026-10-18T10:30:32.215Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: d9436ae425828633ddd7fda57141c65daae6dcc7
+state_head: f74200b4dcfcbc1dc2f514149163e68ddacb3517
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 10 of 16
+Plan: 11 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P07 | 7min | 0 tasks | 11 files |
 | Phase 01 P08 | 11min | 2 tasks | 11 files |
 | Phase 01 P09 | 7min | 2 tasks | 9 files |
+| Phase 01 P10 | 7min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,12 @@ Recent decisions affecting current work:
 - [Phase 01]: An explicit --slug that is a Windows reserved name (con, prn, aux, nul, com1-9, lpt1-9) is refused; only derived slugs get the -case suffix
 - [Phase 01]: init on a set-up folder now loads state.json (load_state) and case.yaml before anything else, so damage to either exits 4 STATE_INVALID instead of ALREADY_SET_UP
 - [Phase 01]: The ALREADY_SET_UP re-run also reports data.case with the stored settings, so the skill can show them
+- [Phase 01]: A current environment that fails verification is rebuilt (status rebuilt), not reported ready
+- [Phase 01]: The ready path emits the existing ALREADY_SET_UP warning so agents see nothing was changed
+- [Phase 01]: pip steps also pass --disable-pip-version-check and --no-input so pip never prompts (the CLI never prompts, D-15)
+- [Phase 01]: Verify runs the env interpreter with -I (isolated) so PYTHONPATH or user site-packages cannot make a broken env look complete
+- [Phase 01]: Exception pins are checked against package/version regexes; a malformed file is SETUP_FAILED before any download
+- [Phase 01]: render_human was split into shared helpers so render_setup_human shows identical Optional lines; golden doctor tests unchanged
 
 ### Pending Todos
 
@@ -137,6 +144,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T10:19:42.856Z
-Stopped at: Completed 01-09-PLAN.md (merged from worktree)
+Last session: 2026-10-18T10:30:32.184Z
+Stopped at: Completed 01-10-PLAN.md (merged from worktree)
 Resume file: None
