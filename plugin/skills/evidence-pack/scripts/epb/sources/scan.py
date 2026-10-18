@@ -17,6 +17,7 @@ from pathlib import Path
 
 from epb import fsio, mime
 from epb.errors import EpbError
+from epb.sources.sidecars import orphan_target, pair_sidecars, sidecar_target
 
 INPUTS_DIR = "inputs"
 SOURCES_DIR = ".epb/sources"
@@ -96,6 +97,16 @@ def _unreadable(rel, error) -> EpbError:
     )
 
 
+def _same_name(rel) -> EpbError:
+    return EpbError(
+        "BAD_ARGUMENT",
+        f"Two files in the inputs folder have the same name written in two different ways "
+        f"({rel}): the letters are the same but are stored as different characters. The "
+        "plugin cannot tell them apart, so nothing was changed.",
+        hint="Rename one of the two files, then scan again.",
+    )
+
+
 def _fingerprint(path):
     """``(sha256, size, mtime_ns)`` of a regular file, or ``None`` when ``path`` is not a
     regular file (any more). A link is never followed and a pipe is never waited on."""
@@ -117,7 +128,11 @@ def _fingerprint(path):
 def walk_inputs(case_root) -> WalkResult:
     """Fingerprint every regular file under ``inputs/``, sorted by path. Links (and junctions)
     are listed as ``link`` and never followed; pipes, sockets and devices as ``special`` and
-    never opened; OS junk as ``junk``. Nothing under ``inputs/`` is ever written."""
+    never opened; OS junk as ``junk``. Nothing under ``inputs/`` is ever written.
+
+    Path keys are NFC, so a name stored in NFD form (as macOS writes it) is the same key as its
+    NFC spelling. Two files whose names differ only in that way (possible on Linux) would share
+    one key, so the scan stops with ``BAD_ARGUMENT`` rather than silently keep one of them."""
     case_root = Path(case_root)
     inputs = case_root / INPUTS_DIR
     result = WalkResult()
@@ -131,6 +146,7 @@ def walk_inputs(case_root) -> WalkResult:
         rel = rel_key(case_root, error.filename) if error.filename else INPUTS_DIR
         raise _unreadable(rel, error)
 
+    seen = set()  # NFC keys already used; two spellings of one name cannot both be kept
     for folder, dirnames, filenames in os.walk(inputs, onerror=fail, followlinks=False):
         kept = []
         for name in sorted(dirnames):
@@ -162,6 +178,9 @@ def walk_inputs(case_root) -> WalkResult:
                 raise _unreadable(rel, error) from None
             if found is None:
                 continue
+            if rel in seen:
+                raise _same_name(rel)
+            seen.add(rel)
             sha256, size, mtime_ns = found
             detected, mismatch = mime.detect(path)
             result.files.append(
@@ -195,7 +214,110 @@ def _summary(plan) -> str:
     return "Scanned inputs/: " + (", ".join(parts) if parts else "no changes") + "."
 
 
-def _scan_record(plan, walk) -> dict:
+def _paths_text(paths) -> str:
+    return ", ".join(sorted(paths))
+
+
+def _change_lines(plan, pairing) -> list:
+    """One plain-language line per change, in a fixed order: new versions, new inputs,
+    renames, copies, moves, restores, removals, then notes newly paired with their inputs.
+    Each line starts with the source's ID as the user sees it (``S004`` or ``S004v2``) and one
+    of its paths."""
+    from epb.index import display_id
+
+    by_id = {record["src_id"]: record for record in plan.sources}
+    moved_to = {(entry["to_src"], entry["path"]): entry["from_src"] for entry in plan.moved}
+    reported = set()  # (src_id, path) pairs already explained by a line
+    lines = []
+
+    def line(src_id, path, text):
+        reported.add((src_id, path))
+        lines.append(f"{display_id(by_id[src_id])} {path}: {text}")
+
+    for entry in plan.new_versions:
+        record = by_id[entry["src_id"]]
+        previous = [v for v in record["versions"] if v["version"] < entry["version"]]
+        since = f" since run {previous[-1]['seen_run']}" if previous else ""
+        for path in record["paths"]:
+            line(entry["src_id"], path, f"new version (the file changed{since})")
+    for src_id in plan.new:
+        for path in by_id[src_id]["paths"]:
+            before = moved_to.get((src_id, path))
+            if before is not None:
+                line(
+                    src_id,
+                    path,
+                    f"new input; it was a copy of {display_id(by_id[before])}, "
+                    "and the copies now differ",
+                )
+            else:
+                line(src_id, path, "new input")
+    for entry in plan.renamed:
+        line(entry["src_id"], entry["from"], f"renamed to {entry['to']}")
+        reported.add((entry["src_id"], entry["to"]))
+    for entry in plan.duplicates:
+        src_id, path = entry["src_id"], entry["path"]
+        before = moved_to.get((src_id, path))
+        others = [rel for rel in by_id[src_id]["paths"] if rel != path]
+        if before is not None:
+            line(
+                src_id,
+                path,
+                f"now holds the same content as {_paths_text(others) or display_id(by_id[src_id])}"
+                f", so it moved from {display_id(by_id[before])} to {display_id(by_id[src_id])}",
+            )
+        else:
+            line(src_id, path, f"another copy of {_paths_text(others)}")
+    for entry in plan.moved:
+        if (entry["to_src"], entry["path"]) not in reported:
+            line(
+                entry["to_src"],
+                entry["path"],
+                f"moved from {display_id(by_id[entry['from_src']])}",
+            )
+    for src_id in plan.restored:
+        for path in by_id[src_id]["paths"]:
+            line(src_id, path, "back in the folder")
+    for src_id in plan.removed:
+        last = _last_paths(by_id[src_id])
+        holders = _now_held_by(plan, last)
+        if holders:
+            line(
+                src_id,
+                _paths_text(last),
+                "its content is no longer in the folder (the path now holds "
+                f"{', '.join(display_id(by_id[other]) for other in holders)}); "
+                "its record is kept",
+            )
+        else:
+            line(src_id, _paths_text(last), "removed from the folder; its record is kept")
+    for pair in pairing.pairs:
+        if pair["src_id"] not in pairing.changed:
+            continue
+        note, target = by_id[pair["src_id"]], by_id[pair["target"]]
+        path = next(rel for rel in sorted(note["paths"]) if sidecar_target(rel) in target["paths"])
+        lines.append(
+            f"{display_id(note)} {path}: a note for {display_id(target)} ({sidecar_target(path)})"
+        )
+    return lines
+
+
+def _now_held_by(plan, paths) -> list:
+    """The sources that hold any of ``paths`` after this scan, sorted by number."""
+    from epb.sources.classify import src_number
+
+    owners = {plan.fingerprints[rel]["src_id"] for rel in paths if rel in plan.fingerprints}
+    return sorted(owners, key=src_number)
+
+
+def _last_paths(record) -> list:
+    for version in record["versions"]:
+        if version["version"] == record["current_version"]:
+            return list(version["paths"])
+    return list(record["versions"][-1]["paths"])
+
+
+def _scan_record(plan, walk, pairing) -> dict:
     return {
         "new": list(plan.new),
         "new_versions": list(plan.new_versions),
@@ -206,12 +328,12 @@ def _scan_record(plan, walk) -> dict:
         "restored": list(plan.restored),
         "ignored": [{"path": item.rel, "reason": item.reason} for item in walk.ignored],
         "mime_mismatches": list(plan.mime_mismatches),
-        "sidecars": [],
-        "orphan_sidecars": [],
+        "sidecars": list(pairing.pairs),
+        "orphan_sidecars": list(pairing.orphans),
     }
 
 
-def _data(plan, walk, run_id, changed) -> dict:
+def _data(plan, walk, pairing, run_id, changed) -> dict:
     return {
         "changed": changed,
         "run": run_id,
@@ -223,6 +345,8 @@ def _data(plan, walk, run_id, changed) -> dict:
         "removed": list(plan.removed),
         "restored": list(plan.restored),
         "ignored": [{"path": item.rel, "reason": item.reason} for item in walk.ignored],
+        "sidecars": list(pairing.pairs),
+        "orphan_sidecars": list(pairing.orphans),
         "sources_total": len(plan.sources),
     }
 
@@ -235,6 +359,20 @@ def _warn_ignored(walk, ctx) -> None:
                 f"{item.rel} is a link (a shortcut to somewhere else), so it was not followed.",
                 "If it points to evidence, copy the file itself into the inputs folder.",
             )
+
+
+def _warn_orphans(plan, pairing, ctx) -> None:
+    by_id = {record["src_id"]: record for record in plan.sources}
+    for src_id in pairing.orphans:
+        record = by_id[src_id]
+        target = orphan_target(record)
+        note = next(rel for rel in sorted(record["paths"]) if sidecar_target(rel) == target)
+        ctx.warn(
+            "SIDECAR_ORPHAN",
+            f"{note} is a note for {target}, but that file is not in inputs/.",
+            "Put the file it describes next to it, or rename the note to match that file's "
+            "name exactly.",
+        )
 
 
 def _label(kind: str) -> str:
@@ -253,10 +391,17 @@ def _warn_changes(plan, ctx) -> None:
             "Nothing is needed if the content is right; rename the file if you prefer.",
         )
     for src_id in plan.removed:
-        last = by_id[src_id]["versions"][-1]["paths"]
+        last = _last_paths(by_id[src_id])
+        if _now_held_by(plan, last):
+            text = (
+                f"The content {src_id} had at {_paths_text(last)} is no longer anywhere in "
+                "inputs/ (the file now holds different content)."
+            )
+        else:
+            text = f"{_paths_text(last)} {'is' if len(last) == 1 else 'are'} no longer in inputs/."
         ctx.warn(
             "INPUT_REMOVED",
-            f"{src_id} ({', '.join(last)}) is no longer in the inputs folder. Its record is kept.",
+            f"{text} Its record is kept, and anything already built from it stays.",
             "Put the file back if it was removed by mistake; otherwise nothing is needed.",
         )
 
@@ -303,15 +448,28 @@ def run_scan(session, ctx):
         run_id=next_run,
         source_counter=state["counters"]["source"],
     )
+    # Pairing works on the records classify returned (copies), before anything is staged, so
+    # it commits in the same transaction as the records it links (WS-04).
+    pairing = pair_sidecars(
+        plan.sources, {rel: entry["src_id"] for rel, entry in plan.fingerprints.items()}
+    )
+    originals = {record["src_id"]: record for record in session.sources}
+    plan.records = [record for record in plan.sources if record != originals.get(record["src_id"])]
+    plan.changed = plan.changed or bool(plan.records)
+    _warn_orphans(plan, pairing, ctx)
     if not plan.changed:
         message = NO_FILES if not session.sources and not walk.files else NO_CHANGES
-        return Result(data=_data(plan, walk, None, False), message=message)
+        return Result(data=_data(plan, walk, pairing, None, False), message=message)
 
     _warn_changes(plan, ctx)
     _run_expanders(case_root, plan)
     summary = _summary(plan)
     run_id, run_record = runs.new_run(
-        state, "scan", started_at=started_at, summary=summary, scan=_scan_record(plan, walk)
+        state,
+        "scan",
+        started_at=started_at,
+        summary=summary,
+        scan=_scan_record(plan, walk, pairing),
     )
     state["fingerprints"] = plan.fingerprints
     state["counters"]["source"] = plan.source_counter
@@ -327,7 +485,11 @@ def run_scan(session, ctx):
     )
     transaction.set_state(state)
     transaction.commit()
-    return Result(
-        data=_data(plan, walk, run_id, True),
-        message=f"{summary}\nRun {run_id}. See INDEX.md in the case folder for the full list.",
+    message = "\n".join(
+        [
+            summary,
+            *_change_lines(plan, pairing),
+            f"Run {run_id}. See INDEX.md in the case folder for the full list.",
+        ]
     )
+    return Result(data=_data(plan, walk, pairing, run_id, True), message=message)

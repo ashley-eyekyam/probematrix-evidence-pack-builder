@@ -7,6 +7,7 @@ automatically.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -158,3 +159,77 @@ def test_state_only_transaction(run_epb, tmp_path):
         committed = point not in ("stage:0", "pre-manifest")
         assert command == ("state-only" if committed else "init"), point
     assert len(tried) == len(points)
+
+
+# --- scan --------------------------------------------------------------------------------------
+
+SCAN_ARGS = ["scan", "--json"]
+SCAN_INPUTS = {
+    "inputs/a.pdf": b"%PDF-1.4\n% synthetic crash-test report\n%%EOF\n",
+    "inputs/b.txt": b"Synthetic crash-test notes.\n",
+    "inputs/a.pdf.note.md": b"Synthetic note: scanned from the site copy.\n",
+}
+
+
+def _scan_template(run_epb, tmp_path):
+    """An initialised case holding two inputs and one sidecar, not yet scanned."""
+    case = _new_case(tmp_path, "scan-template")
+    assert run_epb(INIT_ARGS, case).returncode == 0
+    for rel, data in SCAN_INPUTS.items():
+        (case / rel).parent.mkdir(parents=True, exist_ok=True)
+        (case / rel).write_bytes(data)
+    return case
+
+
+def _copy_case(template, tmp_path, name):
+    case = tmp_path / name
+    shutil.copytree(template, case, symlinks=True)
+    return case
+
+
+def _sources_view(case):
+    """Source IDs with their paths and pairing, for comparing two case folders."""
+    view = {}
+    for path in sorted((case / ".epb" / "sources").glob("*.json")):
+        record = json.loads(path.read_bytes())
+        view[record["src_id"]] = (
+            record["paths"],
+            record["presence"],
+            record["current_version"],
+            record["source_kind"],
+            record["sidecar_of"],
+            record["sidecars"],
+        )
+    return view
+
+
+def test_scan_resumes_after_crash_at_every_checkpoint(run_epb, tmp_path):
+    template = _scan_template(run_epb, tmp_path)
+    reference = _copy_case(template, tmp_path, "scan-reference")
+    points = list_checkpoints(run_epb, SCAN_ARGS, _copy_case(template, tmp_path, "scan-dry-run"))
+    assert points, "a dry run of scan recorded no checkpoints"
+    assert points[-1] == "cleanup"
+    assert run_epb(SCAN_ARGS, reference).returncode == 0
+    expected = _sources_view(reference)
+    assert expected["S002"][3:5] == ("sidecar", "S001")  # inputs/a.pdf.note.md pairs with a.pdf
+
+    tried = []
+    failures = []
+    for number, point in enumerate(points):
+        tried.append(point)
+        case = _copy_case(template, tmp_path, f"scan-{number:02d}")
+        crashed = _crash(run_epb, case, point, SCAN_ARGS)
+        if crashed.returncode != faults.CRASH_EXIT_CODE:
+            failures.append(f"{point}: crash run exited {crashed.returncode}")
+            continue
+        resumed = run_epb(SCAN_ARGS, case)
+        if resumed.returncode != 0:
+            failures.append(f"{point}: resume exited {resumed.returncode}: {resumed.stdout}")
+            continue
+        try:
+            assert_workspace_consistent(case)
+            assert _sources_view(case) == expected
+        except AssertionError as exc:
+            failures.append(f"{point}: {exc}")
+    assert len(tried) == len(points)
+    assert failures == [], "\n".join(failures)
