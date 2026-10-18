@@ -3,9 +3,13 @@
 doctor runs in the interpreter that launched ``epb.py`` (``launcher.BOOTSTRAP_COMMANDS``), so
 it works before first-time setup. Everything it imports is standard library.
 
+``doctor --setup`` builds the private environment instead (``epb.doctor.setup``): it is the only
+command that downloads anything, and only when the user asks for it.
+
 Exit codes: 0 when the private environment is current and every core package is installed;
 3 (``ENV_NOT_SET_UP`` or ``CORE_PACKAGE_MISSING``) otherwise. The full report is returned
-either way. Optional tools and extras never change the exit code.
+either way. Optional tools and extras never change the exit code. ``--setup`` exits 0 when the
+environment is ready, 3 ``VENV_UNAVAILABLE`` or 4 ``SETUP_FAILED`` when it cannot be built.
 
 Run inside a case folder, doctor also warns when the folder appears to be inside a cloud sync
 service or a git repository that tracks or would track ``.epb/private/``.
@@ -22,7 +26,11 @@ MUTATING = False
 
 
 def add_arguments(parser):
-    """doctor has no options of its own yet; ``--setup`` arrives with first-time setup."""
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="build the private Python environment (first-time setup; downloads packages)",
+    )
 
 
 def _fail(code, reason, hint, report, ctx):
@@ -48,6 +56,10 @@ def _check_folder(report, ctx):
 
 
 def run(args, ctx):
+    if args.setup:
+        from epb.doctor.setup import run_setup
+
+        return run_setup(ctx)
     report = probes.collect(ctx.case)
     _check_folder(report, ctx)
     setup = command_text(report["setup_command"])

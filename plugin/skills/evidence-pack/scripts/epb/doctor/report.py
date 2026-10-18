@@ -5,6 +5,8 @@ order: ``Ready``, ``Optional, not installed`` and ``What to do next``. It reads 
 home folder from the report, never from the live system, so its output is a pure function of
 the report; the user manual quotes it and a golden test compares against it.
 
+``render_setup_human`` renders the same three groups after ``doctor --setup``.
+
 Standard library only.
 """
 
@@ -13,6 +15,9 @@ from epb.doctor import tools
 HEADINGS = ("Ready", "Optional, not installed", "What to do next")
 LATER = "support arrives in a later version of this plugin"
 OS_LABELS = {"linux": "Linux", "macos": "macOS", "windows": "Windows"}
+NEXT_CASE_FOLDER = (
+    "- Set up a case folder: ask the agent to set up an evidence pack case folder here."
+)
 
 
 def current_os(platform=None):
@@ -54,38 +59,21 @@ def _install_lines(install, os_id, verbose):
     return [""], [f"    {OS_LABELS[key]}: {install[key]}" for key in tools.OS_IDS]
 
 
-def render_human(report, *, verbose=False):
-    """The D-17 checklist for ``report``. ``verbose`` adds versions, every OS's install
-    command and other environment versions."""
+def _python_lines(python, home, verbose):
+    if not python["ok"]:
+        return []
+    major_minor = ".".join(python["version"].split(".")[:2])
+    line = f"- Python {major_minor} — ready"
+    if verbose:
+        line += f" (version {python['version']} at {_tilde(python['executable'], home)})"
+    return [line]
+
+
+def _tool_and_extra_lines(report, environment_current, verbose):
+    """The Ready and Optional lines for the optional tools and extras."""
     os_id = report.get("os") or "linux"
     home = report.get("home")
-    ready, optional, next_steps = [], [], []
-
-    python = report["python"]
-    if python["ok"]:
-        major_minor = ".".join(python["version"].split(".")[:2])
-        line = f"- Python {major_minor} — ready"
-        if verbose:
-            line += f" (version {python['version']} at {_tilde(python['executable'], home)})"
-        ready.append(line)
-
-    environment = report["environment"]
-    if environment["current"]:
-        ready.append(f"- Private environment — ready ({_tilde(environment['path'], home)})")
-    if verbose and environment.get("other_versions"):
-        ready.append(
-            "    Other private environments found: "
-            + ", ".join(environment["other_versions"])
-            + ". The user manual explains how to remove them."
-        )
-
-    core = report["core_packages"]
-    missing_core = [package["name"] for package in core if not package["ok"]]
-    if environment["current"] and not missing_core:
-        ready.append(f"- Core packages — ready ({len(core)} of {len(core)} installed)")
-        if verbose:
-            ready.extend(f"    {package['name']} {package['installed']}" for package in core)
-
+    ready, optional = [], []
     for tool in report["tools"]:
         if tool["found"]:
             line = f"- {tool['label']} — ready: {tool['enables']}{_later(tool['in_use'])}"
@@ -105,7 +93,7 @@ def render_human(report, *, verbose=False):
         if extra["installed"]:
             ready.append(f"- {name} — ready: {extra['enables']}{_later(extra.get('in_use'))}")
             continue
-        when = "" if environment["current"] else " after first-time setup"
+        when = "" if environment_current else " after first-time setup"
         line = (
             f"- {name} — would enable {extra['enables']}{_later(extra.get('in_use'))}. "
             f"Licence: {extra['licence']}."
@@ -115,6 +103,48 @@ def render_human(report, *, verbose=False):
             optional.append(f"{line} Install{when}: {extra['install']}")
         else:
             optional.append(f"{line} Install{when}: ask the agent to install the {name}.")
+    return ready, optional
+
+
+def _render(ready, optional, next_steps):
+    sections = (
+        ready or ["- Nothing yet."],
+        optional or ["- Nothing: every optional tool and extra is installed."],
+        next_steps,
+    )
+    blocks = [
+        "\n".join([heading, *lines]) for heading, lines in zip(HEADINGS, sections, strict=True)
+    ]
+    return "\n\n".join(blocks)
+
+
+def render_human(report, *, verbose=False):
+    """The D-17 checklist for ``report``. ``verbose`` adds versions, every OS's install
+    command and other environment versions."""
+    home = report.get("home")
+    python = report["python"]
+    ready = _python_lines(python, home, verbose)
+    next_steps = []
+
+    environment = report["environment"]
+    if environment["current"]:
+        ready.append(f"- Private environment — ready ({_tilde(environment['path'], home)})")
+    if verbose and environment.get("other_versions"):
+        ready.append(
+            "    Other private environments found: "
+            + ", ".join(environment["other_versions"])
+            + ". The user manual explains how to remove them."
+        )
+
+    core = report["core_packages"]
+    missing_core = [package["name"] for package in core if not package["ok"]]
+    if environment["current"] and not missing_core:
+        ready.append(f"- Core packages — ready ({len(core)} of {len(core)} installed)")
+        if verbose:
+            ready.extend(f"    {package['name']} {package['installed']}" for package in core)
+
+    tool_ready, optional = _tool_and_extra_lines(report, environment["current"], verbose)
+    ready.extend(tool_ready)
 
     setup = command_text(report["setup_command"])
     if not python["ok"]:
@@ -140,16 +170,24 @@ def render_human(report, *, verbose=False):
                 "evidence pack."
             )
         else:
-            next_steps.append(
-                "- Set up a case folder: ask the agent to set up an evidence pack case folder here."
-            )
+            next_steps.append(NEXT_CASE_FOLDER)
+    return _render(ready, optional, next_steps)
 
-    sections = (
-        ready or ["- Nothing yet."],
-        optional or ["- Nothing: every optional tool and extra is installed."],
-        next_steps,
+
+def render_setup_human(setup, report, *, verbose=False):
+    """The D-17 checklist after ``doctor --setup``: what setup did to the private environment
+    (created, rebuilt or already ready), the core packages, then the optional tools and
+    extras exactly as ``render_human`` shows them."""
+    home = report.get("home")
+    ready = _python_lines(report["python"], home, verbose)
+    ready.append(
+        f"- Private environment — {setup['status']} ({_tilde(setup['environment'], home)})"
     )
-    blocks = [
-        "\n".join([heading, *lines]) for heading, lines in zip(HEADINGS, sections, strict=True)
-    ]
-    return "\n\n".join(blocks)
+    core = report["core_packages"]
+    installed = sum(1 for package in core if package["ok"])
+    ready.append(f"- Core packages — installed ({installed} of {len(core)})")
+    if verbose:
+        ready.extend(f"    {package['name']} {package['installed']}" for package in core)
+    tool_ready, optional = _tool_and_extra_lines(report, True, verbose)
+    ready.extend(tool_ready)
+    return _render(ready, optional, [NEXT_CASE_FOLDER])

@@ -123,14 +123,14 @@ def core_requirements(*, platform=sys.platform):
     return pairs
 
 
-def env_packages(env_python, names):
+def env_packages(env_python, names, *, run=subprocess.run):
     """The installed version of each distribution in ``names`` inside the environment whose
     interpreter is ``env_python`` (None when missing). If the interpreter cannot be run,
-    every package is reported missing."""
+    every package is reported missing. ``run`` is a patch point for tests."""
     names = list(names)
     missing = {name: None for name in names}
     try:
-        completed = subprocess.run(
+        completed = run(
             [str(env_python), "-I", "-c", _PACKAGE_SCRIPT, *names],
             stdin=subprocess.DEVNULL,
             capture_output=True,
