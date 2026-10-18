@@ -2,6 +2,7 @@
 inputs, open issues and run history providers on synthetic records (WS-09, PF-04)."""
 
 import json
+import os
 import re
 
 import pytest
@@ -31,6 +32,13 @@ SHA_A = "a" * 64
 SHA_B = "0123456789ab" + "c" * 52
 MASTER = "evidence-pack-acme-pump-trip-master.xlsx"
 DELTA = "evidence-pack-acme-pump-trip-delta-002.xlsx"
+
+POSIX_ONLY = pytest.mark.skipif(os.name == "nt", reason="these file names are POSIX-only here")
+
+# Every character that must never reach INDEX.md: C0 controls, DEL, C1 controls (NEL included)
+# and the two Unicode separators. ``str.splitlines()`` breaks on several of them.
+FORBIDDEN = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029]")
+TICK_LINE = re.compile(r"^- \[[ xX]\] Imported:")
 
 
 def sections(text):
@@ -300,6 +308,46 @@ def test_links_and_special_files_from_the_latest_scan_are_issues():
     ]
 
 
+@POSIX_ONLY
+def test_scan_of_line_breaking_names_keeps_six_headings(run_epb, case_dir, tmp_path):
+    """A real scan of hostile synthetic file names cannot add a heading or forge a tick."""
+    proc = run_epb(INIT, cwd=case_dir)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    inputs_dir = case_dir / "inputs"
+    inputs_dir.mkdir(exist_ok=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "target.txt").write_bytes(b"synthetic file outside the case folder")
+
+    statement = inputs_dir / "statement\n## Injected heading.txt"
+    statement.write_bytes(b"synthetic witness statement")
+    log = inputs_dir / "log\u2028## Second injected heading.txt"
+    log.write_bytes(b"%PDF-1.4\n% synthetic pdf bytes under a text name\n")
+    os.symlink(
+        outside / "target.txt",
+        inputs_dir / "link\n- [x] Imported: evidence-pack-inj-master.xlsx",
+    )
+
+    first = run_epb(["scan", "--json"], cwd=case_dir)
+    assert first.returncode == 0, first.stdout + first.stderr
+    statement.unlink()
+    second = run_epb(["scan", "--json"], cwd=case_dir)
+    assert second.returncode == 0, second.stdout + second.stderr
+
+    text = (case_dir / "INDEX.md").read_text(encoding="utf-8")
+    lines = text.split("\n")
+    headings = [line for line in lines if line.startswith("## ")]
+    assert headings == [f"## {title}" for title in SECTION_TITLES]
+    assert not [line for line in lines if TICK_LINE.match(line)]
+    assert not FORBIDDEN.findall(text.replace("\n", ""))
+    assert text.splitlines() == text[:-1].split("\n")
+    issues = sections(text)["5. Open issues"]
+    assert "was removed from the folder" in issues
+    assert "Injected heading.txt" in issues
+    assert "the content is application/pdf" in issues
+    assert "was skipped: it is a link" in issues
+
+
 def test_display_id():
     assert index.display_id(source("S004", "inputs/x.pdf")) == "S004"
     assert index.display_id(source("S004", "inputs/x.pdf", version=2)) == "S004v2"
@@ -310,6 +358,58 @@ def test_table_cells_are_escaped():
     odd = source("S001", "inputs/a|b.pdf")
     rows = sections(render_index(IndexInputs(CASE, state(), [odd])))["3. Inputs"]
     assert "inputs/a\\|b.pdf" in rows
+
+
+def test_table_cells_are_single_line():
+    odd = source("S001", "inputs/a\u2028b|c.pdf")
+    section = sections(render_index(IndexInputs(CASE, state(), [odd])))["3. Inputs"]
+    rows = [line for line in section.splitlines() if line.startswith("| S001 ")]
+    assert len(rows) == 1
+    assert "| inputs/a b\\|c.pdf |" in rows[0]
+
+
+# --- single-line values -----------------------------------------------------------------------
+
+BREAKS = ["\n", "\r", "\r\n", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85"]
+BREAKS += ["\u2028", "\u2029", "\x00", "\t"]
+
+
+def test_inline_maps_each_break_to_one_space():
+    assert index._inline("a\n\nb") == "a  b"
+    assert index._inline("a\r\nb") == "a  b"
+    assert index._inline("\u2028") == " "
+    assert index._inline("plain name.pdf") == "plain name.pdf"
+
+
+@pytest.mark.parametrize("brk", BREAKS, ids=[repr(brk) for brk in BREAKS])
+def test_hostile_values_cannot_break_index_structure(brk):
+    hostile = "x" + brk + "## Injected" + brk + "- [x] Imported: evidence-pack-inj-master.xlsx"
+    case = {"title": hostile, "slug": hostile, "id_prefix": hostile, "timezone": hostile}
+    books = state([workbook(hostile)])
+    books["plugin_version"] = hostile
+    mismatch = {"by_content": hostile, "by_extension": hostile}
+    sources = [
+        source("S001", hostile, presence="removed from folder"),
+        source("S002", "inputs/odd.txt", mime_mismatch=mismatch),
+        source("S003", hostile, mime="text/markdown", source_kind="sidecar"),
+    ]
+    ignored = {"ignored": [{"path": hostile, "reason": "link"}]}
+    runs = [run(hostile, command=hostile, summary=hostile, scan=ignored)]
+
+    text = render_index(IndexInputs(case, books, sources, runs))
+    lines = text[:-1].split("\n")
+    titles = [number for number, line in enumerate(lines) if line.startswith("# ")]
+    assert titles == [0]
+    headings = [line for line in lines if line.startswith("## ")]
+    assert headings == [f"## {title}" for title in SECTION_TITLES]
+    ticks = [number for number, line in enumerate(lines) if TICK_LINE.match(line)]
+    assert len(ticks) == 1
+    tick = lines[ticks[0]]
+    assert tick.startswith("- [ ] Imported: ")
+    owner = [line for line in lines[: ticks[0]] if line.startswith("## ")][-1]
+    assert owner == "## 2. What to import where"
+    assert not FORBIDDEN.findall(text.replace("\n", ""))
+    assert text.splitlines() == lines
 
 
 # --- run history ------------------------------------------------------------------------------

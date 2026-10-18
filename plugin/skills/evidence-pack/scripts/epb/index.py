@@ -11,6 +11,9 @@ folder; no absolute path, home folder or account name is ever written.
 The "What to import where" section ends with one task-list line per workbook,
 ``- [ ] Imported: <file>`` (``- [x]`` once imported). That form is fixed now so a later
 version can read the user's ticks back (research Pattern 7).
+
+Every value written into INDEX.md is first made single-line by ``_inline``, so no input name
+or record field can add a heading or an Imported? line.
 """
 
 import re
@@ -71,6 +74,9 @@ MIME_LABELS = {
     "application/x-ole-storage": "OLE2 file",
 }
 
+# C0 controls (tab and NUL included), DEL, C1 controls (NEL included) and the Unicode line and
+# paragraph separators. ``str.splitlines()`` treats several of these as line boundaries.
+_SINGLE_LINE = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029]")
 _RUN_TIME = re.compile(r"^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})")
 _IGNORED_REASONS = {
     "link": "a link, which the plugin does not follow",
@@ -91,9 +97,14 @@ class IndexInputs:
 # --- small helpers ----------------------------------------------------------------------------
 
 
+def _inline(value) -> str:
+    """``value`` as text on one line: each control or separator character becomes one space."""
+    return _SINGLE_LINE.sub(" ", str(value))
+
+
 def _cell(value) -> str:
     """Text safe inside one Markdown table cell."""
-    text = str(value).replace("\r", " ").replace("\n", " ")
+    text = _inline(value)
     return text.replace("\\", "\\\\").replace("|", "\\|")
 
 
@@ -205,7 +216,7 @@ def _tag_range(write) -> str:
 def render_import_line(workbook) -> str:
     """The task-list line the user ticks once a workbook is imported into ProbeMatrix."""
     mark = "x" if workbook.get("status") == "imported" else " "
-    return f"- [{mark}] Imported: {workbook['file']}"
+    return f"- [{mark}] Imported: {_inline(workbook['file'])}"
 
 
 # --- the six providers ------------------------------------------------------------------------
@@ -213,27 +224,31 @@ def render_import_line(workbook) -> str:
 
 def case_header(inputs: IndexInputs) -> str:
     case, state = inputs.case, inputs.state
-    prefix = case.get("id_prefix", "")
+    prefix = _inline(case.get("id_prefix", ""))
     runs = sorted(inputs.runs, key=lambda run: _run_number(run.get("run")))
     if runs:
         last = runs[-1]
         last_run = (
-            f"Run {last.get('run')} · {_when(last.get('finished_at'))} · {last.get('command')}"
+            f"Run {_inline(last.get('run'))} · {_when(last.get('finished_at'))} · "
+            f"{_inline(last.get('command'))}"
         )
     else:
         last_run = NONE_YET
     workbooks = state.get("workbooks") or []
     if workbooks:
         latest = workbooks[-1]
-        pack = f"{latest.get('number')} ({latest.get('file')}, {_workbook_status(latest)})"
+        pack = (
+            f"{_inline(latest.get('number'))} ({_inline(latest.get('file'))}, "
+            f"{_inline(_workbook_status(latest))})"
+        )
     else:
         pack = NONE_YET
     lines = [
-        f"- Title: {case.get('title', '')}",
-        f"- Slug: {case.get('slug', '')}",
+        f"- Title: {_inline(case.get('title', ''))}",
+        f"- Slug: {_inline(case.get('slug', ''))}",
         f"- ID prefix: {prefix} (evidence IDs look like EVD-{prefix}-001)",
-        f"- Timezone: {case.get('timezone', '')}",
-        f"- Plugin version: {state.get('plugin_version', '')}",
+        f"- Timezone: {_inline(case.get('timezone', ''))}",
+        f"- Plugin version: {_inline(state.get('plugin_version', ''))}",
         f"- Last run: {last_run}",
         f"- Current pack version: {pack}",
     ]
@@ -324,14 +339,15 @@ def _latest_scan(runs) -> dict | None:
 def open_issues(inputs: IndexInputs) -> str:
     issues = []
     for source in sorted(inputs.sources, key=_src_number):
-        label = f"{display_id(source)} ({_path_text(source)})"
+        label = f"{_inline(display_id(source))} ({_inline(_path_text(source))})"
         if source.get("presence") == REMOVED:
             issues.append(f"- {label} was removed from the folder. Its record is kept.")
         mismatch = source.get("mime_mismatch")
         if mismatch:
             issues.append(
-                f"- {label}: the content is {mismatch.get('by_content')}, but the file name "
-                f"suggests {mismatch.get('by_extension')}. The content was used."
+                f"- {label}: the content is {_inline(mismatch.get('by_content'))}, but the "
+                f"file name suggests {_inline(mismatch.get('by_extension'))}. "
+                "The content was used."
             )
         if (
             source.get("source_kind") == "sidecar"
@@ -340,7 +356,9 @@ def open_issues(inputs: IndexInputs) -> str:
         ):
             target = _note_target(source)
             if target:
-                issues.append(f"- {label} is a note for {target}, but that file is not in inputs/.")
+                issues.append(
+                    f"- {label} is a note for {_inline(target)}, but that file is not in inputs/."
+                )
             else:
                 issues.append(f"- {label} is a note file with no matching input file.")
     scan = _latest_scan(inputs.runs)
@@ -348,7 +366,7 @@ def open_issues(inputs: IndexInputs) -> str:
         for entry in sorted(scan.get("ignored") or [], key=lambda item: item.get("path", "")):
             reason = _IGNORED_REASONS.get(entry.get("reason"))
             if reason:  # junk files such as .DS_Store are not issues
-                issues.append(f"- {entry.get('path')} was skipped: it is {reason}.")
+                issues.append(f"- {_inline(entry.get('path'))} was skipped: it is {reason}.")
     return "\n".join(issues) if issues else NONE_YET
 
 
@@ -358,8 +376,8 @@ def run_history(inputs: IndexInputs) -> str:
     lines = []
     for run in sorted(inputs.runs, key=lambda item: _run_number(item.get("run"))):
         lines.append(
-            f"- Run {run.get('run')} · {_when(run.get('finished_at'))} · "
-            f"{run.get('command')} · {run.get('summary', '')}"
+            f"- Run {_inline(run.get('run'))} · {_when(run.get('finished_at'))} · "
+            f"{_inline(run.get('command'))} · {_inline(run.get('summary', ''))}"
         )
     return "\n".join(lines)
 
@@ -377,7 +395,7 @@ SECTION_TITLES = tuple(title for title, _ in PROVIDERS)
 
 def render_index(inputs: IndexInputs) -> str:
     """The full text of ``INDEX.md``."""
-    lines = [f"# {inputs.case.get('title', '')}", "", NOTE]
+    lines = [f"# {_inline(inputs.case.get('title', ''))}", "", NOTE]
     for title, provider in PROVIDERS:
         body = provider(inputs).strip("\n") or NONE_YET
         lines.extend(["", f"## {title}", "", body])
