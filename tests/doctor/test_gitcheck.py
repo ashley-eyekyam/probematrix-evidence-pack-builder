@@ -140,6 +140,15 @@ def test_no_git_binary_and_a_git_file(tmp_path):
 
 
 def test_no_git_binary_outside_a_repository(tmp_path):
+    # The precondition is a machine fact: nothing above the pytest temp folder is a repository.
+    enclosing = next(
+        (folder for folder in (tmp_path, *tmp_path.parents) if (folder / ".git").exists()), None
+    )
+    if enclosing is not None:
+        pytest.skip(
+            f"the machine's temp folder sits inside what looks like a repository: "
+            f"{enclosing} has a .git entry"
+        )
     case = tmp_path / "loose" / "case"
     case.mkdir(parents=True)
     assert gitcheck.check(case, which=lambda name: None) == []

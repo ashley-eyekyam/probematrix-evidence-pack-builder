@@ -22,7 +22,7 @@ created: "2026-10-17"
 | **Framework** | pytest ≥9.0 (9.1.1 under the two-week cutoff); ruff 0.16.10 |
 | **Config file** | `pyproject.toml` (none yet, so Wave 0 creates it): pytest `testpaths=["tests"]`, `pythonpath` covering `plugin/skills/evidence-pack/scripts` and `tools`, `filterwarnings=["error::EncodingWarning"]`; ruff `target-version="py311"` |
 | **Quick run command** | `.venv/bin/python -m pytest -x -q tests/<area>` |
-| **Full suite command** | `.venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/python -m pytest -q` |
+| **Full suite command** | `.venv/bin/ruff check . && .venv/bin/ruff format --check . && PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q` |
 | **Estimated runtime** | ~60 seconds (the crash-resume subprocess matrix is the slowest part) |
 
 ---
