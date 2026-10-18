@@ -1,0 +1,5 @@
+# Full contributor environment for the Phase 10 media CI job only: dev requirements plus the
+# GPL extras (D-12).
+-r requirements-dev.txt
+-r plugin/requirements-email.txt
+-r plugin/requirements-media.txt

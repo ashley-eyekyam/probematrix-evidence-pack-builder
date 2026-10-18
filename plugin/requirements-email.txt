@@ -1,0 +1,3 @@
+# Optional extra: Outlook .msg email.
+# Licence: GPL-3.0 (extract-msg; transitive RTFDE LGPL-3.0). Never imported by core code.
+extract-msg>=0.55

@@ -14,7 +14,9 @@ filterwarnings = ["error::EncodingWarning"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-extend-exclude = ["docs/reference"]
+# ruff also formats Python code blocks inside Markdown. .planning/ holds GSD planning
+# documents whose snippets are illustrative, so ruff leaves them alone.
+extend-exclude = ["docs/reference", ".planning"]
 
 [tool.ruff.lint]
 # PLW1514 (explicit encoding= on open()) is preview-only in ruff 0.16.10.

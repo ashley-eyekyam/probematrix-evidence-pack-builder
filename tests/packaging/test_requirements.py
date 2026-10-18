@@ -10,6 +10,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CORE = REPO_ROOT / "plugin" / "requirements.txt"
 DEV = REPO_ROOT / "requirements-dev.txt"
+DEV_FULL = REPO_ROOT / "requirements-dev-full.txt"
+EXTRA_EMAIL = REPO_ROOT / "plugin" / "requirements-email.txt"
+EXTRA_MEDIA = REPO_ROOT / "plugin" / "requirements-media.txt"
+EXTRA_DOCS = REPO_ROOT / "plugin" / "requirements-docs.txt"
+
+# Optional extras (D-12): file -> must its licence header name GPL?
+EXTRAS_GPL = {EXTRA_EMAIL: True, EXTRA_MEDIA: True, EXTRA_DOCS: False}
+EXTRA_PACKAGES = ("extract-msg", "faster-whisper", "docling")
 
 TZDATA_LINE = 'tzdata; sys_platform == "win32"'
 
@@ -42,6 +50,17 @@ def requirement_lines(path: Path) -> list[str]:
         if line:
             lines.append(line)
     return lines
+
+
+def header_comment(path: Path) -> str:
+    """Return the leading block of '#' comment lines of a file, joined with newlines."""
+    header = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        stripped = raw.strip()
+        if not stripped.startswith("#"):
+            break
+        header.append(stripped.lstrip("#").strip())
+    return "\n".join(header)
 
 
 def dist_name(line: str) -> str:
@@ -96,4 +115,35 @@ def test_dev_requirements():
         "-r plugin/requirements.txt",
         "pytest>=9.0",
         "ruff==0.16.10",
+    ]
+
+
+def test_extras_have_licence_headers():
+    for path, names_gpl in EXTRAS_GPL.items():
+        assert path.is_file(), f"missing optional extra {path.name}"
+        header = header_comment(path)
+        assert "licence" in header.lower(), f"{path.name} header does not state its licence"
+        if names_gpl:
+            assert "GPL" in header, f"{path.name} header does not name GPL"
+        assert requirement_lines(path), f"{path.name} declares no requirement"
+
+
+def test_no_gpl_in_core_or_dev():
+    for path in (CORE, DEV):
+        for line in requirement_lines(path):
+            if line.startswith("-r"):
+                included = line[2:].strip()
+                assert included == "plugin/requirements.txt", (
+                    f"{path.name} includes {included!r}; only the core file may be included"
+                )
+                continue
+            name = canonical(dist_name(line))
+            assert name not in EXTRA_PACKAGES, f"{path.name} names optional package {name!r}"
+
+
+def test_dev_full_composition():
+    assert requirement_lines(DEV_FULL) == [
+        "-r requirements-dev.txt",
+        "-r plugin/requirements-email.txt",
+        "-r plugin/requirements-media.txt",
     ]

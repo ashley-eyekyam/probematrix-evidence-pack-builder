@@ -1,0 +1,4 @@
+# Optional extra: local audio and video transcription.
+# Licence: faster-whisper is MIT, but its PyAV dependency ships wheels that bundle GPL codecs
+# (x264, x265), so this extra pulls GPL-licensed binaries.
+faster-whisper>=1.2.1

@@ -1,0 +1,5 @@
+# Optional extra: layout-aware PDF and DOCX conversion.
+# Licence: MIT (docling); pulls torch and model weights, which carry their own licences.
+# Floor is the release that resolved under the two-week rule on 2026-10-17; the Phase 7 docling
+# spike re-checks it.
+docling>=2.132.0
