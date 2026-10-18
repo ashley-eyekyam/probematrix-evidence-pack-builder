@@ -71,8 +71,8 @@ Conversion of inputs to text, extraction of facts, de-identification and buildin
    - `duplicates`: the same content at more than one path; it stays one input;
    - `restored`: an input that came back;
    - `removed`: an input no longer in `inputs/`; its record is kept;
-   - `ignored`: links, special files and system leftovers such as `.DS_Store`, which are never registered.
-4. Pass on `MIME_MISMATCH` (a file's content does not match its extension; the content wins), `SIDECAR_ORPHAN` (a note with no matching file, usually a misspelt name) and `INPUT_REMOVED` in plain words.
+   - `ignored`: links, special files, system leftovers such as `.DS_Store`, and files or folders whose names are not valid text (reason `bad-name`), none of which are registered.
+4. Pass on `MIME_MISMATCH` (a file's content does not match its extension; the content wins), `SIDECAR_ORPHAN` (a note with no matching file, usually a misspelt name), `INPUT_REMOVED` and `BAD_NAME_IGNORED` in plain words. `BAD_NAME_IGNORED` means a file or folder whose name is not valid text was skipped (for example one from an old ZIP file): name it as the warning shows it and ask the user to rename it, then scan again.
 5. `changed: false` means nothing has changed since the last scan.
 6. `INDEX.md` and the plugin's records show file and folder names exactly as they are, because this version does not replace names yet. If a name in `data` looks like a person's name, tell the user, naming the input by its ID (for example S003) rather than repeating the name, and suggest they rename the file themselves before they share `INDEX.md`. You never rename, move or edit anything in `inputs/`.
 
@@ -84,7 +84,7 @@ Conversion of inputs to text, extraction of facts, de-identification and buildin
 2. What to import where: the workbooks in `outputs/` and the order to import them. Each has a line `- [ ] Imported: <file>` for the user to tick after importing it.
 3. Inputs: one row per input with its ID, path, type, size, short fingerprint and status. The paths are the file names exactly as they are.
 4. Outputs: which inputs went into each workbook.
-5. Open issues: removed inputs, content that does not match its extension, notes with no matching file, and skipped links or special files.
+5. Open issues: removed inputs, content that does not match its extension, notes with no matching file, and skipped links, special files or names that are not valid text.
 6. Run history: one line per run of `init` or `scan`.
 
 "none yet" means nothing of that kind exists yet, which is normal for a new case. "waiting for conversion" means the input is registered and will be converted by a later version of this plugin. "removed from folder" means the file has gone from `inputs/` but its record is kept.

@@ -103,8 +103,10 @@ Every other path appears when a later version first needs it.
   of its own and paired with its file by exact name. A note with no matching file is reported
   as `SIDECAR_ORPHAN`. A file named only `.note.md` is an ordinary input.
 - These are listed as ignored and never registered: links and junctions (never followed),
-  special files such as pipes and devices, and system leftovers matching `.DS_Store`,
-  `Thumbs.db`, `desktop.ini`, `~$*`, `._*`, `.~lock.*#` or `*.tmp`.
+  special files such as pipes and devices, files and folders whose names are not valid text
+  (`bad-name`, warned as `BAD_NAME_IGNORED`; nothing inside such a folder is scanned, and the
+  user renames it), and system leftovers matching `.DS_Store`, `Thumbs.db`, `desktop.ini`,
+  `~$*`, `._*`, `.~lock.*#` or `*.tmp`.
 - When the content and the extension disagree, the content decides the file type and the
   mismatch is reported (`MIME_MISMATCH`).
 - Two files whose names differ only in how their accented letters are encoded cannot both be
