@@ -156,8 +156,8 @@ Each hard gate blocks the build. (§14)
 ### Build and format (BLD)
 
 - [ ] **BLD-01**: `formats/probematrix_v2.py` owns the format marker, sheet names, header order, column widths, enums, list separator and the 10-row metadata layout, all transcribed from the importer. `references/evidence-pack-v2.md` documents the format with the date it was checked. (§8.5, §8.4 importer re-check)
-- [ ] **BLD-02**: Every cell is written as text, with control characters removed. A cell starting with `=`, `+`, `-` or `@` never becomes a formula, and dates and long IDs never become numbers. (§8.4 re-check item 8)
-- [ ] **BLD-03**: The validator is stricter than the importer. It rejects:
+- [x] **BLD-02**: Every cell is written as text, with control characters removed. A cell starting with `=`, `+`, `-` or `@` never becomes a formula, and dates and long IDs never become numbers. (§8.4 re-check item 8)
+- [x] **BLD-03**: The validator is stricter than the importer. It rejects:
   - a blank Description or Type
   - non-exact enum values
   - non-string cells
@@ -174,7 +174,7 @@ Each hard gate blocks the build. (§14)
 - [ ] **BLD-05**: Source citations take the form `p.<n>`, `pp.<a>–<b>`, `PDF p.<n>`, `<annex> p.<n>`, `hh:mm:ss–hh:mm:ss`, `sheet <name> rows <a>–<b>`, or `[web snapshot <date>] <url>`. (§8.4, §20 A13)
 - [ ] **BLD-06**: The source documents themselves never become evidence items. (§8.4, DEF-17)
 - [ ] **BLD-07**: `epb build` writes `outputs/evidence-pack-<case>-master.xlsx` from all items while the master is a draft. A run with no new or changed items writes nothing and says so. (§12.1)
-- [ ] **BLD-08**: Pack Metadata uses the exact 10-row layout, with Total Evidence Items equal to the number of items in this file. The Attachments Manifest is written with headers only. (§8.4)
+- [x] **BLD-08**: Pack Metadata uses the exact 10-row layout, with Total Evidence Items equal to the number of items in this file. The Attachments Manifest is written with headers only. (§8.4)
 
 ### Incremental runs (INC)
 
@@ -427,13 +427,13 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | COV-02 | Phase 5 | Pending |
 | COV-03 | Phase 5 | Pending |
 | BLD-01 | Phase 1 | Pending |
-| BLD-02 | Phase 1 | Pending |
-| BLD-03 | Phase 1 | Pending |
+| BLD-02 | Phase 1 | Complete |
+| BLD-03 | Phase 1 | Complete |
 | BLD-04 | Phase 5 | Pending |
 | BLD-05 | Phase 5 | Pending |
 | BLD-06 | Phase 5 | Pending |
 | BLD-07 | Phase 5 | Pending |
-| BLD-08 | Phase 1 | Pending |
+| BLD-08 | Phase 1 | Complete |
 | INC-01 | Phase 6 | Pending |
 | INC-02 | Phase 6 | Pending |
 | INC-03 | Phase 6 | Pending |

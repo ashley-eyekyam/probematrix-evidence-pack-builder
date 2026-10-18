@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-10-18T09:30:19.578Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-10-18T09:43:53.505Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: cd5fa2bf4388a8166027d19033884880f6822d19
+state_head: d1ee281cd22f520b77bd67dedfd41ce18c18f4fb
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 4 of 16
+Plan: 5 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 10 min | 3 tasks | 10 files |
 | Phase 01 P02 | 3 min | 2 tasks | 2 files |
 | Phase 01 P03 | 8 min | 3 tasks | 10 files |
+| Phase 01 P04 | 10 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Command modules: epb/commands/<name>.py with NAME, HELP, MUTATING, add_arguments, run; underscore-prefixed modules are helpers and are skipped by discover()
 - [Phase 01]: Private env at the fixed D-03 path keyed by plugin version; the epb-env.json marker must match plugin_version and requirements_sha256, else ENV_NOT_SET_UP (exit 3)
 - [Phase 01]: Envelope schema enforces ok == (exit_code == 0) and at least one error when ok is false; tracebacks go to stderr only
+- [Phase 01]: Writer saves through openpyxl ExcelWriter so the injected created/modified time survives; Workbook.save stamps the wall clock
+- [Phase 01]: validate_workbook opens the file as a binary handle because openpyxl rejects the .tmp name write_pack validates
+- [Phase 01]: Validator: a formula cell reports only CELL_FORMULA; one finding per cell and code; blank Evidence ID is REQUIRED_BLANK
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T09:30:19.551Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-10-18T09:43:53.478Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
