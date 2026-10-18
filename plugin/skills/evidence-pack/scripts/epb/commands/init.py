@@ -1,9 +1,13 @@
-"""``epb init``: set up a case folder (WS-01, D-15).
+"""``epb init``: set up a case folder (WS-01, WS-09, D-06, D-15).
 
-Writes ``.epb/case.yaml`` and ``.epb/state.json`` in one journalled transaction, the store
-that every later changing command uses. The CLI never prompts: the skill asks the user for
-the case title, and every other setting has a default. Running it again on a folder that is
-already set up changes nothing.
+Creates ``inputs/``, ``outputs/`` and the ``.epb`` folders, then writes ``.epb/case.yaml``,
+the ignore files, ``INDEX.md`` and ``.epb/state.json`` in one journalled transaction, the
+store that every later changing command uses. The CLI never prompts: the skill asks the user
+for the case title, and every other setting has a default. Running it again on a folder that
+is already set up changes nothing, and it never overwrites an ``INDEX.md`` it did not make.
+
+After the transaction commits, init warns (exit 0) when the folder appears to be inside a
+cloud sync folder or a git repository that tracks or would track ``.epb/private/``.
 """
 
 from epb.errors import EpbError
@@ -32,8 +36,19 @@ def add_arguments(parser):
     )
 
 
+def _refuse_foreign_index(case, index_file):
+    """Never overwrite an ``INDEX.md`` the plugin did not make (T-01-30)."""
+    if (case / index_file).exists():
+        raise EpbError(
+            "BAD_ARGUMENT",
+            "INDEX.md already exists in this folder and was not made by the plugin. "
+            "Move it, or choose another folder.",
+            hint="Move INDEX.md out of this folder, or set up the case in another folder.",
+        )
+
+
 def run(args, ctx):
-    from epb import __version__, casefile, fsio, txn, yamlio
+    from epb import __version__, casefile, fsio, index, runs, txn, workspace, yamlio
     from epb.cli import Result
     from epb.state import STATE_FILE, load_state, new_state
 
@@ -44,44 +59,84 @@ def run(args, ctx):
             f"The case folder {case} does not exist or is not a folder.",
             hint="Create the folder first, or pass --case with an existing folder.",
         )
-    (case / txn.TMP_DIR).mkdir(parents=True, exist_ok=True)
-    for txn_id in txn.recover(case):
-        ctx.warn(
-            "RECOVERED",
-            f"An interrupted change ({txn_id}) was finished before this command ran.",
-        )
-    if (case / STATE_FILE).exists():
-        load_state(case)
-        record = casefile.load_case(case)
-        fields = casefile.differences(record, args)
-        if fields:
-            flags = ", ".join(f"--{field}" for field in fields)
-            raise EpbError(
-                "WORKSPACE_EXISTS",
-                "This folder is already set up as a case folder with different settings: "
-                f"{flags}. Case settings are fixed once set up.",
-                hint="Run init without those options, or set up a new folder for another case.",
-                data={"fields": fields},
+    if not (case / STATE_FILE).exists() and not txn.pending_journals(case):
+        # Checked before anything is created, so a refusal leaves the folder untouched.
+        _refuse_foreign_index(case, index.INDEX_FILE)
+    new_dirs = workspace.missing_layout(case)
+    with workspace.open_for_init(case, ctx) as session:
+        if session.state_exists:
+            load_state(case)
+            record = casefile.load_case(case)
+            fields = casefile.differences(record, args)
+            if fields:
+                flags = ", ".join(f"--{field}" for field in fields)
+                raise EpbError(
+                    "WORKSPACE_EXISTS",
+                    "This folder is already set up as a case folder with different settings: "
+                    f"{flags}. Case settings are fixed once set up.",
+                    hint="Run init without those options, or set up a new folder for another case.",
+                    data={"fields": fields},
+                )
+            ctx.warn("ALREADY_SET_UP", "This folder is already set up as a case folder.")
+            return Result(
+                data={"case_folder": str(case), "created": [], "case": _case_data(record)},
+                message="Nothing to do: this folder is already set up as a case folder.",
             )
-        ctx.warn("ALREADY_SET_UP", "This folder is already set up as a case folder.")
-        return Result(
-            data={"case_folder": str(case), "created": [], "case": _case_data(record)},
-            message="Nothing to do: this folder is already set up as a case folder.",
+        _refuse_foreign_index(case, index.INDEX_FILE)
+        started_at = fsio.utc_now_iso()
+        settings = casefile.resolve_settings(args, case)
+        record = casefile.new_case_record(settings, __version__, started_at)
+        state = new_state(__version__)
+        run_id, run_record = runs.new_run(
+            state, NAME, started_at=started_at, summary="Case folder created."
         )
-    settings = casefile.resolve_settings(args, case)
-    record = casefile.new_case_record(settings, __version__, fsio.utc_now_iso())
-    transaction = txn.Transaction(case, NAME)
-    transaction.stage_record(casefile.CASE_FILE, record, "case", yamlio.dump_yaml_bytes)
-    transaction.set_state(new_state(__version__))
-    transaction.commit()
+        workspace.create_layout(case)
+        transaction = txn.Transaction(case, NAME)
+        transaction.stage_record(casefile.CASE_FILE, record, "case", yamlio.dump_yaml_bytes)
+        transaction.stage_text(workspace.GITIGNORE_FILE, workspace.GITIGNORE_TEXT)
+        transaction.stage_text(workspace.GITATTRIBUTES_FILE, workspace.GITATTRIBUTES_TEXT)
+        transaction.stage_text(workspace.PRIVATE_GITIGNORE_FILE, workspace.PRIVATE_GITIGNORE_TEXT)
+        transaction.stage_json(runs.run_json_path(run_id), run_record, "run")
+        transaction.stage_text(
+            index.INDEX_FILE,
+            index.render_index(index.IndexInputs(record, state, [], [run_record])),
+        )
+        transaction.set_state(state)
+        transaction.commit()
+    # Only now that the case folder is set up: the checks read, never write, and never fail init.
+    _folder_warnings(case, ctx)
     return Result(
         data={
             "case_folder": str(case),
-            "created": [casefile.CASE_FILE, STATE_FILE],
+            "created": [*new_dirs, *transaction.staged_paths],
             "case": _case_data(record),
         },
-        message=f"Case folder set up: {settings.title}",
+        next=["scan"],
+        message=(
+            f"Case folder set up: {settings.title}\n"
+            "Put the evidence files in the inputs folder, then ask the agent to scan them."
+        ),
     )
+
+
+def _folder_warnings(case, ctx):
+    """Warn when the case folder appears to be inside a cloud sync folder (WS-12, A1) or a git
+    repository that tracks or would track ``.epb/private/`` (WS-11, A2). A check that raises
+    or times out gives no warning: the case folder is already set up, so init still succeeds.
+    """
+    from epb.doctor import gitcheck, syncfolders
+
+    found = []
+    try:
+        found.extend(syncfolders.warning_for(hit) for hit in syncfolders.check(case))
+    except Exception:  # a heuristic must never fail a finished init
+        pass
+    try:
+        found.extend(gitcheck.check(case))
+    except Exception:  # git problems are warnings at most
+        pass
+    for item in found:
+        ctx.warn(item["code"], item["message"], item.get("hint"))
 
 
 def _case_data(record):
