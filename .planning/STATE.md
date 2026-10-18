@@ -5,16 +5,16 @@ milestone_name: First public release
 current_phase: 01
 current_phase_name: Foundations
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-10-18T09:15:19.160Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-10-18T09:20:09.414Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 01 execution started
-state_head: 7c436f99f057cd1429a0aa09241420668fbb69d7
+state_head: 86abf8871b67a7e9fcb85989a45accc23ce081d7
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 16
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 ## Current Position
 
 Phase: 01 (Foundations) — EXECUTING
-Plan: 2 of 16
+Plan: 3 of 16
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 01 execution started
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 10 min | 3 tasks | 10 files |
+| Phase 01 P02 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Owner ProbeMatrix imports happen at Phase 1 (smoke workbook), Phase 5 (master), Phase 6 (delta) and Phase 10 (definition of done).
 - [Phase 01]: Owner approved all 16 packages, the PKG-08 floors and ruff==0.16.10 at the blocking-human legitimacy checkpoint before the first install
 - [Phase 01]: ruff excludes .planning/ because ruff 0.16.10 formats Python code blocks inside Markdown and the GSD research docs hold illustrative snippets
+- [Phase 01]: Design §20 records Phase 1 decisions as A16-A30; each row's first cell cites its D-NN (01-CONTEXT.md) or research reference (01-RESEARCH.md)
+- [Phase 01]: Design §5 manual is docs/USER-MANUAL.md (A14), replacing INSTALL.md and USER-GUIDE.md; CHANGELOG/CONTRIBUTING/SECURITY stay at the root
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-18T09:15:19.136Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-10-18T09:20:09.390Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

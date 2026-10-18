@@ -41,12 +41,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Owner smoke import: the owner imports the synthetic edge-case workbook into a ProbeMatrix test incident. The workbook contains a Description beginning with `=`, a `0` value, a long numeric ID, a `YYYY-MM` date, multi-entry Tags and Linked Equipment, and every QA Status value. The owner reports that every value shows exactly as written, that nothing became a formula, a number or a blank, and that list entries split into the expected separate entries.
   5. On Linux, the plugin installs into Claude Code from this repo's marketplace (`source: "./plugin"`). `epb doctor --setup`, launched through the standard-library-only `epb.py`, finds Python 3.11+, builds the private environment, installs the core packages and reports in plain language what is ready and what is optional. `epb doctor` lists every tool with its version, the input types it enables and per-OS install commands. `AGENTS.md` is in `plugin/`. Linux CI runs pytest, ruff, the dependency-age check and the licence allow-list, all green. The first edition of the user manual covers installing Python, adding the plugin to Claude Code, first-time setup and the plain-language privacy statement, with the Windows and macOS sections marked "not yet tested on this system". The repo-root `AGENTS.md` and `CLAUDE.md` are identical and concise (150 lines at most), and a CI test fails otherwise (PKG-11).
 
-**Plans**: 1/16 plans executed in 8 waves
+**Plans**: 2/16 plans executed in 8 waves
 
 Plans:
 **Wave 1**
 - [x] 01-01-PLAN.md — Dev toolchain, dependency manifests and the package-legitimacy checkpoint (wave 1)
-- [ ] 01-02-PLAN.md — Design amendments A16–A30 for the Phase 1 decisions (wave 1)
+- [x] 01-02-PLAN.md — Design amendments A16–A30 for the Phase 1 decisions (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-03-PLAN.md — CLI shell: stdlib launcher, envelope, exit codes 0–4 (wave 2)
@@ -295,7 +295,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations | 1/16 | In Progress | - |
+| 1. Foundations | 2/16 | In Progress | - |
 | 2. Text intake + quote verifier | 0/TBD | Not started | - |
 | 3. Extraction + claim ledger | 0/TBD | Not started | - |
 | 4. Reconcile | 0/TBD | Not started | - |
