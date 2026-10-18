@@ -4,6 +4,8 @@
 import ast
 import json
 import os
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -245,3 +247,97 @@ def test_real_layout_finds_requirements():
 @pytest.mark.parametrize("path", OLD_SYNTAX_FILES, ids=lambda p: p.name)
 def test_parses_as_python_36(path):
     ast.parse(path.read_text(encoding="utf-8"), filename=str(path), feature_version=(3, 6))
+
+
+# --- bootstrap guard: stdlib only before setup (PKG-06, research anti-patterns) ----------
+
+REQUIREMENTS = SCRIPTS.parent.parent.parent / "requirements.txt"
+
+# Every distribution in plugin/requirements.txt, mapped to the top-level import names it and
+# its dependencies install. A new requirement must be added here, or the test below fails.
+DIST_IMPORT_NAMES = {
+    "jsonschema": ["jsonschema", "jsonschema_specifications", "referencing", "rpds", "attrs"],
+    "PyYAML": ["yaml", "_yaml"],
+    "openpyxl": ["openpyxl", "et_xmlfile"],
+    "defusedxml": ["defusedxml"],
+    "lxml": ["lxml"],
+    "charset-normalizer": ["charset_normalizer"],
+    "pdfplumber": ["pdfplumber", "pdfminer", "pypdfium2", "pypdfium2_raw"],
+    "pypdf": ["pypdf"],
+    "Pillow": ["PIL"],
+    "rapidfuzz": ["rapidfuzz"],
+    "python-docx": ["docx"],
+    "python-pptx": ["pptx", "xlsxwriter"],
+    "beautifulsoup4": ["bs4", "soupsieve"],
+    "markdownify": ["markdownify", "six"],
+    "tzdata": ["tzdata"],
+}
+
+_BLOCKING_SCRIPT = """
+import sys
+
+BLOCKED = set(sys.argv[2].split(","))
+
+
+class Blocker:
+    def find_spec(self, name, path=None, target=None):
+        if name.partition(".")[0] in BLOCKED:
+            raise ModuleNotFoundError("blocked for this test: " + name, name=name)
+        return None
+
+
+sys.meta_path.insert(0, Blocker())
+sys.path.insert(0, sys.argv[1])
+import epb.launcher
+import epb.errors
+import epb.cli
+
+epb.cli.build_parser()
+leaked = sorted(n for n in sys.modules if n.partition(".")[0] in BLOCKED)
+if leaked:
+    print("third-party modules imported: " + ", ".join(leaked))
+    sys.exit(1)
+"""
+
+
+def _requirement_names():
+    names = []
+    for line in REQUIREMENTS.read_text(encoding="utf-8").splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            names.append(re.split(r"[\s;<>=!~\[]", line, maxsplit=1)[0])
+    return names
+
+
+def test_import_map_covers_requirements():
+    assert sorted(_requirement_names()) == sorted(DIST_IMPORT_NAMES)
+
+
+def test_bootstrap_imports_stdlib_only():
+    blocked = sorted({name for names in DIST_IMPORT_NAMES.values() for name in names})
+    proc = subprocess.run(
+        [sys.executable, "-I", "-c", _BLOCKING_SCRIPT, str(SCRIPTS), ",".join(blocked)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+def _epb_python_files():
+    return sorted((SCRIPTS / "epb").rglob("*.py"))
+
+
+def test_never_prompts():
+    offenders = []
+    for path in _epb_python_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id == "input":
+                    offenders.append(f"{path.name}:{node.lineno} input()")
+            if isinstance(node, ast.Attribute) and node.attr == "stdin":
+                if isinstance(node.value, ast.Name) and node.value.id == "sys":
+                    offenders.append(f"{path.name}:{node.lineno} sys.stdin")
+    assert offenders == []
