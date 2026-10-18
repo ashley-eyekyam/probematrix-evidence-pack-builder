@@ -181,3 +181,8 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- FOUND: 1d894b2, bce57d3, 17f616b, 5de8f5a (all on this branch, via git log b979d9d..HEAD)
+- FOUND: plugin/skills/evidence-pack/scripts/epb/index.py, tests/index/test_index.py, .planning/phases/01-foundations/01-18-SUMMARY.md
