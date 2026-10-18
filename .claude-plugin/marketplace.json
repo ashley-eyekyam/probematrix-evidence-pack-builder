@@ -1,0 +1,16 @@
+{
+  "name": "probematrix-evidence-pack-builder",
+  "owner": {
+    "name": "Eyekyam Risk Resolutions"
+  },
+  "metadata": {
+    "description": "Turns a case folder of incident material into a citation-exact, de-identified EVIDENCE_PACK_V2 workbook for ProbeMatrix."
+  },
+  "plugins": [
+    {
+      "name": "probematrix-evidence-pack-builder",
+      "source": "./plugin",
+      "description": "Turns a case folder of incident material into a citation-exact, de-identified EVIDENCE_PACK_V2 workbook for ProbeMatrix."
+    }
+  ]
+}

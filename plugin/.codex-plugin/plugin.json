@@ -1,0 +1,7 @@
+{
+  "name": "probematrix-evidence-pack-builder",
+  "version": "0.1.0-dev.1",
+  "description": "Turns a case folder of incident material into a citation-exact, de-identified EVIDENCE_PACK_V2 workbook for ProbeMatrix.",
+  "license": "MIT",
+  "skills": "./skills/"
+}
