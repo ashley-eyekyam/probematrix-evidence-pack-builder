@@ -94,61 +94,70 @@ What the prototype got right, and this design keeps: the three-part Description 
 ## 5. Repository layout
 
 ```
-probematrix-evidence-pack-builder/
+probematrix-evidence-pack-builder/      # the repo (A4); users install only plugin/
 ├── .claude-plugin/
-│   ├── plugin.json                 # Claude Code / Cowork plugin manifest ("skills": "./skills")
-│   └── marketplace.json            # own marketplace entry (name: see §18)
-├── .agents/skills -> ../skills     # Codex discovery (symlink; install script copies on Windows)
-├── AGENTS.md                       # host-neutral agent instructions (Codex reads this)
-├── CLAUDE.md                       # one line: "See @AGENTS.md"
+│   └── marketplace.json            # own marketplace entry (name: see §18), source: "./plugin" (A30)
+├── AGENTS.md  CLAUDE.md            # developer instructions, byte-identical mirrors (A15)
 ├── README.md  LICENSE (MIT)  CHANGELOG.md  CONTRIBUTING.md  SECURITY.md
-├── requirements.txt                # core: openpyxl, pyyaml, rapidfuzz, pdfplumber, pypdf, python-docx,
-│                                   #       python-pptx, beautifulsoup4, markdownify, Pillow,
-│                                   #       tzdata on Windows only (A28)
-├── requirements-email.txt          # optional: extract-msg (GPL) for Outlook .msg
-├── requirements-media.txt          # optional: faster-whisper, opencv-python-headless (scene detection)
-├── requirements-docs.txt           # optional: docling (layout/table-aware PDF/DOCX → Markdown)
-├── requirements-dev.txt            # pytest, ruff, + all optional
-├── skills/
-│   ├── evidence-pack/              # START HERE: router, workspace setup, run loop
-│   │   ├── SKILL.md
-│   │   ├── scripts/epb.py          # the single CLI (thin entry; package in scripts/epb/)
-│   │   ├── scripts/epb/            # python package: workspace, convert/, segments, ledger, deid,
-│   │   │                           #   conflicts, coverage, verify, build, index, formats/
-│   │   └── references/
-│   │       ├── workspace-contract.md
-│   │       ├── evidence-pack-v2.md          # importer-exact format spec (§8.5)
-│   │       ├── evidence-types.md            # decision rules (§9)
-│   │       ├── description-quality.md       # the bar + synthetic good/bad pairs
-│   │       ├── deidentification.md
-│   │       ├── assertions-and-conflicts.md
-│   │       ├── conclusions-policy.md
-│   │       ├── tag-vocabulary.md
-│   │       └── citation-style.md
-│   ├── evidence-intake/            # scan + convert + segment (large docs, scans, media)
-│   ├── evidence-extraction/        # segments → claim ledger (chunked, parallel-safe)
-│   ├── evidence-reconcile/         # rosters, de-identification, assertions, conflicts
-│   ├── evidence-authoring/         # claims → items (descriptions, types, tags, priority)
-│   ├── evidence-verify-build/      # gates, coverage, master/delta workbook, INDEX.md
-│   └── evidence-web-snapshot/      # OPTIONAL: fetch + snapshot public sources into inputs/web/
-├── schemas/                        # JSON Schemas: source, segment, claim, item, conflict, state
+├── pyproject.toml                  # pytest and ruff configuration only
+├── requirements-dev.txt            # core + pytest + ruff + permissively licensed extras only (A23)
+├── requirements-dev-full.txt       # dev + GPL/LGPL extras, for the media CI job only (A23)
+├── plugin/                         # EVERYTHING USERS INSTALL (A4)
+│   ├── .claude-plugin/
+│   │   └── plugin.json             # Claude Code / Cowork manifest; no "skills" key (A17)
+│   ├── .codex-plugin/
+│   │   └── plugin.json             # Codex manifest; declares "skills" (A16, A17)
+│   ├── AGENTS.md                   # host-neutral rules for end users' agents
+│   ├── requirements.txt            # permissive core (A7, A23): jsonschema, PyYAML, openpyxl, defusedxml,
+│   │                               #   lxml, charset-normalizer, pdfplumber, pypdf, Pillow, rapidfuzz,
+│   │                               #   python-docx, python-pptx, beautifulsoup4, markdownify,
+│   │                               #   tzdata on Windows only (A28)
+│   ├── requirements-email.txt      # optional: extract-msg (GPL) for Outlook .msg; licence in header
+│   ├── requirements-media.txt      # optional: faster-whisper, opencv-python-headless; licence in header
+│   ├── requirements-docs.txt       # optional: docling (layout/table-aware PDF/DOCX → Markdown); licence in header
+│   ├── security-exceptions.json    # reviewed pins newer than the two-week cutoff (A26)
+│   └── skills/
+│       ├── evidence-pack/          # START HERE: router, workspace setup, run loop
+│       │   ├── SKILL.md
+│       │   ├── scripts/epb.py      # the single CLI (stdlib-only launcher, A8; package in scripts/epb/)
+│       │   ├── scripts/epb/        # python package: workspace, convert/, segments, ledger, deid,
+│       │   │   │                   #   conflicts, coverage, verify, build, index, formats/
+│       │   │   └── schemas/        # the ONLY copy of the JSON Schemas, loaded via importlib.resources (A19)
+│       │   └── references/
+│       │       ├── workspace-contract.md
+│       │       ├── evidence-pack-v2.md          # importer-exact format spec (§8.5)
+│       │       ├── evidence-types.md            # decision rules (§9)
+│       │       ├── description-quality.md       # the bar + synthetic good/bad pairs
+│       │       ├── deidentification.md
+│       │       ├── assertions-and-conflicts.md
+│       │       ├── conclusions-policy.md
+│       │       ├── tag-vocabulary.md
+│       │       └── citation-style.md
+│       ├── evidence-intake/        # scan + convert + segment (large docs, scans, media)
+│       ├── evidence-extraction/    # segments → claim ledger (chunked, parallel-safe)
+│       ├── evidence-reconcile/     # rosters, de-identification, assertions, conflicts
+│       ├── evidence-authoring/     # claims → items (descriptions, types, tags, priority)
+│       ├── evidence-verify-build/  # gates, coverage, master/delta workbook, INDEX.md
+│       └── evidence-web-snapshot/  # OPTIONAL: fetch + snapshot public sources into inputs/web/
 ├── tests/                          # pytest; synthetic fixtures generated at test time
 │   └── fixtures/synthetic-incident/ # fictional incident: text PDF, scanned PDF, docx, eml, csv,
 │                                    #   wav, mp4, jpg; all invented, no real people
 ├── evals/                          # agent-level evals (§16)
-├── samples/                        # published, de-identified sample runs on PUBLIC reports only
-│   └── <slug>/{README.md, INDEX.md, outputs/}
-├── tools/
-│   ├── install-codex.sh
-│   └── make-sample.py
+├── tools/                          # repo-only, never shipped in plugin/
+│   ├── install-codex.py            # Codex fallback installer: copies the plugin's skills into the
+│   │                               #   user's Codex skills folder (A16); cross-platform Python
+│   ├── make-smoke-pack.py          # Phase 1 synthetic edge-case workbook, written to scratch/ (A10)
+│   ├── check_dependency_age.py     # CI: two-week rule, honours plugin/security-exceptions.json (A26)
+│   └── check_licences.py           # CI: licence allow-list for core and dev requirements
 └── docs/
     ├── design/                     # this document
     ├── reference/hazira-2020/      # study material: official report + prototype pack (§3)
-    ├── INSTALL.md
-    └── USER-GUIDE.md
+    └── USER-MANUAL.md              # non-technical manual, grown per phase (A14)
 ```
 
 Each `SKILL.md` stays under ~150 lines. Shared material goes in `skills/evidence-pack/references/`, and the other skills link there. Sub-skills can be invoked directly by name, but `evidence-pack` is the normal entry point and calls them in order.
+
+The JSON Schemas (source, segment, claim, item, conflict, state, chunks and the rest) exist only in `plugin/skills/evidence-pack/scripts/epb/schemas/` (A19), so every install route carries them. Codex installs from the same `plugin/` tree through its marketplace entry or `tools/install-codex.py` (A16); nothing relies on a symlink.
 
 ## 6. The workspace contract
 
@@ -164,12 +173,21 @@ The plugin works **in the folder where it is invoked** (the "case folder"). On f
 │   └── evidence-pack-<case>-delta-003.xlsx
 ├── INDEX.md                 # human-readable status snapshot (regenerated every run)
 └── .epb/                    # plugin working state (hidden; never hand-edited)
+    ├── .gitignore           # the A2 list: segments/, ledger/, inbox/, tmp/, media/, runs/, private/
+    ├── .gitattributes       # "* -text": no line-ending conversion of state files (A20)
+    ├── lock                 # workspace lock held by mutating commands (§12.5)
     ├── case.yaml            # case slug, title, ID prefix, timezone, created, plugin version
-    ├── state.json           # input fingerprints, versions, item→version map, counters
-    ├── sources/<src-id>.json            # per-input registry record (§7.1)
+    ├── state.json           # input fingerprints, versions, item→version map, counters,
+    │                        #   per-chunk status (no raw text, A21)
+    ├── sources/<src-id>.json            # per-input registry record (§7.1, §8.1); one file per source
+    ├── inbox/                           # agent submission JSON handed to CLI verbs; raw text, may
+    │                                    #   hold names; never final state (A20)
+    ├── tmp/                             # transaction staging and journals for atomic writes (A20)
     ├── segments/<src-id>/NNNN.md        # page/time-anchored Markdown (§7.3)
     ├── segments/<src-id>/index.json
     ├── media/<src-id>/                  # extracted keyframes, audio wav, page images for OCR
+    ├── ledger/chunks.json               # chunk plan incl. raw section headings (A21); created on
+    │                                    #   first extraction
     ├── ledger/claims.jsonl              # every extracted claim (§8.2)
     ├── ledger/conclusions.jsonl         # held-back conclusions & recommendations (§11.3)
     ├── rosters/roles.yaml               # role labels + aliases (NO names)
@@ -294,7 +312,7 @@ Invoked only when the user asks (e.g. "find public coverage of this incident"). 
 ## 8. Data model
 
 ### 8.1 Source record (`.epb/sources/S001.json`)
-`src_id, version, paths[], sha256, size, mime, first_seen_run, last_processed_run, parent (for attachments/archive members), modality, converter{tool, version, options}, pages|duration, ocr{pages, mean_conf, low_conf_pages[]}, transcript{model, language, mean_conf}, source_kind (official_report | witness_statement | interview_recording | cctv | photo | system_export | procedure | permit | email | press | regulator_notice | operator_statement | sidecar | other), title, author_body (de-identified), date (with precision), citation_short ("PNGRB Enquiry Committee Report, 15-Jan-2021"), status`.
+`src_id, version, paths[], sha256, size, mime, first_seen_run, last_processed_run, parents[] (empty for top-level inputs; one entry per carrier, A22), modality, converter{tool, version, options}, pages|duration, ocr{pages, mean_conf, low_conf_pages[]}, transcript{model, language, mean_conf}, source_kind (official_report | witness_statement | interview_recording | cctv | photo | system_export | procedure | permit | email | press | regulator_notice | operator_statement | sidecar | other), title, author_body (de-identified), date (with precision), citation_short ("PNGRB Enquiry Committee Report, 15-Jan-2021"), status`.
 
 `source_kind` and `citation_short` are proposed by the agent from the first segments and confirmed in the run report.
 
@@ -368,7 +386,7 @@ The importer was read directly (ProbeMatrix `server/services/evidenceExportServi
 | QA Reviewed By / At / Verification Notes | blank | dropped by importer; verification detail lives in `.epb/runs/` |
 | Created At / Updated At | build time | ISO 8601 |
 
-**Pack Metadata** sheet, exact 10-row layout: `Incident Number` = case number from `case.yaml` (user-supplied, or `INC-<PFX>-<year>`), `Incident Title` = case title, `Total Evidence Items` = items *in this file*, `Total Attachments` = 0. Rows 7–9 carry the importer's standard notes. **Additional informational rows are not added** (the importer reads by position). Version and source information goes in the file name and `INDEX.md`.
+**Pack Metadata** sheet, exact 10-row layout: `Incident Number` = case number from `case.yaml` (user-supplied, or `INC-<PFX>-<year>`), `Incident Title` = case title, `Total Evidence Items` = items *in this file*, `Total Attachments` = 0. Row 7 is blank and rows 8–10 carry the importer's standard notes (A29). **Additional informational rows are not added** (the importer reads by position). Version and source information goes in the file name and `INDEX.md`.
 
 **No meta-items:** the source documents themselves are never evidence items (D17).
 
@@ -651,6 +669,22 @@ Project research (`.planning/research/SUMMARY.md`, "Owner Decisions Needed") rai
 | A13 (OD-12) | **Page citations:** per source, the plugin decides once which numbering applies. Reliably detected printed numbers are cited as `p.12` / `pp.16–17`; otherwise the physical page is cited as `PDF p.12`. Annexes that restart numbering use their label (`Annex B p.3`). Never mixed within one source. | §7.3, §8.4 Source |
 | A14 | **Non-technical user manual.** v0.1.0 ships a detailed manual for non-technical users covering installation and use on Windows, macOS and Linux: installing Python and the optional tools, installing the plugin in Claude Code, Cowork and Codex, first setup, a first case folder, importing into ProbeMatrix, and troubleshooting, with exact on-screen text. It is started in Phase 1 and extended in each phase that adds tools. | §5 docs, §17 |
 | A15 | **Mirrored developer instructions.** The repo root holds `AGENTS.md` and `CLAUDE.md` as exact copies of each other (not the one-line `CLAUDE.md` "See @AGENTS.md" of §5). They hold the developer instructions and are kept current: regenerated and re-copied whenever the project context, roadmap, stack or a workflow rule changes, at least at every phase transition, and committed together. A test fails if they differ. They are hand-maintained and concise, following Anthropic's guidance (target under 200 lines): aim for 60 lines or fewer, never exceed 150, keep only lines whose absence would cause agent mistakes, and point to files instead of copying them. GSD's `generate-claude-md` is never run on them. The plugin's rules for end users' agents stay in `plugin/AGENTS.md`, outside this pair. | §5 |
+| A16 (D-01) | **Codex packaging.** `plugin/.codex-plugin/plugin.json` ships next to the Claude manifest from Phase 1. The primary Codex route is `codex plugin marketplace add ashley-eyekyam/probematrix-evidence-pack-builder`. The fallback is `tools/install-codex.py`, a cross-platform Python installer that copies the plugin's skills into `$HOME/.agents/skills`; it replaces `install-codex.sh`. There is no committed `.agents/skills` symlink. Research verified that Codex prefers `.codex-plugin/plugin.json` and requires the marketplace entry name to equal the plugin name. | §5, §15.3 |
+| A17 (D-02) | **No `skills` key in the Claude manifest.** The default `skills/` scan finds the skills, so only the Codex manifest declares `skills`. CI runs `claude plugin validate --strict` when the `claude` CLI is present and skips cleanly otherwise. | §5, §15.3 |
+| A18 (D-03) | **One fixed private environment folder per user, shared by every host:** `~/.local/share/probematrix-epb/` on Linux, `%LOCALAPPDATA%\probematrix-epb\` on Windows, `~/Library/Application Support/probematrix-epb/` on macOS. The environment is keyed by plugin version, so an upgrade rebuilds cleanly. It does not use `${CLAUDE_PLUGIN_DATA}`. | Clarifies A8 |
+| A19 (D-05) | **One canonical schema copy** at `plugin/skills/evidence-pack/scripts/epb/schemas/`, loaded through `importlib.resources`. There is no root `schemas/` folder and no mirror, so every install route carries the schemas. | §5 |
+| A20 (D-06) | **Workspace additions:** `.epb/inbox/`, `.epb/tmp/`, `.epb/ledger/chunks.json` and `.epb/.gitattributes` (`* -text`). `init` creates `inbox/`, `tmp/` and `.gitattributes`; `chunks.json` is created on first extraction. `references/workspace-contract.md` marks every path as raw-text/confidential or shareable. | §6 |
+| A21 (D-07) | **Chunk data is split.** `state.json` holds the authoritative per-chunk status (chunk id, segment-ID range, `pending`/`in_progress`/`done`, claim count) and no raw text, so it stays trackable. `ledger/chunks.json` holds the chunk plan, including section headings, which are raw text and git-ignored under A2. | §6, §7.4 |
+| A22 (D-08) | **Source records carry `parents`,** a list that is empty for top-level inputs, instead of a single `parent`. An identical attachment delivered by two carriers is one source with two parents, and Chain of Custody gets one entry per carrier. | §8.1, §7.1 |
+| A23 (D-12) | **Requirements split.** `plugin/requirements.txt` holds the permissive core. Each optional extra has its own file with its licence in a header comment. The root `requirements-dev.txt` holds core, pytest, ruff and only the permissively licensed extras, and the licence allow-list check covers it. `requirements-dev-full.txt` adds the GPL/LGPL extras for the media CI job only. This replaces the rule that dev requirements include all optional extras. | §5 |
+| A24 (D-13) | **File-type detection** uses an in-house extension table plus stdlib `mimetypes`, and an in-house magic-byte table (at least PDF, ZIP/OOXML, OLE2, PNG, JPEG, GIF, WAV, MP4/MOV, MKV, 7z, gzip). When extension and content disagree, content wins and the mismatch is recorded on the source and shown in the scan report. No `python-magic`. | §7.1 |
+| A25 (D-14) | **`.7z` only through an external `7z`/`7za`/`7zz` binary.** Without one the input is `unprocessed: 7z tool not installed`, and `doctor` lists the tool with per-OS install commands. No `py7zr` (LGPL). | §7.1 |
+| A26 (D-18) | **`doctor --setup` applies the two-week rule.** In the private environment it upgrades pip to 26.1 or later, installs the core with `--uploaded-prior-to P14D`, then installs the reviewed security-exception pins from `plugin/security-exceptions.json` as a second step. CI's dependency-age check honours the same file. | A6, A8 |
+| A27 (D-19) | **Damaged workspace state exits 4.** An invalid or unparseable `.epb/state.json`, or any other damaged workspace record, exits 4 with the stable error code `STATE_INVALID` and a plain-language message saying the state is damaged and how to restore it. It never exits 1, and skills tell the agent not to hand-repair the file. | A11 |
 | A28 (D-20) | **tzdata on Windows.** `plugin/requirements.txt` adds `tzdata; sys_platform == "win32"` (Apache-2.0), so `zoneinfo` validates IANA timezone names the same way on every OS. | §5 requirements, PKG-08 |
+| A29 (research Q7) | **Pack Metadata layout correction.** Rows 1–6 are the labelled rows, row 7 is blank, and rows 8–10 carry the importer's standard notes. §8.4's "rows 7–9" was off by one. | §8.4 |
+| A30 (research Pattern 1) | **Marketplace file location.** The marketplace file lives at `<repo root>/.claude-plugin/marketplace.json` with `source: "./plugin"`. A bare root `marketplace.json` is not found by `claude plugin validate`. | §5, PKG-01 |
 
 The remaining research items (OD-13 to OD-37) are decided in the discussion of the phase they affect.
+
+Rows A16 to A30 record Phase 1 decisions (2026-10-17). Their D-NN numbers refer to `.planning/phases/01-foundations/01-CONTEXT.md`, and their research references (Q7, Pattern 1) to `.planning/phases/01-foundations/01-RESEARCH.md`.
