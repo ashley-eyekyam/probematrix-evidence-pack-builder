@@ -128,13 +128,63 @@ def _riff(head: bytes) -> str | None:
     return {b"WAVE": "audio/wav", b"AVI ": "video/x-msvideo"}.get(head[8:12])
 
 
-def _mpeg_frame(head: bytes) -> str | None:
-    """An MPEG audio frame header with a valid version, layer, bitrate and sample rate."""
-    if len(head) < 4 or head[0] != 0xFF or head[1] & 0xE0 != 0xE0:
+# MPEG audio frame headers (ISO/IEC 11172-3 and 13818-3). Bitrates in kbit/s for bitrate
+# index 1 to 14, keyed by (MPEG-1 or not, layer number 1 to 3).
+_MPEG_BITRATES_KBPS = {
+    (True, 1): (32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448),
+    (True, 2): (32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384),
+    (True, 3): (32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320),
+    (False, 1): (32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256),
+    (False, 2): (8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160),
+    (False, 3): (8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160),
+}
+# Sample rates in Hz for sample-rate index 0 to 2, keyed by the version bits
+# (3 is MPEG-1, 2 is MPEG-2, 0 is MPEG-2.5; 1 is reserved).
+_MPEG_SAMPLE_RATES = {
+    3: (44100, 48000, 32000),
+    2: (22050, 24000, 16000),
+    0: (11025, 12000, 8000),
+}
+_MPEG_VERSION_AND_LAYER = 0x1E  # byte 1: version bits 4-3, layer bits 2-1
+_MPEG_SAMPLE_RATE = 0x0C  # byte 2: sample-rate index bits 3-2
+
+
+def _mpeg_frame_length(header: bytes) -> int | None:
+    """The length in bytes of the MPEG audio frame that starts with the four bytes ``header``,
+    or ``None`` unless they are a frame header with every field valid. The largest legal frame
+    is 2,881 bytes (MPEG-2.5 Layer II, 160 kbit/s, 8 kHz, padded)."""
+    if len(header) < 4 or header[0] != 0xFF or header[1] & 0xE0 != 0xE0:
         return None
-    version, layer = (head[1] >> 3) & 3, (head[1] >> 1) & 3
-    bitrate, rate = head[2] >> 4, (head[2] >> 2) & 3
-    if version == 1 or layer == 0 or bitrate == 0xF or rate == 3:
+    version, layer_bits = (header[1] >> 3) & 3, (header[1] >> 1) & 3
+    bitrate_index, rate_index = header[2] >> 4, (header[2] >> 2) & 3
+    padding, emphasis = (header[2] >> 1) & 1, header[3] & 3
+    if version == 1 or layer_bits == 0 or rate_index == 3 or emphasis == 2:
+        return None
+    if bitrate_index in (0, 0xF):  # free format has no computable length; 15 is reserved
+        return None
+    layer = 4 - layer_bits  # layer bits 11, 10, 01 are Layers I, II, III
+    mpeg1 = version == 3
+    bitrate = _MPEG_BITRATES_KBPS[(mpeg1, layer)][bitrate_index - 1] * 1000
+    rate = _MPEG_SAMPLE_RATES[version][rate_index]
+    if layer == 1:
+        return (12 * bitrate // rate + padding) * 4
+    if layer == 3 and not mpeg1:
+        return 72 * bitrate // rate + padding
+    return 144 * bitrate // rate + padding
+
+
+def _mpeg_frame(head: bytes) -> str | None:
+    """MPEG audio without an ID3 tag. A frame header counts only when the next frame's header
+    follows at exactly the computed frame length, with the same version, layer and sample rate:
+    one plausible header alone is too easy to meet by chance (the UTF-16LE mark ``FF FE`` is
+    one)."""
+    length = _mpeg_frame_length(head[:4])
+    if length is None or len(head) < length + 4:
+        return None
+    second = head[length : length + 4]
+    if _mpeg_frame_length(second) is None:
+        return None
+    if (head[1] ^ second[1]) & _MPEG_VERSION_AND_LAYER or (head[2] ^ second[2]) & _MPEG_SAMPLE_RATE:
         return None
     return "audio/mpeg"
 

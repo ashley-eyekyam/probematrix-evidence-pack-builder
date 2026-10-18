@@ -9,6 +9,7 @@ import hashlib
 import io
 import json
 import re
+import string
 import struct
 import zipfile
 from pathlib import Path
@@ -93,6 +94,19 @@ def _riff(kind):
     return b"RIFF" + struct.pack("<I", 1000) + kind + b"synthetic chunk data"
 
 
+def _mpeg_frames(header, length, count=2):
+    """``count`` synthetic MPEG audio frames of ``length`` bytes, each starting ``header``."""
+    return (header + b"\x00" * (length - 4)) * count
+
+
+# Worked frame lengths (ISO/IEC 11172-3 and 13818-3), hard-coded rather than recomputed:
+# FF FB 90 64 is MPEG-1 Layer III, 128 kbit/s, 44.1 kHz, unpadded: 417 bytes.
+# FF FB 92 64 is the same, padded: 418 bytes.
+# FF F3 80 C4 is MPEG-2 Layer III, 64 kbit/s, 22.05 kHz, unpadded: 208 bytes.
+MPEG1_L3 = bytes.fromhex("fffb9064")
+MPEG1_L3_PADDED = bytes.fromhex("fffb9264")
+MPEG2_L3 = bytes.fromhex("fff380c4")
+
 OOXML_TYPES = b"<?xml version='1.0'?><Types/>"
 SAMPLES = {
     "pdf": (b"%PDF-1.7\n% synthetic\n", "application/pdf"),
@@ -127,7 +141,7 @@ SAMPLES = {
     "7z": (b"7z\xbc\xaf\x27\x1c\x00\x04synthetic", "application/x-7z-compressed"),
     "gzip": (b"\x1f\x8b\x08\x00\x00\x00\x00\x00", "application/gzip"),
     "id3": (b"ID3\x04\x00\x00\x00\x00\x00\x00synthetic", "audio/mpeg"),
-    "mpeg-frame": (b"\xff\xfb\x90\x64\x00\x00\x00\x00", "audio/mpeg"),
+    "mpeg-frame": (_mpeg_frames(MPEG1_L3, 417), "audio/mpeg"),
     "ogg": (b"OggS\x00\x02\x00\x00\x00\x00", "audio/ogg"),
     "tiff-le": (b"II*\x00\x08\x00\x00\x00", "image/tiff"),
     "tiff-be": (b"MM\x00*\x00\x00\x00\x08", "image/tiff"),
@@ -176,6 +190,128 @@ def test_sniff_gives_no_verdict_after_a_text_bom(tmp_path, codec):
     path = _write(tmp_path, "log.txt", _bom_text(codec, "A"))
     assert mime.sniff(path) is None
     assert mime.detect(path) == ("text/plain", None)
+
+
+# Every first character the matrix tries after a mark: ASCII letters, digits, '"', '#', '['.
+BOM_FIRST_CHARACTERS = string.ascii_letters + string.digits + '"#['
+
+
+@pytest.mark.parametrize("name", ["log.txt", "export.csv"])
+@pytest.mark.parametrize("first", list(BOM_FIRST_CHARACTERS))
+@pytest.mark.parametrize("codec", list(TEXT_BOMS))
+def test_bom_matrix(tmp_path, codec, first, name):
+    path = _write(tmp_path, name, _bom_text(codec, first + "synthetic line\r\nsecond line\r\n"))
+    assert mime.sniff(path) is None
+    assert mime.detect(path) == (mime.by_extension(name), None)
+
+
+WINDOWS_EXPORTS = {
+    "notepad-unicode": (
+        "notes.txt",
+        _bom_text("utf-16-le", "Shift handover\r\nValve V-12 closed at 06:40\r\n"),
+    ),
+    "notepad-utf16-be": (
+        "notes.txt",
+        _bom_text("utf-16-be", "Shift handover\r\nValve V-12 closed at 06:40\r\n"),
+    ),
+    "excel-unicode-text": (
+        "sheet.txt",
+        _bom_text("utf-16-le", "Time\tTag\tValue\r\n06:40\tV-12\tclosed\r\n"),
+    ),
+    "excel-csv-utf8": (
+        "sheet.csv",
+        _bom_text("utf-8", "Time,Tag,Value\r\n06:40,V-12,closed\r\n"),
+    ),
+    "powershell-out-file": (
+        "services.txt",
+        _bom_text("utf-16-le", "\r\nStatus   Name\r\n------   ----\r\nRunning  SynthSvc\r\n"),
+    ),
+    "registry-export": (
+        "settings.reg",
+        _bom_text(
+            "utf-16-le",
+            "Windows Registry Editor Version 5.00\r\n\r\n"
+            '[HKEY_CURRENT_USER\\Software\\Synth]\r\n"Mode"="1"\r\n',
+        ),
+    ),
+    "no-extension": ("EXPORT", _bom_text("utf-16-le", "Alarm summary\r\n")),
+}
+
+
+@pytest.mark.parametrize("kind", list(WINDOWS_EXPORTS))
+def test_windows_style_exports(tmp_path, kind):
+    name, data = WINDOWS_EXPORTS[kind]
+    path = _write(tmp_path, name, data)
+    assert mime.detect(path) == (mime.by_extension(name), None)
+
+
+@pytest.mark.parametrize(
+    ("data", "expected"),
+    [
+        (b"", None),
+        *[(mark, None) for mark in TEXT_BOMS.values()],
+        (TEXT_BOMS["utf-8"] + b"%PDF-1.7\n", None),
+        (b"ID3\x04\x00\x00\x00\x00\x00\x00" + _mpeg_frames(MPEG1_L3, 417), "audio/mpeg"),
+    ],
+    ids=["empty", *(f"only-{codec}" for codec in TEXT_BOMS), "utf-8-then-pdf", "id3-then-frames"],
+)
+def test_bom_only_and_bom_then_signature(tmp_path, data, expected):
+    assert mime.sniff(_write(tmp_path, "sample.bin", data)) == expected
+
+
+# --- MPEG audio frames ------------------------------------------------------------------------
+
+
+def test_mpeg_frame_needs_a_second_header(tmp_path):
+    path = _write(tmp_path, "sample.bin", MPEG1_L3 + b"\x00" * 413)
+    assert mime.sniff(path) is None
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        _mpeg_frames(MPEG1_L3, 417),
+        MPEG1_L3_PADDED + b"\x00" * 414 + MPEG1_L3,
+        _mpeg_frames(MPEG2_L3, 208),
+    ],
+    ids=["mpeg1-417", "mpeg1-padded-418", "mpeg2-208"],
+)
+def test_mpeg_two_frame_streams(tmp_path, data):
+    assert mime.sniff(_write(tmp_path, "sample.bin", data)) == "audio/mpeg"
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        MPEG1_L3 + b"\x00" * 412 + MPEG1_L3 + b"\x00" * 100,
+        MPEG1_L3 + b"\x00" * 414 + MPEG1_L3 + b"\x00" * 100,
+        MPEG1_L3 + b"\x00" * 413 + MPEG1_L3[:3],
+        MPEG1_L3 + b"\x00" * 413 + bytes.fromhex("fffd9064"),
+        MPEG1_L3 + b"\x00" * 413 + bytes.fromhex("fffb9464"),
+        MPEG1_L3 + b"\x00" * 413 + bytes.fromhex("fff39064"),
+        _mpeg_frames(bytes.fromhex("fffb0064"), 417, count=3),
+        _mpeg_frames(bytes.fromhex("fffb9066"), 417),
+    ],
+    ids=[
+        "second-header-at-416",
+        "second-header-at-418",
+        "ends-before-second-header-complete",
+        "second-header-other-layer",
+        "second-header-other-sample-rate",
+        "second-header-other-version",
+        "free-format-bitrate",
+        "reserved-emphasis",
+    ],
+)
+def test_mpeg_second_header_must_sit_exactly_at_the_frame_length(tmp_path, data):
+    assert mime.sniff(_write(tmp_path, "sample.bin", data)) is None
+
+
+def test_utf16le_text_is_not_mpeg_even_without_the_mark_check():
+    text = "Alarm log\r\n" + "08:15 Pump P-101 tripped\r\n" * 20
+    head = _bom_text("utf-16-le", text)
+    assert len(head) > 136 + 4  # long enough to hold the second header the rule looks for
+    assert mime._mpeg_frame(head) is None
 
 
 def test_docx_named_file_with_pdf_bytes_is_a_pdf_with_mismatch(tmp_path):
