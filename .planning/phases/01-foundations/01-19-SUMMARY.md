@@ -181,3 +181,9 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- Files found: init.py, test_init_defaults.py, 01-19-SUMMARY.md
+- Commits found on this branch: 5308612, a135e01, 011e069 (plus this docs commit)
+- Acceptance grep for the .epb assertion: 2 lines (helper line 196, populated-folder test line 298)
