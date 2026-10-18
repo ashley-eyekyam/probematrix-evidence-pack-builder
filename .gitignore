@@ -9,3 +9,7 @@ Thumbs.db
 .~lock.*#
 # plugin working state when a case folder is run inside the repo
 .epb/
+# git-ignored output of repo tools such as the smoke-pack builder (D-16)
+scratch/
+# .venv/ above does not match a worktree symlink to the main checkout's venv
+.venv

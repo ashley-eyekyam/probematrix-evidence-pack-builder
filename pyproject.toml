@@ -1,0 +1,24 @@
+# Tool configuration only. This repository is not an installable Python package:
+# the plugin ships from plugin/ and runs from its own private environment.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["plugin/skills/evidence-pack/scripts", "tools", "tests"]
+addopts = ["--import-mode=importlib", "--strict-markers", "-ra"]
+markers = [
+    "network: needs network access; runs only when EPB_NETWORK_TESTS=1",
+    "host: drives a real Claude Code or Codex CLI; runs only when EPB_HOST_TESTS=1",
+]
+filterwarnings = ["error::EncodingWarning"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["docs/reference"]
+
+[tool.ruff.lint]
+# PLW1514 (explicit encoding= on open()) is preview-only in ruff 0.16.10.
+# S506 forbids unsafe YAML loading.
+select = ["E4", "E7", "E9", "F", "I", "B", "S506", "PLW1514"]
+preview = true
+explicit-preview-rules = true

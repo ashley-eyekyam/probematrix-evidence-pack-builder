@@ -1,0 +1,5 @@
+# Contributor and CI environment: core plus test and lint tools.
+# Optional extras are added only in the phase that uses them.
+-r plugin/requirements.txt
+pytest>=9.0
+ruff==0.16.10
