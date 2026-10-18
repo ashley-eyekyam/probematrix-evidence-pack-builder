@@ -2,6 +2,7 @@
 inputs, open issues and run history providers on synthetic records (WS-09, PF-04)."""
 
 import json
+import os
 import re
 
 import pytest
@@ -31,6 +32,13 @@ SHA_A = "a" * 64
 SHA_B = "0123456789ab" + "c" * 52
 MASTER = "evidence-pack-acme-pump-trip-master.xlsx"
 DELTA = "evidence-pack-acme-pump-trip-delta-002.xlsx"
+
+POSIX_ONLY = pytest.mark.skipif(os.name == "nt", reason="these file names are POSIX-only here")
+
+# Every character that must never reach INDEX.md: C0 controls, DEL, C1 controls (NEL included)
+# and the two Unicode separators. ``str.splitlines()`` breaks on several of them.
+FORBIDDEN = re.compile("[\x00-\x1f\x7f-\x9f\u2028\u2029]")
+TICK_LINE = re.compile(r"^- \[[ xX]\] Imported:")
 
 
 def sections(text):
@@ -298,6 +306,46 @@ def test_links_and_special_files_from_the_latest_scan_are_issues():
         "- inputs/pipe was skipped: it is not a regular file (for example a pipe or a device).",
         "- inputs/shortcut was skipped: it is a link, which the plugin does not follow.",
     ]
+
+
+@POSIX_ONLY
+def test_scan_of_line_breaking_names_keeps_six_headings(run_epb, case_dir, tmp_path):
+    """A real scan of hostile synthetic file names cannot add a heading or forge a tick."""
+    proc = run_epb(INIT, cwd=case_dir)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    inputs_dir = case_dir / "inputs"
+    inputs_dir.mkdir(exist_ok=True)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "target.txt").write_bytes(b"synthetic file outside the case folder")
+
+    statement = inputs_dir / "statement\n## Injected heading.txt"
+    statement.write_bytes(b"synthetic witness statement")
+    log = inputs_dir / "log\u2028## Second injected heading.txt"
+    log.write_bytes(b"%PDF-1.4\n% synthetic pdf bytes under a text name\n")
+    os.symlink(
+        outside / "target.txt",
+        inputs_dir / "link\n- [x] Imported: evidence-pack-inj-master.xlsx",
+    )
+
+    first = run_epb(["scan", "--json"], cwd=case_dir)
+    assert first.returncode == 0, first.stdout + first.stderr
+    statement.unlink()
+    second = run_epb(["scan", "--json"], cwd=case_dir)
+    assert second.returncode == 0, second.stdout + second.stderr
+
+    text = (case_dir / "INDEX.md").read_text(encoding="utf-8")
+    lines = text.split("\n")
+    headings = [line for line in lines if line.startswith("## ")]
+    assert headings == [f"## {title}" for title in SECTION_TITLES]
+    assert not [line for line in lines if TICK_LINE.match(line)]
+    assert not FORBIDDEN.search(text.replace("\n", "")), sorted(set(FORBIDDEN.findall(text)))
+    assert text.splitlines() == text[:-1].split("\n")
+    issues = sections(text)["5. Open issues"]
+    assert "was removed from the folder" in issues
+    assert "Injected heading.txt" in issues
+    assert "the content is application/pdf" in issues
+    assert "was skipped: it is a link" in issues
 
 
 def test_display_id():
