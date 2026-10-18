@@ -24,7 +24,13 @@ An open-source agent plugin (Claude Code, Cowork, Codex) that turns a case folde
 ## Stack and commands
 - Python 3.11+, `pathlib` everywhere, cross-platform code. CI runs on Linux only until after v0.1.0.
 - Tests: `pytest` (no network; tests for optional tools skip when the tool is absent). Lint: `ruff`.
+- Dev environment: `python3 -m venv .venv`, upgrade pip to 26.1 or later inside it, then install `requirements-dev.txt` with `--uploaded-prior-to P14D`. In a git worktree, symlink `.venv` to the main checkout's instead.
+- Full check before every commit: `.venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/python -m pytest -q`. `EPB_NETWORK_TESTS=1` and `EPB_HOST_TESTS=1` opt in to the network and host-CLI tests.
 - The plugin ships from `plugin/`; the marketplace file sits at the repo root.
+- The CLI package is `plugin/skills/evidence-pack/scripts/epb/`. Its only schema copy is `scripts/epb/schemas/`; never add a root `schemas/` (D-05).
+- A new CLI command is a new file in `epb/commands/`. Its module-level imports must be standard library only (`tests/launcher/test_launcher.py` enforces it).
+- `tools/make-smoke-pack.py` writes only to the git-ignored `scratch/`; keep any `--out` path there too.
+- Extend `docs/USER-MANUAL.md` in every phase that adds a tool or a user step. Its quoted doctor output is checked by `tests/docs/test_manual.py`.
 
 ## Maintaining this file
 - `AGENTS.md` and `CLAUDE.md` are byte-identical. Edit one, copy it to the other, and commit both together. A CI test fails if they differ.
