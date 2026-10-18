@@ -299,7 +299,6 @@ See `key-decisions` in the frontmatter. In short:
 - **INDEX can show stale skipped-file issues (left for 01-14).** Because a no-change scan writes nothing, a link or special file added on its own appears in the envelope (and `LINK_IGNORED`) but not in INDEX Open issues until the next scan that changes something. INDEX reads the ignored list from the latest scan run.
 - **Fallback types differ by Python version.** Extensions outside the table still go through `mimetypes`, which differ between versions (`.epub` is `application/octet-stream` on 3.11 and `application/epub+zip` on 3.14). Every type the design names is in the table and identical on both. Add an extension to the table if it must be stable.
 - **Status counts removed sources as waiting.** `epb status` (01-11) counts a removed source that is still `pending` as "waiting for conversion". Plan 01-14 or 01-15 may want to exclude removed sources from that count.
-- **Unrelated test helper bug.** I fixed one test-helper bug of my own before the RED commit (the `_snapshot` helper and the `pytest` import order). There were no production issues.
 
 ## User Setup Required
 
@@ -317,3 +316,10 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+- All 9 created key files exist on disk.
+- Commits `6b12676`, `1bb6c26`, `ec0530e`, `e4aad63` and `6b8ae8a` are ancestors of HEAD on `gsd-wt-01-13` (`git rev-list --count 13264a5..HEAD` = 5 before the SUMMARY commit).
+- Plan verification: `pytest -q tests/sources tests/core tests/index tests/workspace tests/launcher` gives 392 passed. The full suite gives 947 passed and 1 skipped, and `ruff check` and `ruff format --check` are clean.
+- STATE.md, ROADMAP.md, REQUIREMENTS.md, `workspace.py` and `txn.py` are untouched, and nothing was written in the main checkout.
