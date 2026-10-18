@@ -247,7 +247,7 @@ Each hard gate blocks the build. (§14)
   - running first-time setup (`doctor --setup`) (§20 A14)
 - [ ] **DOC-02**: The manual covers everyday use: creating a case folder, adding inputs, asking the agent to build a pack, reading `INDEX.md`, importing the master and deltas into ProbeMatrix, and marking a workbook imported. (§20 A14)
 - [ ] **DOC-03**: The manual has a troubleshooting section that maps every `doctor` message and exit-4 error code to a plain-language fix. (§20 A11, A14)
-- [x] **DOC-04**: The manual explains in plain language what stays local, what the AI host sees, why case folders should not sit in sync folders, and the always-on de-identification. (§20 A1)
+- [ ] **DOC-04**: The manual explains in plain language what stays local, what the AI host sees, why case folders should not sit in sync folders, and the always-on de-identification. (§20 A1)
 - [ ] **DOC-05**: The manual is started in Phase 1 and extended in every phase that adds a tool or user step. Its Windows and macOS sections are marked "not yet tested on this system" until a post-v0.1.0 release tests them. (§20 A9, A14)
 - [ ] **DOC-06**: The shared skill references are written: workspace contract, evidence-pack-v2, evidence types, description quality (with synthetic good and bad pairs), de-identification, assertions and conflicts, conclusions policy, tag vocabulary and citation style. (§5)
 - [ ] **DOC-07**: README, CHANGELOG, CONTRIBUTING and SECURITY are written for v0.1.0. (§5)
@@ -475,7 +475,7 @@ Filled in by roadmap creation (2026-10-17). Each v1 requirement maps to exactly 
 | DOC-01 | Phase 10 | Pending |
 | DOC-02 | Phase 6 | Pending |
 | DOC-03 | Phase 10 | Pending |
-| DOC-04 | Phase 1 | Complete |
+| DOC-04 | Phase 1 | Gaps Found |
 | DOC-05 | Phase 1 | Gaps Found |
 | DOC-06 | Phase 5 | Pending |
 | DOC-07 | Phase 10 | Pending |
