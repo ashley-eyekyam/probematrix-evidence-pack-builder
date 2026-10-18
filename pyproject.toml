@@ -9,7 +9,11 @@ markers = [
     "network: needs network access; runs only when EPB_NETWORK_TESTS=1",
     "host: drives a real Claude Code or Codex CLI; runs only when EPB_HOST_TESTS=1",
 ]
-filterwarnings = ["error::EncodingWarning"]
+# openpyxl's create_temporary_file opens a text-mode temp file with no encoding; our own code stays an error.
+filterwarnings = [
+    "error::EncodingWarning",
+    "ignore:'encoding' argument not specified:EncodingWarning:openpyxl\\.worksheet\\._writer",
+]
 
 [tool.ruff]
 target-version = "py311"
