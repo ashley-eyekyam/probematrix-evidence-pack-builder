@@ -9,6 +9,10 @@ A transaction stages every file in memory, validating each record against its sc
 3. renames each blob onto its final path in manifest order;
 4. removes the journal folder.
 
+Each step calls ``faults.checkpoint`` (``stage:<i>``, ``pre-manifest``, ``manifest``,
+``apply:<i>``, ``cleanup``, and ``recover:<i>`` inside ``recover()``) so the test suite can
+crash the process for real at every one of them. Outside the tests the checkpoints do nothing.
+
 A failure before the commit point removes the journal, so nothing changes. A failure after
 it leaves the journal for ``recover()``, which rolls it forward. Recovery is idempotent.
 
@@ -25,7 +29,7 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
-from epb import fsio, schema
+from epb import faults, fsio, schema
 from epb.errors import EpbError
 from epb.state import STATE_FILE
 
@@ -36,6 +40,7 @@ MANIFEST_SCHEMA_VERSION = 1
 
 _ALLOWED_PREFIXES = (".epb/", "outputs/")
 _TMP_NAME = re.compile(r"^\d{4}$")
+_BACKUP_PATH = re.compile(r"^\.epb/runs/\d{3,}/pre-upgrade/.+$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _REPORT_HINT = (
     "Report this error code to the plugin maintainer. Do not edit the evidence or the .epb folder."
@@ -124,6 +129,20 @@ class Transaction:
         self._staged.append((rel, text.encode("utf-8")))
         return self
 
+    def stage_backup(self, rel: str, data: bytes):
+        """Stage a raw byte copy of a file, unvalidated. Only for the D-09 pre-upgrade
+        backup, so ``rel`` must lie under ``.epb/runs/<NNN>/pre-upgrade/``."""
+        self._check_path(rel)
+        if not _BACKUP_PATH.match(rel):
+            raise EpbError(
+                "INTERNAL_ERROR",
+                f"The plugin tried to write a raw copy to {rel!r}, outside a pre-upgrade "
+                "backup folder, and was stopped. Nothing was written.",
+                hint=_REPORT_HINT,
+            )
+        self._staged.append((rel, bytes(data)))
+        return self
+
     def set_state(self, state: dict):
         """Stage ``state.json``, stamped with this transaction, to be applied last."""
         state = copy.deepcopy(state)
@@ -158,6 +177,7 @@ class Transaction:
                 name = f"{index:04d}"
                 fsio.write_durable(txn_dir / name, data)
                 entries.append({"tmp": name, "final": rel, "sha256": fsio.sha256_bytes(data)})
+                faults.checkpoint(f"stage:{index}")
             manifest = {
                 "schema_version": MANIFEST_SCHEMA_VERSION,
                 "txn": self.id,
@@ -165,14 +185,17 @@ class Transaction:
                 "entries": entries,
             }
             fsio.write_durable(txn_dir / MANIFEST_TMP, fsio.json_bytes(manifest))
+            faults.checkpoint("pre-manifest")
             os.replace(txn_dir / MANIFEST_TMP, txn_dir / MANIFEST)  # COMMIT POINT
         except BaseException:
             shutil.rmtree(txn_dir, ignore_errors=True)
             raise
         # Past the commit point: no cleanup on failure, recover() rolls the journal forward.
+        faults.checkpoint("manifest")
         fsio.fsync_dir(txn_dir)
-        _apply(self.case_root, txn_dir, entries)
+        _apply(self.case_root, txn_dir, entries, "apply")
         shutil.rmtree(txn_dir)
+        faults.checkpoint("cleanup")
         fsio.fsync_dir(tmp_root)
         return self.id
 
@@ -186,21 +209,20 @@ def _journal_error(txn_dir: Path, problem: str) -> EpbError:
     )
 
 
-def _apply(case_root: Path, txn_dir: Path, entries: list) -> None:
+def _apply(case_root: Path, txn_dir: Path, entries: list, point: str) -> None:
     """Move each journalled blob onto its final path, in manifest order. An entry whose blob
-    is gone was applied by an earlier, interrupted attempt; its final file must match."""
-    for entry in entries:
+    is gone was applied by an earlier, interrupted attempt; its final file must match. The
+    checkpoint ``<point>:<i>`` follows every entry, applied now or found applied."""
+    for index, entry in enumerate(entries):
         tmp = txn_dir / entry["tmp"]
         final = case_root / entry["final"]
-        if not tmp.exists():
-            if not final.is_file() or fsio.sha256_file(final) != entry["sha256"]:
-                raise _journal_error(
-                    txn_dir, f"{entry['final']} does not match what the change wrote"
-                )
-            continue
-        final.parent.mkdir(parents=True, exist_ok=True)
-        fsio.replace_with_retry(tmp, final)
-        fsio.fsync_dir(final.parent)
+        if tmp.exists():
+            final.parent.mkdir(parents=True, exist_ok=True)
+            fsio.replace_with_retry(tmp, final)
+            fsio.fsync_dir(final.parent)
+        elif not final.is_file() or fsio.sha256_file(final) != entry["sha256"]:
+            raise _journal_error(txn_dir, f"{entry['final']} does not match what the change wrote")
+        faults.checkpoint(f"{point}:{index}")
 
 
 def _journal_dirs(case_root) -> list[Path]:
@@ -253,7 +275,7 @@ def recover(case_root) -> list[str]:
     for txn_dir in _journal_dirs(case_root):
         if (txn_dir / MANIFEST).is_file():
             manifest = _read_manifest(txn_dir)
-            _apply(case_root, txn_dir, manifest["entries"])
+            _apply(case_root, txn_dir, manifest["entries"], "recover")
             finished.append(manifest["txn"])
         # No manifest (a stray manifest.json.tmp included): the commit point was never
         # reached, so nothing was applied and the journal is simply discarded.

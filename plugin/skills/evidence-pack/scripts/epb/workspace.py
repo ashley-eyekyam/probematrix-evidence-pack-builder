@@ -13,8 +13,10 @@ be shared:
 
 Commands open the case folder through one of three sessions: ``open_for_init`` (only
 ``init``), ``open_for_mutation`` (every other changing command) and ``open_read_only``
-(commands that only look). Only the first two finish an interrupted change; plan 01-12 adds
-the workspace lock and the automatic upgrade inside them.
+(commands that only look). Only the first two take the workspace lock ``.epb/lock`` (WS-07),
+waiting up to ``--wait`` seconds for it, and finish an interrupted change while holding it.
+Then, if the case folder was written by an older plugin, they upgrade it with a backup (D-09);
+``open_read_only`` only warns ``UPGRADE_PENDING`` and never writes.
 """
 
 import re
@@ -22,7 +24,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from epb import casefile, fsio, runs, schema, txn
+from epb import casefile, fsio, lock, runs, schema, txn, upgrade
 from epb.errors import EpbError
 from epb.state import STATE_FILE, load_state
 
@@ -110,14 +112,37 @@ def _recover(case_root: Path, ctx) -> None:
         )
 
 
+def _upgrade_if_older(case_root: Path, ctx) -> None:
+    """Upgrade an older workspace (D-09); damaged or newer state stops here with exit 4."""
+    state = load_state(case_root)
+    if upgrade.needs_upgrade(state):
+        upgrade.run_upgrade(case_root, ctx, upgrade.load_snapshot(case_root, state))
+
+
+@contextmanager
+def _locked(case_root: Path, ctx, command: str):
+    """Hold the workspace lock for the duration of the block."""
+    handle = lock.acquire(case_root / lock.LOCK_FILE, wait_s=ctx.wait, command=command)
+    try:
+        yield
+    finally:
+        handle.release()
+
+
 @contextmanager
 def open_for_init(case_root, ctx):
-    """The session ``init`` runs in: create ``.epb/tmp/``, finish any interrupted change,
-    then report whether the folder is already set up."""
+    """The session ``init`` runs in: take the workspace lock, create ``.epb/tmp/``, finish any
+    interrupted change, upgrade an older workspace, then report whether the folder is already
+    set up."""
     case_root = Path(case_root)
-    (case_root / txn.TMP_DIR).mkdir(parents=True, exist_ok=True)
-    _recover(case_root, ctx)
-    yield InitSession(case_root=case_root, state_exists=(case_root / STATE_FILE).exists())
+    (case_root / ".epb").mkdir(parents=True, exist_ok=True)
+    with _locked(case_root, ctx, "init"):
+        (case_root / txn.TMP_DIR).mkdir(parents=True, exist_ok=True)
+        _recover(case_root, ctx)
+        state_exists = (case_root / STATE_FILE).exists()
+        if state_exists:
+            _upgrade_if_older(case_root, ctx)
+        yield InitSession(case_root=case_root, state_exists=state_exists)
 
 
 def missing_layout(case_root) -> list[str]:
@@ -203,13 +228,23 @@ def open_read_only(case_root, ctx) -> Session:
             "The last command was interrupted. The next command that changes the case folder "
             "will finish it.",
         )
-    return _load(case_root)
+    session = _load(case_root)
+    if upgrade.needs_upgrade(session.state):
+        ctx.warn(
+            "UPGRADE_PENDING",
+            "This case folder uses an older workspace version. The next command that changes "
+            "it will upgrade it and keep a backup.",
+        )
+    return session
 
 
 @contextmanager
 def open_for_mutation(case_root, ctx, command):
     """The session every changing command except ``init`` runs in: find the case folder,
-    finish any interrupted change, then load it."""
+    take the workspace lock, finish any interrupted change, upgrade an older workspace, then
+    load it."""
     case_root = find_workspace(case_root)
-    _recover(case_root, ctx)
-    yield _load(case_root)
+    with _locked(case_root, ctx, command):
+        _recover(case_root, ctx)
+        _upgrade_if_older(case_root, ctx)
+        yield _load(case_root)
