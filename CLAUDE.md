@@ -25,7 +25,7 @@ An open-source agent plugin (Claude Code, Cowork, Codex) that turns a case folde
 - Python 3.11+, `pathlib` everywhere, cross-platform code. CI runs on Linux only until after v0.1.0.
 - Tests: `pytest` (no network; tests for optional tools skip when the tool is absent). Lint: `ruff`.
 - Dev environment: `python3 -m venv .venv`, upgrade pip to 26.1 or later inside it, then install `requirements-dev.txt` with `--uploaded-prior-to P14D`. In a git worktree, symlink `.venv` to the main checkout's instead.
-- Full check before every commit, with the same encoding check CI runs: `.venv/bin/ruff check . && .venv/bin/ruff format --check . && PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q`. `EPB_NETWORK_TESTS=1` and `EPB_HOST_TESTS=1` opt in to the network and host-CLI tests.
+- Full check before every commit, with the same encoding and licence checks CI runs: `.venv/bin/ruff check . && .venv/bin/ruff format --check . && PYTHONWARNDEFAULTENCODING=1 .venv/bin/python -m pytest -q && .venv/bin/python tools/check_licences.py`. `EPB_NETWORK_TESTS=1` and `EPB_HOST_TESTS=1` opt in to the network and host-CLI tests.
 - The plugin ships from `plugin/`; the marketplace file sits at the repo root.
 - The CLI package is `plugin/skills/evidence-pack/scripts/epb/`. Its only schema copy is `scripts/epb/schemas/`; never add a root `schemas/` (D-05).
 - A new CLI command is a new file in `epb/commands/`. Its module-level imports must be standard library only (`tests/launcher/test_launcher.py` enforces it).

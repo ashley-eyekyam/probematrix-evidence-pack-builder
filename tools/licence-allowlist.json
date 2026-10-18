@@ -41,6 +41,11 @@
       "licence": "BSD-3-Clause AND Apache-2.0",
       "reason": "The License field is free text listing BSD-3-Clause, Apache-2.0 and the licences of bundled dependencies; the project and its bundled PDFium are BSD-3-Clause and Apache-2.0.",
       "reviewed_on": "2026-10-17"
+    },
+    "setuptools": {
+      "licence": "MIT",
+      "reason": "Not a project dependency: the GitHub Actions Python 3.11 toolcache preinstalls setuptools as a bootstrap tool, so the licence check sees it only on the 3.11 leg. setuptools is MIT-licensed, but the preinstalled 79.0.1 ships no License-Expression, License field or licence classifier the check can read (GitHub run 39141925712).",
+      "reviewed_on": "2026-10-18"
     }
   }
 }
