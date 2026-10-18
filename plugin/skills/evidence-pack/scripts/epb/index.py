@@ -157,6 +157,12 @@ def _path_text(source) -> str:
     return ", ".join(_paths(source)) or NONE_YET
 
 
+def _note_target(source) -> str | None:
+    from epb.sources.sidecars import orphan_target
+
+    return orphan_target(source)
+
+
 def display_id(source) -> str:
     """``S001`` for version 1 of a source and ``S004v2`` for version 2."""
     version = source.get("current_version") or 1
@@ -327,8 +333,16 @@ def open_issues(inputs: IndexInputs) -> str:
                 f"- {label}: the content is {mismatch.get('by_content')}, but the file name "
                 f"suggests {mismatch.get('by_extension')}. The content was used."
             )
-        if source.get("source_kind") == "sidecar" and not source.get("sidecar_of"):
-            issues.append(f"- {label} is a note file with no matching input file.")
+        if (
+            source.get("source_kind") == "sidecar"
+            and not source.get("sidecar_of")
+            and source.get("presence") != REMOVED
+        ):
+            target = _note_target(source)
+            if target:
+                issues.append(f"- {label} is a note for {target}, but that file is not in inputs/.")
+            else:
+                issues.append(f"- {label} is a note file with no matching input file.")
     scan = _latest_scan(inputs.runs)
     if scan:
         for entry in sorted(scan.get("ignored") or [], key=lambda item: item.get("path", "")):

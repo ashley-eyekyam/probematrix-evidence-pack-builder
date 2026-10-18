@@ -278,7 +278,8 @@ def test_open_issues():
         "- S001 (inputs/a/report.pdf): the content is application/pdf, but the file name "
         "suggests text/plain. The content was used.",
         "- S003 (inputs/c/old.docx) was removed from the folder. Its record is kept.",
-        "- S004 (inputs/d/orphan.note.md) is a note file with no matching input file.",
+        "- S004 (inputs/d/orphan.note.md) is a note for inputs/d/orphan, but that file is not "
+        "in inputs/.",
     ]
 
 

@@ -17,6 +17,7 @@ from pathlib import Path
 
 from epb import fsio, mime
 from epb.errors import EpbError
+from epb.sources.sidecars import orphan_target, pair_sidecars, sidecar_target
 
 INPUTS_DIR = "inputs"
 SOURCES_DIR = ".epb/sources"
@@ -217,10 +218,11 @@ def _paths_text(paths) -> str:
     return ", ".join(sorted(paths))
 
 
-def _change_lines(plan) -> list:
+def _change_lines(plan, pairing) -> list:
     """One plain-language line per change, in a fixed order: new versions, new inputs,
-    renames, copies, moves, restores, removals. Each line starts with the source's ID as the
-    user sees it (``S004`` or ``S004v2``) and one of its paths."""
+    renames, copies, moves, restores, removals, then notes newly paired with their inputs.
+    Each line starts with the source's ID as the user sees it (``S004`` or ``S004v2``) and one
+    of its paths."""
     from epb.index import display_id
 
     by_id = {record["src_id"]: record for record in plan.sources}
@@ -289,6 +291,14 @@ def _change_lines(plan) -> list:
             )
         else:
             line(src_id, _paths_text(last), "removed from the folder; its record is kept")
+    for pair in pairing.pairs:
+        if pair["src_id"] not in pairing.changed:
+            continue
+        note, target = by_id[pair["src_id"]], by_id[pair["target"]]
+        path = next(rel for rel in sorted(note["paths"]) if sidecar_target(rel) in target["paths"])
+        lines.append(
+            f"{display_id(note)} {path}: a note for {display_id(target)} ({sidecar_target(path)})"
+        )
     return lines
 
 
@@ -307,7 +317,7 @@ def _last_paths(record) -> list:
     return list(record["versions"][-1]["paths"])
 
 
-def _scan_record(plan, walk) -> dict:
+def _scan_record(plan, walk, pairing) -> dict:
     return {
         "new": list(plan.new),
         "new_versions": list(plan.new_versions),
@@ -318,12 +328,12 @@ def _scan_record(plan, walk) -> dict:
         "restored": list(plan.restored),
         "ignored": [{"path": item.rel, "reason": item.reason} for item in walk.ignored],
         "mime_mismatches": list(plan.mime_mismatches),
-        "sidecars": [],
-        "orphan_sidecars": [],
+        "sidecars": list(pairing.pairs),
+        "orphan_sidecars": list(pairing.orphans),
     }
 
 
-def _data(plan, walk, run_id, changed) -> dict:
+def _data(plan, walk, pairing, run_id, changed) -> dict:
     return {
         "changed": changed,
         "run": run_id,
@@ -335,6 +345,8 @@ def _data(plan, walk, run_id, changed) -> dict:
         "removed": list(plan.removed),
         "restored": list(plan.restored),
         "ignored": [{"path": item.rel, "reason": item.reason} for item in walk.ignored],
+        "sidecars": list(pairing.pairs),
+        "orphan_sidecars": list(pairing.orphans),
         "sources_total": len(plan.sources),
     }
 
@@ -347,6 +359,20 @@ def _warn_ignored(walk, ctx) -> None:
                 f"{item.rel} is a link (a shortcut to somewhere else), so it was not followed.",
                 "If it points to evidence, copy the file itself into the inputs folder.",
             )
+
+
+def _warn_orphans(plan, pairing, ctx) -> None:
+    by_id = {record["src_id"]: record for record in plan.sources}
+    for src_id in pairing.orphans:
+        record = by_id[src_id]
+        target = orphan_target(record)
+        note = next(rel for rel in sorted(record["paths"]) if sidecar_target(rel) == target)
+        ctx.warn(
+            "SIDECAR_ORPHAN",
+            f"{note} is a note for {target}, but that file is not in inputs/.",
+            "Put the file it describes next to it, or rename the note to match that file's "
+            "name exactly.",
+        )
 
 
 def _label(kind: str) -> str:
@@ -422,15 +448,28 @@ def run_scan(session, ctx):
         run_id=next_run,
         source_counter=state["counters"]["source"],
     )
+    # Pairing works on the records classify returned (copies), before anything is staged, so
+    # it commits in the same transaction as the records it links (WS-04).
+    pairing = pair_sidecars(
+        plan.sources, {rel: entry["src_id"] for rel, entry in plan.fingerprints.items()}
+    )
+    originals = {record["src_id"]: record for record in session.sources}
+    plan.records = [record for record in plan.sources if record != originals.get(record["src_id"])]
+    plan.changed = plan.changed or bool(plan.records)
+    _warn_orphans(plan, pairing, ctx)
     if not plan.changed:
         message = NO_FILES if not session.sources and not walk.files else NO_CHANGES
-        return Result(data=_data(plan, walk, None, False), message=message)
+        return Result(data=_data(plan, walk, pairing, None, False), message=message)
 
     _warn_changes(plan, ctx)
     _run_expanders(case_root, plan)
     summary = _summary(plan)
     run_id, run_record = runs.new_run(
-        state, "scan", started_at=started_at, summary=summary, scan=_scan_record(plan, walk)
+        state,
+        "scan",
+        started_at=started_at,
+        summary=summary,
+        scan=_scan_record(plan, walk, pairing),
     )
     state["fingerprints"] = plan.fingerprints
     state["counters"]["source"] = plan.source_counter
@@ -449,8 +488,8 @@ def run_scan(session, ctx):
     message = "\n".join(
         [
             summary,
-            *_change_lines(plan),
+            *_change_lines(plan, pairing),
             f"Run {run_id}. See INDEX.md in the case folder for the full list.",
         ]
     )
-    return Result(data=_data(plan, walk, run_id, True), message=message)
+    return Result(data=_data(plan, walk, pairing, run_id, True), message=message)
