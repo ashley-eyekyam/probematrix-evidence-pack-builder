@@ -229,7 +229,10 @@ NO_CHANGES = "No changes since the last scan."
 
 
 def _case_snapshot(case_dir):
-    return _snapshot(case_dir)
+    """The case folder minus ``.epb/lock``, whose holder record every mutating command rewrites."""
+    found = _snapshot(case_dir)
+    found.pop(".epb/lock", None)
+    return found
 
 
 @pytest.mark.parametrize("missing", [False, True], ids=["empty-inputs", "no-inputs-folder"])
