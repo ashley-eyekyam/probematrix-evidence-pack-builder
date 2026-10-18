@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epb:chunks",
+  "title": "epb chunk plan (.epb/ledger/chunks.json)",
+  "description": "The extraction chunk plan (design §7.4). Section headings are raw source text, so this file lives in the git-ignored ledger/ (D-06, D-07). Declared in Phase 1, first written by the Phase 3 extraction planner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "chunks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/chunk"
+      }
+    }
+  },
+  "$defs": {
+    "seg_id": {
+      "type": "string",
+      "pattern": "^S\\d{3,}(v\\d+)?-[a-z]\\d{3,}$"
+    },
+    "chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chunk_id",
+        "src_id",
+        "version",
+        "section_path",
+        "seg_ids",
+        "est_tokens",
+        "overlap_from"
+      ],
+      "properties": {
+        "chunk_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "src_id": {
+          "type": "string",
+          "pattern": "^S\\d{3,}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "section_path": {
+          "description": "The section headings above this chunk, outermost first (raw text).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seg_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/seg_id"
+          }
+        },
+        "est_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "overlap_from": {
+          "description": "The segment repeated from the previous chunk, or null.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/seg_id"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
