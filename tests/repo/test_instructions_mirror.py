@@ -9,8 +9,24 @@ MAX_LINES = 150
 
 
 def check_instructions(agents: bytes | None, claude: bytes | None, max_lines=MAX_LINES):
-    """Return a list of problems with the two instruction files; empty means they pass."""
-    return []
+    """Return a list of problems with the two instruction files; empty means they pass.
+
+    ``None`` means the file does not exist. The comparison is byte-for-byte, so a CRLF
+    versus LF or trailing-newline difference counts as a difference.
+    """
+    problems = []
+    for name, data in (("AGENTS.md", agents), ("CLAUDE.md", claude)):
+        if data is None:
+            problems.append(f"{name} is missing")
+        elif not data.strip():
+            problems.append(f"{name} is empty")
+        else:
+            count = len(data.splitlines())
+            if count > max_lines:
+                problems.append(f"{name} has {count} lines; the limit is {max_lines}")
+    if agents is not None and claude is not None and agents != claude:
+        problems.append("AGENTS.md and CLAUDE.md differ; copy one over the other")
+    return problems
 
 
 def _read(name):
