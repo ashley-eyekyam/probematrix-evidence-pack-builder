@@ -176,3 +176,7 @@ None. No external service configuration is required.
 ---
 *Phase: 01-foundations*
 *Completed: 2026-10-18*
+
+## Self-Check: PASSED
+
+All 6 task commits (1116f2e, 5b6fc48, bf2b916, 7d7849c, dc1c090, f8237df) are on HEAD; tests/repo/test_text_subprocess_encoding.py and this SUMMARY exist.
