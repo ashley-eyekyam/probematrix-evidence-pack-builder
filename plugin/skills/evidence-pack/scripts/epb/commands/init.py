@@ -5,6 +5,9 @@ the ignore files, ``INDEX.md`` and ``.epb/state.json`` in one journalled transac
 store that every later changing command uses. The CLI never prompts: the skill asks the user
 for the case title, and every other setting has a default. Running it again on a folder that
 is already set up changes nothing, and it never overwrites an ``INDEX.md`` it did not make.
+
+After the transaction commits, init warns (exit 0) when the folder appears to be inside a
+cloud sync folder or a git repository that tracks or would track ``.epb/private/``.
 """
 
 from epb.errors import EpbError
@@ -100,6 +103,8 @@ def run(args, ctx):
         )
         transaction.set_state(state)
         transaction.commit()
+    # Only now that the case folder is set up: the checks read, never write, and never fail init.
+    _folder_warnings(case, ctx)
     return Result(
         data={
             "case_folder": str(case),
@@ -112,6 +117,26 @@ def run(args, ctx):
             "Put the evidence files in the inputs folder, then ask the agent to scan them."
         ),
     )
+
+
+def _folder_warnings(case, ctx):
+    """Warn when the case folder appears to be inside a cloud sync folder (WS-12, A1) or a git
+    repository that tracks or would track ``.epb/private/`` (WS-11, A2). A check that raises
+    or times out gives no warning: the case folder is already set up, so init still succeeds.
+    """
+    from epb.doctor import gitcheck, syncfolders
+
+    found = []
+    try:
+        found.extend(syncfolders.warning_for(hit) for hit in syncfolders.check(case))
+    except Exception:  # a heuristic must never fail a finished init
+        pass
+    try:
+        found.extend(gitcheck.check(case))
+    except Exception:  # git problems are warnings at most
+        pass
+    for item in found:
+        ctx.warn(item["code"], item["message"], item.get("hint"))
 
 
 def _case_data(record):
