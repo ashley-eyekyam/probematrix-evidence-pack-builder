@@ -90,7 +90,9 @@ def test_derive_slug(folder, slug):
 
 
 def test_derive_slug_is_capped_at_forty_characters_without_a_trailing_hyphen():
-    slug = casefile.derive_slug("abcdefghij " * 3 + "abcdefghi jklmnop")
+    # The 40-character cut lands just after a hyphen, which must then be stripped.
+    slug = casefile.derive_slug("abcdefghij " * 3 + "abcdef ghijkl")
+    assert slug == "abcdefghij-abcdefghij-abcdefghij-abcdef"
     assert len(slug) <= 40
     assert not slug.endswith("-")
     assert re.fullmatch(SLUG_RE, slug)

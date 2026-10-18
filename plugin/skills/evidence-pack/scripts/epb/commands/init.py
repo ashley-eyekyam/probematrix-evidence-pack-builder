@@ -35,7 +35,7 @@ def add_arguments(parser):
 def run(args, ctx):
     from epb import __version__, casefile, fsio, txn, yamlio
     from epb.cli import Result
-    from epb.state import STATE_FILE, new_state
+    from epb.state import STATE_FILE, load_state, new_state
 
     case = ctx.case
     if not case.is_dir():
@@ -51,9 +51,21 @@ def run(args, ctx):
             f"An interrupted change ({txn_id}) was finished before this command ran.",
         )
     if (case / STATE_FILE).exists():
+        load_state(case)
+        record = casefile.load_case(case)
+        fields = casefile.differences(record, args)
+        if fields:
+            flags = ", ".join(f"--{field}" for field in fields)
+            raise EpbError(
+                "WORKSPACE_EXISTS",
+                "This folder is already set up as a case folder with different settings: "
+                f"{flags}. Case settings are fixed once set up.",
+                hint="Run init without those options, or set up a new folder for another case.",
+                data={"fields": fields},
+            )
         ctx.warn("ALREADY_SET_UP", "This folder is already set up as a case folder.")
         return Result(
-            data={"case_folder": str(case), "created": []},
+            data={"case_folder": str(case), "created": [], "case": _case_data(record)},
             message="Nothing to do: this folder is already set up as a case folder.",
         )
     settings = casefile.resolve_settings(args, case)
@@ -66,12 +78,12 @@ def run(args, ctx):
         data={
             "case_folder": str(case),
             "created": [casefile.CASE_FILE, STATE_FILE],
-            "case": {
-                "title": settings.title,
-                "slug": settings.slug,
-                "id_prefix": settings.id_prefix,
-                "timezone": settings.timezone,
-            },
+            "case": _case_data(record),
         },
         message=f"Case folder set up: {settings.title}",
     )
+
+
+def _case_data(record):
+    """The four settings ``init`` reports back."""
+    return {key: record[key] for key in ("title", "slug", "id_prefix", "timezone")}
